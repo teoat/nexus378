@@ -1,0 +1,12 @@
+{
+    "cache_control": "public, max-age=30",
+    "etag": "\"4ee1564dd32759c25b220b153a80ff37\"",
+    "has_zst": {
+        "last_checked": "2025-06-05T15:09:51Z",
+        "value": true
+    },
+    "mod": "Wed, 04 Jun 2025 17:36:24 GMT",
+    "mtime_ns": 1749136194881436196,
+    "size": 5608540,
+    "url": "https://repo.anaconda.com/pkgs/main/noarch/repodata.json"
+}

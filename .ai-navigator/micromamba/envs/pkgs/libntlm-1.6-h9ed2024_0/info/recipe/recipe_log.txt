@@ -1,0 +1,153 @@
+commit c41b3aa8da1187a29b92938842c586ccf0117275
+Author: Kai Tietz <ktietz@anaconda.com>
+Date:   Fri Sep 17 01:59:09 2021 +0200
+
+    bump version to 1.6
+
+commit e2c70b988576aeba66d20b3fdce3d193d297606a
+Author: Kai Tietz <ktietz@anaconda.com>
+Date:   Fri Sep 17 01:52:10 2021 +0200
+
+    add myself as recipe-maintainer
+
+commit 5ce4ab6de326f8c38b84f87063b8c20d508d84bf
+Author: Kai Tietz <ktietz@anaconda.com>
+Date:   Thu Sep 2 11:21:13 2021 +0200
+
+    add osx-arm64 support
+
+commit 571bddb6912ebd1d24babfa3dc1f586b45237bd1
+Author: Jonathan Helmus <jjhelmus@gmail.com>
+Date:   Wed Mar 13 16:47:39 2019 -0500
+
+    1.5
+
+commit 1531524caef0d93a3e8c38b7cb364c95d97e25c3
+Author: Ray Donnelly <mingw.android@gmail.com>
+Date:   Thu May 24 14:50:37 2018 +0100
+
+    Add make dep
+
+commit f995a5fe996afaa3ed573b101ddd976f33473015
+Author: Jonathan Helmus <jjhelmus@gmail.com>
+Date:   Thu Jan 11 12:09:33 2018 -0600
+
+    add run_exports
+
+commit 1178f57ae2118fbee88fb80cecb69313554ad873
+Author: Ray Donnelly <mingw.android@gmail.com>
+Date:   Sat Oct 21 04:35:13 2017 -0700
+
+    Skip on Windows
+
+commit 6b909023a68ed1521aa6612d3868e93046ac7247
+Author: Ray Donnelly <mingw.android@gmail.com>
+Date:   Wed Oct 18 00:13:13 2017 +0100
+
+    Add conda-build 3 cross-compilation support
+
+commit 6a7e9592c7f1f7199a05a0970e3b9973d2790162
+Merge: 05d2dca 2b815b0
+Author: Martin Durant <martindurant@users.noreply.github.com>
+Date:   Sun Oct 8 11:00:56 2017 -0400
+
+    Merge pull request #5 from mariusvniekerk/osx
+    
+    Updated build recipe to support compilation on osx`
+
+commit 2b815b00846043844f21aad4f6e088060c294dc1
+Merge: 68da35c 05d2dca
+Author: Marius van Niekerk <marius.v.niekerk@gmail.com>
+Date:   Fri Oct 6 20:34:14 2017 -0400
+
+    Merge branch 'master' into osx
+
+commit 05d2dcafbd359c17c34804fae5483e4541d7ef0e
+Merge: b328963 38277df
+Author: Kristopher Overholt <koverholt@gmail.com>
+Date:   Thu Oct 5 10:06:26 2017 -0500
+
+    Merge pull request #4 from koverholt/add-maintainer
+    
+    Add recipe maintainer
+
+commit 68da35c3b2700ba81d90ba5ec91b081e41183f73
+Author: Marius Van Niekerk <marius.v.niekerk@gmail.com>
+Date:   Wed Oct 4 15:35:03 2017 -0400
+
+    MNT: Re-rendered with conda-smithy 2.4.2
+
+commit 513a9abfe18f7c62b98bae9311b1891c18463b15
+Author: Marius Van Niekerk <marius.v.niekerk@gmail.com>
+Date:   Wed Oct 4 15:33:18 2017 -0400
+
+    Added support for building on osx
+
+commit b3289636ba8d47710389b84746434fa450258d82
+Author: Travis-CI on github.com/conda-forge/staged-recipes <conda-forge@googlegroups.com>
+Date:   Sat Aug 26 19:41:22 2017 +0000
+
+    [ci skip] [skip ci] Update anaconda token
+
+commit 38277dfef97a6a71c2db386979d607a9b49a9cb0
+Author: Kristopher Overholt <koverholt@gmail.com>
+Date:   Mon Jul 31 09:59:13 2017 -0500
+
+    Add martindurant as maintainer
+
+commit 516a7ba72e119bee180e7f9054bc77dc44aec606
+Merge: e1a60ca 12397fa
+Author: Kristopher Overholt <koverholt@gmail.com>
+Date:   Sun Mar 12 22:53:47 2017 -0500
+
+    Merge pull request #3 from conda-forge-admin/feedstock_rerender_master
+    
+    MNT: Re-render the feedstock [ci skip]
+
+commit 12397fa2f63d54d5ce87e1b9c2bf7501b46b7ea1
+Author: conda-forge-admin <pelson.pub+conda-forge@gmail.com>
+Date:   Mon Mar 13 01:41:20 2017 +0000
+
+    MNT: Updated the feedstock for conda-smithy version 2.1.1.
+
+commit e1a60ca337403640b47981c184a6f57a62ed181d
+Merge: b4606d7 97fe4fe
+Author: jakirkham <jakirkham@gmail.com>
+Date:   Mon Oct 31 21:46:00 2016 -0400
+
+    Merge pull request #2 from conda-forge-admin/feedstock_rerender_master
+    
+    MNT: Re-render the feedstock [ci skip]
+
+commit 97fe4fedd4606342ffcd84b9d39ff87ee7da8f58
+Author: conda-forge-admin <pelson.pub+conda-forge@gmail.com>
+Date:   Sun Oct 30 01:37:08 2016 +0000
+
+    MNT: Updated the feedstock for conda-smithy version 1.4.2.
+
+commit b4606d72a9782142fd795a6915c62f2b57d98139
+Merge: c6ecb5a e42b58e
+Author: Phil Elson <pelson.pub@gmail.com>
+Date:   Mon Jul 11 15:08:24 2016 -0500
+
+    Merge pull request #1 from jakirkham/rerender_1_0_0
+    
+    Re-render with `conda-smithy` version `1.0.0`
+
+commit e42b58e7cea96ec47a6789d56908d01faf21ca8e
+Author: John Kirkham <kirkhamj@janelia.hhmi.org>
+Date:   Sun Jul 10 20:12:28 2016 -0400
+
+    Re-render with `conda-smithy` version `1.0.0`.
+
+commit c6ecb5a316f043af62fac065c40d5840cafb74ea
+Author: Travis-CI on github.com/conda-forge/staged-recipes <conda-forge@googlegroups.com>
+Date:   Fri May 20 03:27:00 2016 +0000
+
+    Re-render the feedstock after CI registration.
+
+commit a8b17b28d0fa88a6bebbd65c3bff8c5e4261bbf5
+Author: Travis-CI on github.com/conda-forge/staged-recipes <conda-forge@googlegroups.com>
+Date:   Fri May 20 03:25:48 2016 +0000
+
+    Initial commit of the libntlm feedstock.

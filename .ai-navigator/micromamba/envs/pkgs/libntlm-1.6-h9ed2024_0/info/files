@@ -1,0 +1,5 @@
+include/ntlm.h
+lib/libntlm.0.dylib
+lib/libntlm.a
+lib/libntlm.dylib
+lib/pkgconfig/libntlm.pc

@@ -1,0 +1,23 @@
+==> /var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_40wrq3pkmy/croot/llama.cpp-meta_1738250571074/_build_env/bin/git log -n1 <==
+commit d35af7061378fbebeb678bc1df8722cb1220bcc9
+Author: John Noller <jnoller@anaconda.com>
+Date:   Wed Nov 6 14:25:40 2024 -0400
+
+    fix convert_lora_to_gguf.py
+    
+    convert_lora_to_gguf.py uses relative, unqualified imports that fail when the tools/scripts
+    are correctly packaged and namespaced. Additionally, there is no main definition to run the script,
+    and the logic is contained in the `if __name__ == '__main__':` block breaking the entry point
+    definitions.
+    
+    This patch can be dropped if/when the upstream repo is refactored to follow python package conventions
+    and the import statement and `if __name__ == '__main__':` block are updated to follow best practices.
+==> /var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_40wrq3pkmy/croot/llama.cpp-meta_1738250571074/_build_env/bin/git describe --tags --dirty <==
+b4575-3-gd35af7061
+==> /var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_40wrq3pkmy/croot/llama.cpp-meta_1738250571074/_build_env/bin/git status <==
+HEAD detached from b4575
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	metadata_conda_debug.yaml
+
+nothing added to commit but untracked files present (use "git add" to track)

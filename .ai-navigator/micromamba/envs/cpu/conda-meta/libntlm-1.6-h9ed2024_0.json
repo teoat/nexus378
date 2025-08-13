@@ -1,0 +1,74 @@
+{
+    "arch": "x86_64",
+    "build": "h9ed2024_0",
+    "build_number": 0,
+    "build_string": "h9ed2024_0",
+    "channel": "pkgs/main",
+    "constrains": [],
+    "depends": [],
+    "extracted_package_dir": "/Users/Arief/.ai-navigator/micromamba/envs/pkgs/libntlm-1.6-h9ed2024_0",
+    "files": [
+        "include/ntlm.h",
+        "lib/libntlm.0.dylib",
+        "lib/libntlm.a",
+        "lib/libntlm.dylib",
+        "lib/pkgconfig/libntlm.pc"
+    ],
+    "fn": "libntlm-1.6-h9ed2024_0.conda",
+    "license": "LGPL-2.1",
+    "link": {
+        "source": "/Users/Arief/.ai-navigator/micromamba/envs/pkgs/libntlm-1.6-h9ed2024_0",
+        "type": 1
+    },
+    "md5": "e33f18c81f94f71d282c1f7f3bd1ec05",
+    "name": "libntlm",
+    "package_tarball_full_path": "/Users/Arief/.ai-navigator/micromamba/envs/pkgs/libntlm-1.6-h9ed2024_0.tar.bz2",
+    "paths_data": {
+        "paths": [
+            {
+                "_path": "include/ntlm.h",
+                "path_type": "hardlink",
+                "sha256": "5d4535a8e3b63f1737353526b4d80bdab46ec465473d460958ee60132e4ad496",
+                "sha256_in_prefix": "5d4535a8e3b63f1737353526b4d80bdab46ec465473d460958ee60132e4ad496",
+                "size_in_bytes": 3659
+            },
+            {
+                "_path": "lib/libntlm.0.dylib",
+                "path_type": "hardlink",
+                "sha256": "204fefee07342f5104122c121a4e5f5b14902e78fa8281a103f49a52416db359",
+                "sha256_in_prefix": "204fefee07342f5104122c121a4e5f5b14902e78fa8281a103f49a52416db359",
+                "size_in_bytes": 39592
+            },
+            {
+                "_path": "lib/libntlm.a",
+                "path_type": "hardlink",
+                "sha256": "ccfc16e6124f2080babe34ee55304d6acef4c27076051fbbce30e0c7d30d8b48",
+                "sha256_in_prefix": "ccfc16e6124f2080babe34ee55304d6acef4c27076051fbbce30e0c7d30d8b48",
+                "size_in_bytes": 37032
+            },
+            {
+                "_path": "lib/libntlm.dylib",
+                "path_type": "softlink",
+                "sha256_in_prefix": "204fefee07342f5104122c121a4e5f5b14902e78fa8281a103f49a52416db359",
+                "size_in_bytes": 39592
+            },
+            {
+                "_path": "lib/pkgconfig/libntlm.pc",
+                "path_type": "hardlink",
+                "sha256": "875ffb540d9f45bbaded1aeb21250ec02ae5c241aa5866e6fa795c36a64183c9",
+                "sha256_in_prefix": "4857805cbc94e547babd21377080b98ed183d71734e38406497ac2cbdaae96e1",
+                "size_in_bytes": 757
+            }
+        ],
+        "paths_version": 1
+    },
+    "platform": "osx",
+    "requested_spec": "",
+    "sha256": "cf6169747ad57f335a8a5127fdb3cf3d46d767981b76e386121963817b885e36",
+    "size": 32048,
+    "subdir": "osx-64",
+    "timestamp": 1631837645049,
+    "track_features": "",
+    "url": "https://repo.anaconda.com/pkgs/main/osx-64/libntlm-1.6-h9ed2024_0.conda",
+    "version": "1.6"
+}

@@ -1,0 +1,8 @@
+{
+  "cxx_compiler": "clang_bootstrap",
+  "channel_targets": "defaults",
+  "CONDA_BUILD_SYSROOT": "/opt/MacOSX10.10.sdk",
+  "MACOSX_DEPLOYMENT_TARGET": "10.9",
+  "target_platform": "osx-64",
+  "cxx_compiler_version": "*"
+}

@@ -1,0 +1,12 @@
+{
+    "cache_control": "public, max-age=30",
+    "etag": "\"0a57bd0ccba8941dc4fb73e924b85040\"",
+    "has_zst": {
+        "last_checked": "2025-06-05T15:09:51Z",
+        "value": true
+    },
+    "mod": "Thu, 05 Jun 2025 14:17:01 GMT",
+    "mtime_ns": 1749136199236021830,
+    "size": 62789914,
+    "url": "https://repo.anaconda.com/pkgs/main/osx-64/repodata.json"
+}

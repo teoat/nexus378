@@ -1,0 +1,17 @@
+{
+  "arch": "x86_64",
+  "build": "hd471939_1",
+  "build_number": 1,
+  "constrains": [
+    "xz 5.8.1.*"
+  ],
+  "depends": [
+    "__osx >=10.13"
+  ],
+  "license": "0BSD",
+  "name": "liblzma",
+  "platform": "osx",
+  "subdir": "osx-64",
+  "timestamp": 1746531577001,
+  "version": "5.8.1"
+}

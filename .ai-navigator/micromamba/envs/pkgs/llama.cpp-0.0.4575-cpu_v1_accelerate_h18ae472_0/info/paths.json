@@ -1,0 +1,529 @@
+{
+  "paths": [
+    {
+      "_path": "bin/convert_hf_to_gguf.py",
+      "path_type": "hardlink",
+      "sha256": "f3c556729549cee8299e0e714f4f29c7f8799cb33d3cea6a17c3c9ef1ac680bd",
+      "size_in_bytes": 236250
+    },
+    {
+      "_path": "bin/llama-batched",
+      "path_type": "hardlink",
+      "sha256": "bbc066217a1cd00e574c3e17536de0f935edb157b595b3cda865500905333d59",
+      "size_in_bytes": 1461888
+    },
+    {
+      "_path": "bin/llama-batched-bench",
+      "path_type": "hardlink",
+      "sha256": "6f356fbb922176a66857b83dd3c2875faec0d42f148a26243b01c0c1fe14a4f6",
+      "size_in_bytes": 1461840
+    },
+    {
+      "_path": "bin/llama-bench",
+      "path_type": "hardlink",
+      "sha256": "1eb025103a3111df9d033f2635e70ad16dd774ea9dd959e93efbc44cc1012131",
+      "size_in_bytes": 1068868
+    },
+    {
+      "_path": "bin/llama-cli",
+      "path_type": "hardlink",
+      "sha256": "409755c3d8d2fb36af483df26d64388956a79649a5fd6b59f6d3dd906f99b597",
+      "size_in_bytes": 1490148
+    },
+    {
+      "_path": "bin/llama-convert-llama2c-to-ggml",
+      "path_type": "hardlink",
+      "sha256": "ab4ac60345a16fbe9bfe4f522614639b59ce78ad5705f561a7aef82c2e2a7311",
+      "size_in_bytes": 969916
+    },
+    {
+      "_path": "bin/llama-cvector-generator",
+      "path_type": "hardlink",
+      "sha256": "f12a76e62ac84cd4da2c2970c577db4df342ac9144334a2bad848c54afbc1547",
+      "size_in_bytes": 1488492
+    },
+    {
+      "_path": "bin/llama-embedding",
+      "path_type": "hardlink",
+      "sha256": "33654d082644375529bc20cfad8da06eadbcfeb923d382d94f7357714c130ab9",
+      "size_in_bytes": 1466536
+    },
+    {
+      "_path": "bin/llama-eval-callback",
+      "path_type": "hardlink",
+      "sha256": "57f721013694a89aa571f213f15a5e21ab873dd3f22c81778177453268249751",
+      "size_in_bytes": 1458072
+    },
+    {
+      "_path": "bin/llama-export-lora",
+      "path_type": "hardlink",
+      "sha256": "4407fe4a915c500b0001409afa27c810e5fb8cf5df31886e200daaf8f73e7fc6",
+      "size_in_bytes": 1485796
+    },
+    {
+      "_path": "bin/llama-gbnf-validator",
+      "path_type": "hardlink",
+      "sha256": "4c5f5822ae2885db21c1e0e18bbb00d772243a32c1741a634e3b25312dddf0cd",
+      "size_in_bytes": 48504
+    },
+    {
+      "_path": "bin/llama-gen-docs",
+      "path_type": "hardlink",
+      "sha256": "16f942c7eaf60912a0877a701b7460274d4f50f6dc329115dd6753714e9b9187",
+      "size_in_bytes": 1458540
+    },
+    {
+      "_path": "bin/llama-gguf",
+      "path_type": "hardlink",
+      "sha256": "cc7b7a96a0a2a207411fde4d984bf6dd7e2e45cc9c2763a689f3e55b2672621b",
+      "size_in_bytes": 37460
+    },
+    {
+      "_path": "bin/llama-gguf-hash",
+      "path_type": "hardlink",
+      "sha256": "baa8329a1a89f8c98b4fd8e96e82a5f2b1674ad18f5e07f64d370fa205465ed8",
+      "size_in_bytes": 109056
+    },
+    {
+      "_path": "bin/llama-gguf-split",
+      "path_type": "hardlink",
+      "sha256": "4d3ac8d20ce95e5f0b49f5f797ec07d3b40059c4523e323007d4caedf88689c0",
+      "size_in_bytes": 56284
+    },
+    {
+      "_path": "bin/llama-gritlm",
+      "path_type": "hardlink",
+      "sha256": "b33ffae53529d2173589fcd9bb1b222477abd3ae41936f7030e6d040e979c646",
+      "size_in_bytes": 1466776
+    },
+    {
+      "_path": "bin/llama-imatrix",
+      "path_type": "hardlink",
+      "sha256": "4a4824f0fb27329240ab10b0883a72c8c89afa79f7072014d8334f3176b83cda",
+      "size_in_bytes": 1498268
+    },
+    {
+      "_path": "bin/llama-infill",
+      "path_type": "hardlink",
+      "sha256": "5800d52be379eb17ede1e8dadb77aacddf9e851c1eb031b628426c12905fe20b",
+      "size_in_bytes": 1480548
+    },
+    {
+      "_path": "bin/llama-llava-cli",
+      "path_type": "hardlink",
+      "sha256": "a38fea6864eeca3f955c24a9f2af60c944c8ca6cef829120290deefe1979936f",
+      "size_in_bytes": 1738628
+    },
+    {
+      "_path": "bin/llama-lookahead",
+      "path_type": "hardlink",
+      "sha256": "807061386152e29e56d05f4aa1e85ae68e85192e9bbf61bc5e730ac4e334c728",
+      "size_in_bytes": 1470840
+    },
+    {
+      "_path": "bin/llama-lookup",
+      "path_type": "hardlink",
+      "sha256": "f61c6345a5c687e3cce58a077cb4f3ccf0a67634c6383b43c8863fb5f80e7cc7",
+      "size_in_bytes": 1492300
+    },
+    {
+      "_path": "bin/llama-lookup-create",
+      "path_type": "hardlink",
+      "sha256": "bbb9b701f04496face9a38f1df2cc9c16d4c56d7f4f6ead3d0a733d9c8e99c06",
+      "size_in_bytes": 1487364
+    },
+    {
+      "_path": "bin/llama-lookup-merge",
+      "path_type": "hardlink",
+      "sha256": "715d2c00e93b80e40a144d46811e6058a664416afdfe08a0a24c020b2a684807",
+      "size_in_bytes": 78288
+    },
+    {
+      "_path": "bin/llama-lookup-stats",
+      "path_type": "hardlink",
+      "sha256": "dcaf9421e5582c8f7c142ceae7783194ac9d6b826276976388f269042f1179f6",
+      "size_in_bytes": 1491916
+    },
+    {
+      "_path": "bin/llama-minicpmv-cli",
+      "path_type": "hardlink",
+      "sha256": "1d9646b9ee068d88f7e54ca4d719b4d9d5be8607b3b39c51f3a681204ead9623",
+      "size_in_bytes": 1733528
+    },
+    {
+      "_path": "bin/llama-parallel",
+      "path_type": "hardlink",
+      "sha256": "04dfadfc7745cab72bc6f45a9867789ea02a80933efe371c4005c30740c91993",
+      "size_in_bytes": 1470792
+    },
+    {
+      "_path": "bin/llama-passkey",
+      "path_type": "hardlink",
+      "sha256": "7dee6503c276f978fd97d5cdba8b385dc76342237c3e9fda0a13114e4433b397",
+      "size_in_bytes": 1462392
+    },
+    {
+      "_path": "bin/llama-perplexity",
+      "path_type": "hardlink",
+      "sha256": "6cb100296c4a5d193e3b618c6ec91739f517452e6728aaaa3ee371e635bc0079",
+      "size_in_bytes": 1552820
+    },
+    {
+      "_path": "bin/llama-quantize",
+      "path_type": "hardlink",
+      "sha256": "6e26a54774e04b17ec2df6de4c31b00bb2c8a8fe8d253201e3775c8e50888173",
+      "size_in_bytes": 987168
+    },
+    {
+      "_path": "bin/llama-quantize-stats",
+      "path_type": "hardlink",
+      "sha256": "2b6554020efbccb613afa5a4f57961229902e345c9b4c902343781d35596533f",
+      "size_in_bytes": 128880
+    },
+    {
+      "_path": "bin/llama-qwen2vl-cli",
+      "path_type": "hardlink",
+      "sha256": "94e2306d2fc6a73465e30edf52dd4194be227cf77878a0b978df8990a73d8ecb",
+      "size_in_bytes": 1738644
+    },
+    {
+      "_path": "bin/llama-retrieval",
+      "path_type": "hardlink",
+      "sha256": "91865458205565df39e2ec972844fc554f920816c2879b0c876b96499b4282b2",
+      "size_in_bytes": 1476676
+    },
+    {
+      "_path": "bin/llama-run",
+      "path_type": "hardlink",
+      "sha256": "4df6d83c606df63993bd656a3d8371df3b5b19ef7ebc6deb032fd57c6e224687",
+      "size_in_bytes": 989244
+    },
+    {
+      "_path": "bin/llama-save-load-state",
+      "path_type": "hardlink",
+      "sha256": "bf93790b59118923893010f94456e9e14f3932b1a41887f4f21a09312caec045",
+      "size_in_bytes": 1462280
+    },
+    {
+      "_path": "bin/llama-server",
+      "path_type": "hardlink",
+      "sha256": "a359faf07672239c0bbb0b6c3e79328e80fd907a7ae8537c2c4318c111b22fe6",
+      "size_in_bytes": 3699920
+    },
+    {
+      "_path": "bin/llama-simple",
+      "path_type": "hardlink",
+      "sha256": "62bf08896f740fbb6b6b5bbc55b83905d48b1af1b54b0eccab0f6136333dc0e0",
+      "size_in_bytes": 29048
+    },
+    {
+      "_path": "bin/llama-simple-chat",
+      "path_type": "hardlink",
+      "sha256": "6916cf1196718527147688e1eafbea99414931bed5e5da49eccb8bdc6933ef58",
+      "size_in_bytes": 31396
+    },
+    {
+      "_path": "bin/llama-speculative",
+      "path_type": "hardlink",
+      "sha256": "a38ea384d5f6aa677913e3b166c08d4454be7816ed1cfc721ce4a31ecb8c8992",
+      "size_in_bytes": 1498400
+    },
+    {
+      "_path": "bin/llama-speculative-simple",
+      "path_type": "hardlink",
+      "sha256": "a9c0def1c48ca3a008279a5b04a39129593b374b682b68616d4cf4c560598bc9",
+      "size_in_bytes": 1467520
+    },
+    {
+      "_path": "bin/llama-tokenize",
+      "path_type": "hardlink",
+      "sha256": "e1e4151b151e55bedbcaae37cf3f96470c528431462d6f8e3d03a062f386fabc",
+      "size_in_bytes": 952940
+    },
+    {
+      "_path": "bin/llama-tts",
+      "path_type": "hardlink",
+      "sha256": "dfaa48948f23532f3a389e0d4d4f6b2d07f0ec6bb6c66b59e23d58474b2e516b",
+      "size_in_bytes": 1498252
+    },
+    {
+      "_path": "bin/test-arg-parser",
+      "path_type": "hardlink",
+      "sha256": "d3517def563e48c3d46590e4b1cf04b565d908c1c28e186d1d3aa873c916264b",
+      "size_in_bytes": 1465848
+    },
+    {
+      "_path": "bin/test-autorelease",
+      "path_type": "hardlink",
+      "sha256": "97933ea9eb12babff08a74a4a15b6c96b6fd846f3c6143176aaf8193a2867e8d",
+      "size_in_bytes": 18896
+    },
+    {
+      "_path": "bin/test-backend-ops",
+      "path_type": "hardlink",
+      "sha256": "362472e7be4c165489c903f6b833e511785d483d9ab5f1720947d2d994a4f4d7",
+      "size_in_bytes": 396908
+    },
+    {
+      "_path": "bin/test-barrier",
+      "path_type": "hardlink",
+      "sha256": "83958f36404b559919ad2b375b1e54193dd77c179032f73f043749d0213c5d6e",
+      "size_in_bytes": 25244
+    },
+    {
+      "_path": "bin/test-chat-template",
+      "path_type": "hardlink",
+      "sha256": "6d08372418b2d4b3457b30ae74febf805f7bf64360c20eed81d4528ba4cf6cf4",
+      "size_in_bytes": 1016380
+    },
+    {
+      "_path": "bin/test-gguf",
+      "path_type": "hardlink",
+      "sha256": "21769c30502da340c8ff7633d9153c699c6b489dc11fef63c0efd28d08820dd1",
+      "size_in_bytes": 67860
+    },
+    {
+      "_path": "bin/test-grammar-integration",
+      "path_type": "hardlink",
+      "sha256": "976765b586c421b65ee7de73685e751e0d2b89c14b40bf630ead19c47a3aa217",
+      "size_in_bytes": 1249436
+    },
+    {
+      "_path": "bin/test-grammar-parser",
+      "path_type": "hardlink",
+      "sha256": "eee9eabcf0bfa076d76adca232631d6007ed503ebab7ef53b955846515f2bbe1",
+      "size_in_bytes": 40428
+    },
+    {
+      "_path": "bin/test-json-schema-to-grammar",
+      "path_type": "hardlink",
+      "sha256": "8fa0e12f31505ff1c83f0bf50533c788fa5edcabd28a5db291a1764edc51d3d0",
+      "size_in_bytes": 1237628
+    },
+    {
+      "_path": "bin/test-llama-grammar",
+      "path_type": "hardlink",
+      "sha256": "e89c3b47eb00286b0b3332e8b4c41182598d45884a9e1eef61cf8245db99a1e8",
+      "size_in_bytes": 47136
+    },
+    {
+      "_path": "bin/test-log",
+      "path_type": "hardlink",
+      "sha256": "fabc2eb6b1b634e01329565477efddc4ddff97c704e6bb10949cb3050a7fd2d9",
+      "size_in_bytes": 32360
+    },
+    {
+      "_path": "bin/test-model-load-cancel",
+      "path_type": "hardlink",
+      "sha256": "c9d9663da88b9f5b55a3c802951c5b0b3cb7d4e6c0d18ec444bd10f1a7f58bda",
+      "size_in_bytes": 17396
+    },
+    {
+      "_path": "bin/test-quantize-fns",
+      "path_type": "hardlink",
+      "sha256": "1851478a1b705d149ec808701b8ff0e3afe74edf39278de31b2879ec070f8fd8",
+      "size_in_bytes": 26672
+    },
+    {
+      "_path": "bin/test-quantize-perf",
+      "path_type": "hardlink",
+      "sha256": "ec7bc034b1320c019af27868321ac6adef1989c1a7f358cb8038b5a97fc9fa23",
+      "size_in_bytes": 48636
+    },
+    {
+      "_path": "bin/test-rope",
+      "path_type": "hardlink",
+      "sha256": "2f51476437f616b529d4b2e4ffe5d4ced6a48fe279aab5b825f1936fcbf7c59c",
+      "size_in_bytes": 23084
+    },
+    {
+      "_path": "bin/test-sampling",
+      "path_type": "hardlink",
+      "sha256": "7bffffba85bc75c4b37c270e1360c2d76339e9a9f60f1331889ce1b99b92755d",
+      "size_in_bytes": 46556
+    },
+    {
+      "_path": "bin/test-tokenizer-0",
+      "path_type": "hardlink",
+      "sha256": "ae5a295760a3e7b6de3f12cbf9c88e9f576541f4534a77264e190b137088f798",
+      "size_in_bytes": 960996
+    },
+    {
+      "_path": "bin/test-tokenizer-1-bpe",
+      "path_type": "hardlink",
+      "sha256": "10b96c8e68c950cdeffb18fe6670175e851c85dc3792c11fafa6c4e45ea01bbe",
+      "size_in_bytes": 942016
+    },
+    {
+      "_path": "bin/test-tokenizer-1-spm",
+      "path_type": "hardlink",
+      "sha256": "1367069b655bba5273e7c26fbfc27a86a9609dcf4153de4f6d153e35b7e4b340",
+      "size_in_bytes": 937532
+    },
+    {
+      "_path": "include/ggml-alloc.h",
+      "path_type": "hardlink",
+      "sha256": "67d215acf3d2bbaff24762c61293484d2739d19df6fec025fd9d30c9e567c9c7",
+      "size_in_bytes": 3011
+    },
+    {
+      "_path": "include/ggml-backend.h",
+      "path_type": "hardlink",
+      "sha256": "773d8760c6e7964dab1e45813f98fb5d33ca903a190c445a31a2378e0d1bf7bd",
+      "size_in_bytes": 19905
+    },
+    {
+      "_path": "include/ggml-blas.h",
+      "path_type": "hardlink",
+      "sha256": "e76cb8594dc9866d99e7d63191b9fff6ab8b50244b4a28ce3af0f962964a6b5b",
+      "size_in_bytes": 586
+    },
+    {
+      "_path": "include/ggml-cann.h",
+      "path_type": "hardlink",
+      "sha256": "6f8af52ea9326cead78e5dc59401106fcc8b029d2b9ed24df6cf7a64805405d1",
+      "size_in_bytes": 4553
+    },
+    {
+      "_path": "include/ggml-cpu.h",
+      "path_type": "hardlink",
+      "sha256": "75fee5620d38b6cdfa04cb8a0c1f25cafadf168805ccceb5337db41b94843786",
+      "size_in_bytes": 6738
+    },
+    {
+      "_path": "include/ggml-cuda.h",
+      "path_type": "hardlink",
+      "sha256": "8f22e8e43e460db426bb94e14e10dc91e64789e8d216c5ae62a0d02a2eb07d7f",
+      "size_in_bytes": 1585
+    },
+    {
+      "_path": "include/ggml-kompute.h",
+      "path_type": "hardlink",
+      "sha256": "da286c0ac5b4c00e5bb8e5e572f442c23f292ea0dd40ca1d08c2a66672d41bc5",
+      "size_in_bytes": 1159
+    },
+    {
+      "_path": "include/ggml-metal.h",
+      "path_type": "hardlink",
+      "sha256": "08fd1b8de3e63d214063ad93b8b3195f51025a406a90de21e92e88dd19fed33c",
+      "size_in_bytes": 2439
+    },
+    {
+      "_path": "include/ggml-opt.h",
+      "path_type": "hardlink",
+      "sha256": "ae9edde17ad3118063831af14df4a7ffa7c30de7002a976aac00eb347cf09a83",
+      "size_in_bytes": 12065
+    },
+    {
+      "_path": "include/ggml-rpc.h",
+      "path_type": "hardlink",
+      "sha256": "cbde174381ae33462c52b9412440f7938e7b87ba85faae1b0ea6e63d17e564da",
+      "size_in_bytes": 830
+    },
+    {
+      "_path": "include/ggml-sycl.h",
+      "path_type": "hardlink",
+      "sha256": "d59d5275423a7ce173c8e6f69933a501e53a635410de3f8d61bf23a59dac81fd",
+      "size_in_bytes": 1763
+    },
+    {
+      "_path": "include/ggml-vulkan.h",
+      "path_type": "hardlink",
+      "sha256": "0bbb7d005f82c822c27d692c7067f2a5bb5a85c810adaea0a5ce2378d5e3f54e",
+      "size_in_bytes": 1004
+    },
+    {
+      "_path": "include/ggml.h",
+      "path_type": "hardlink",
+      "sha256": "2f2718bd981283322257f2189b3f05f64ba6d2b77e91b0854af77084c1dd7690",
+      "size_in_bytes": 82757
+    },
+    {
+      "_path": "include/gguf.h",
+      "path_type": "hardlink",
+      "sha256": "d2eec8b938aa04ccec9bc4ce8a6a6dcf70d942c37d2bb3113e426d9307d51385",
+      "size_in_bytes": 10224
+    },
+    {
+      "_path": "include/llama-cpp.h",
+      "path_type": "hardlink",
+      "sha256": "c48fd31095d2403a3bf7cbe98333ba0e61a398ee6e83b56f9d8b7237143b9877",
+      "size_in_bytes": 900
+    },
+    {
+      "_path": "include/llama.h",
+      "path_type": "hardlink",
+      "sha256": "3bbe1e74e4bf7c618694b1bfa07c3c3c527fa28d0ae1bb79bce71bd21531dfac",
+      "size_in_bytes": 66447
+    },
+    {
+      "_path": "lib/cmake/ggml/ggml-config.cmake",
+      "path_type": "hardlink",
+      "sha256": "2dcd78b241d15c5cdb00be0f1c3660c20aad86fe9372b672b5b12fe6a1f3a502",
+      "size_in_bytes": 8854
+    },
+    {
+      "_path": "lib/cmake/ggml/ggml-version.cmake",
+      "path_type": "hardlink",
+      "sha256": "074e962cadb65bb816093658367d121cf09aad8002040214085ffef226552670",
+      "size_in_bytes": 2771
+    },
+    {
+      "_path": "lib/cmake/llama/llama-config.cmake",
+      "path_type": "hardlink",
+      "sha256": "fe189aafaf36c5af139d0e5c7100c46bd44c987edf3bbcee6df86fbd85d62e07",
+      "size_in_bytes": 1737
+    },
+    {
+      "_path": "lib/cmake/llama/llama-version.cmake",
+      "path_type": "hardlink",
+      "sha256": "074e962cadb65bb816093658367d121cf09aad8002040214085ffef226552670",
+      "size_in_bytes": 2771
+    },
+    {
+      "_path": "lib/libggml-base.dylib",
+      "path_type": "hardlink",
+      "sha256": "d089eef3aa7536fe336320feadc61cc66f8207895cdddc7fae6a2ec361034a1a",
+      "size_in_bytes": 571580
+    },
+    {
+      "_path": "lib/libggml-blas.dylib",
+      "path_type": "hardlink",
+      "sha256": "bcbfe40cdc0ac2531f918037f36b5bbb01a5102892008d0a013ee02492ff3410",
+      "size_in_bytes": 38060
+    },
+    {
+      "_path": "lib/libggml-cpu.dylib",
+      "path_type": "hardlink",
+      "sha256": "b0e64f47ce5905bd10696c5e68e6986b823750ce1f18dbd83b8668ce4d97fd2f",
+      "size_in_bytes": 434520
+    },
+    {
+      "_path": "lib/libggml.dylib",
+      "path_type": "hardlink",
+      "sha256": "e83a739592a77b464a9e28cf621c80e036c7dedeb41fcae276b9cba28638f520",
+      "size_in_bytes": 61128
+    },
+    {
+      "_path": "lib/libllama.dylib",
+      "path_type": "hardlink",
+      "sha256": "818dbf42c5509957f8ccdb5ae8495048f4c60579f3f4b2ff0b5a89b4cccae2ca",
+      "size_in_bytes": 1392684
+    },
+    {
+      "_path": "lib/libllava_shared.dylib",
+      "path_type": "hardlink",
+      "sha256": "5e457ac8f74c7057c0ca205898f6dbc233f3a210d01aebd8917dafb2b85cec49",
+      "size_in_bytes": 386016
+    },
+    {
+      "_path": "lib/pkgconfig/llama.pc",
+      "file_mode": "text",
+      "path_type": "hardlink",
+      "prefix_placeholder": "/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_40wrq3pkmy/croot/llama.cpp-meta_1738250571074/_h_env_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold",
+      "sha256": "6ee2680877c26dd89129be692d1ca9f113684109a9acf04415c2706d6408af92",
+      "size_in_bytes": 486
+    }
+  ],
+  "paths_version": 1
+}

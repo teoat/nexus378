@@ -1,0 +1,24 @@
+{
+    "arch": "x86_64",
+    "build": "hf95d169_0",
+    "build_number": 0,
+    "build_string": "hf95d169_0",
+    "channel": "conda-forge",
+    "constrains": [],
+    "depends": [
+        "__osx >=10.13"
+    ],
+    "fn": "libcxx-20.1.6-hf95d169_0.conda",
+    "license": "Apache-2.0 WITH LLVM-exception",
+    "license_family": "Apache",
+    "md5": "460934df319a215557816480e9ea78cf",
+    "name": "libcxx",
+    "platform": "osx",
+    "sha256": "fbc7a8ef613669f3133bb2b0bc5b36f4c51987bb74769b018377fac96610863b",
+    "size": 561657,
+    "subdir": "osx-64",
+    "timestamp": 1748495006359,
+    "track_features": "",
+    "url": "https://conda.anaconda.org/conda-forge/osx-64/libcxx-20.1.6-hf95d169_0.conda",
+    "version": "20.1.6"
+}

@@ -1,0 +1,26 @@
+{
+    "arch": "x86_64",
+    "build": "cpu_v1_accelerate_h18ae472_0",
+    "build_number": 0,
+    "build_string": "cpu_v1_accelerate_h18ae472_0",
+    "channel": "ai-staging",
+    "constrains": [],
+    "depends": [
+        "__osx >=10.15",
+        "libcxx >=14.0.6",
+        "llvm-openmp >=14.0.6"
+    ],
+    "fn": "llama.cpp-0.0.4575-cpu_v1_accelerate_h18ae472_0.conda",
+    "license": "MIT",
+    "license_family": "MIT",
+    "md5": "1403bc4c6a2e1d3453618311fdf42f5b",
+    "name": "llama.cpp",
+    "platform": "osx",
+    "sha256": "081c6d4f680755f77274364b01769aaed30d2ef3c67fd53eecca3684da43ea20",
+    "size": 7725943,
+    "subdir": "osx-64",
+    "timestamp": 1738251054960,
+    "track_features": "",
+    "url": "https://conda.anaconda.org/ai-staging/osx-64/llama.cpp-0.0.4575-cpu_v1_accelerate_h18ae472_0.conda",
+    "version": "0.0.4575"
+}

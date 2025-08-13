@@ -1,0 +1,18 @@
+{
+  "arch": "x86_64",
+  "build": "h9c5cfc2_0",
+  "build_number": 0,
+  "depends": [
+    "__osx >=10.13",
+    "icu >=75.1,<76.0a0",
+    "krb5 >=1.21.3,<1.22.0a0",
+    "openldap >=2.6.9,<2.7.0a0",
+    "openssl >=3.5.0,<4.0a0"
+  ],
+  "license": "PostgreSQL",
+  "name": "libpq",
+  "platform": "osx",
+  "subdir": "osx-64",
+  "timestamp": 1746743709716,
+  "version": "17.5"
+}

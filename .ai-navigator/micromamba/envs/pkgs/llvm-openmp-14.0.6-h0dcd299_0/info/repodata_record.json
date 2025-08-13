@@ -1,0 +1,24 @@
+{
+    "arch": "x86_64",
+    "build": "h0dcd299_0",
+    "build_number": 0,
+    "build_string": "h0dcd299_0",
+    "channel": "pkgs/main",
+    "constrains": [
+        "openmp 14.0.6|14.0.6.*"
+    ],
+    "depends": [],
+    "fn": "llvm-openmp-14.0.6-h0dcd299_0.conda",
+    "license": "Apache-2.0 WITH LLVM-exception",
+    "license_family": "Apache",
+    "md5": "b5804d32b87dc61ca94561ade33d5f2d",
+    "name": "llvm-openmp",
+    "platform": "osx",
+    "sha256": "3e63eb2a61a796cdb2ae4c9c7d883db80572910fc873a5a60ca7d055e0e0da0f",
+    "size": 294608,
+    "subdir": "osx-64",
+    "timestamp": 1662635677689,
+    "track_features": "",
+    "url": "https://repo.anaconda.com/pkgs/main/osx-64/llvm-openmp-14.0.6-h0dcd299_0.conda",
+    "version": "14.0.6"
+}

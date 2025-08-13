@@ -1,0 +1,37 @@
+{
+  "paths": [
+    {
+      "_path": "include/ntlm.h",
+      "path_type": "hardlink",
+      "sha256": "5d4535a8e3b63f1737353526b4d80bdab46ec465473d460958ee60132e4ad496",
+      "size_in_bytes": 3659
+    },
+    {
+      "_path": "lib/libntlm.0.dylib",
+      "path_type": "hardlink",
+      "sha256": "204fefee07342f5104122c121a4e5f5b14902e78fa8281a103f49a52416db359",
+      "size_in_bytes": 39592
+    },
+    {
+      "_path": "lib/libntlm.a",
+      "path_type": "hardlink",
+      "sha256": "ccfc16e6124f2080babe34ee55304d6acef4c27076051fbbce30e0c7d30d8b48",
+      "size_in_bytes": 37032
+    },
+    {
+      "_path": "lib/libntlm.dylib",
+      "path_type": "softlink",
+      "sha256": "204fefee07342f5104122c121a4e5f5b14902e78fa8281a103f49a52416db359",
+      "size_in_bytes": 39592
+    },
+    {
+      "_path": "lib/pkgconfig/libntlm.pc",
+      "file_mode": "text",
+      "path_type": "hardlink",
+      "prefix_placeholder": "/opt/concourse/worker/volumes/live/a2f1cd4c-a54a-4fd7-4d41-89e49df7262d/volume/libntlm_1631837577179/_h_env_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placeho",
+      "sha256": "875ffb540d9f45bbaded1aeb21250ec02ae5c241aa5866e6fa795c36a64183c9",
+      "size_in_bytes": 757
+    }
+  ],
+  "paths_version": 1
+}

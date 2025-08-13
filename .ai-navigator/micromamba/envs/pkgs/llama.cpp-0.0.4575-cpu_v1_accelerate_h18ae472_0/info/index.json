@@ -1,0 +1,17 @@
+{
+  "arch": "x86_64",
+  "build": "cpu_v1_accelerate_h18ae472_0",
+  "build_number": 0,
+  "depends": [
+    "__osx >=10.15",
+    "libcxx >=14.0.6",
+    "llvm-openmp >=14.0.6"
+  ],
+  "license": "MIT",
+  "license_family": "MIT",
+  "name": "llama.cpp",
+  "platform": "osx",
+  "subdir": "osx-64",
+  "timestamp": 1738251054960,
+  "version": "0.0.4575"
+}

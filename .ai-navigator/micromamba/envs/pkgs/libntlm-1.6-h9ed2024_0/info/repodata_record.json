@@ -1,0 +1,21 @@
+{
+    "arch": "x86_64",
+    "build": "h9ed2024_0",
+    "build_number": 0,
+    "build_string": "h9ed2024_0",
+    "channel": "pkgs/main",
+    "constrains": [],
+    "depends": [],
+    "fn": "libntlm-1.6-h9ed2024_0.conda",
+    "license": "LGPL-2.1",
+    "md5": "e33f18c81f94f71d282c1f7f3bd1ec05",
+    "name": "libntlm",
+    "platform": "osx",
+    "sha256": "cf6169747ad57f335a8a5127fdb3cf3d46d767981b76e386121963817b885e36",
+    "size": 32048,
+    "subdir": "osx-64",
+    "timestamp": 1631837645049,
+    "track_features": "",
+    "url": "https://repo.anaconda.com/pkgs/main/osx-64/libntlm-1.6-h9ed2024_0.conda",
+    "version": "1.6"
+}

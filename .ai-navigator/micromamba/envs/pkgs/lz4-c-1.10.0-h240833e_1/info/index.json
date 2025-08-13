@@ -1,0 +1,15 @@
+{
+  "arch": "x86_64",
+  "build": "h240833e_1",
+  "build_number": 1,
+  "depends": [
+    "__osx >=10.13",
+    "libcxx >=18"
+  ],
+  "license": "BSD-2-Clause",
+  "name": "lz4-c",
+  "platform": "osx",
+  "subdir": "osx-64",
+  "timestamp": 1733741074747,
+  "version": "1.10.0"
+}

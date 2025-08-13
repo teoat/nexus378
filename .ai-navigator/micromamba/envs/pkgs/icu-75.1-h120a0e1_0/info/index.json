@@ -1,0 +1,14 @@
+{
+  "arch": "x86_64",
+  "build": "h120a0e1_0",
+  "build_number": 0,
+  "depends": [
+    "__osx >=10.13"
+  ],
+  "license": "MIT",
+  "name": "icu",
+  "platform": "osx",
+  "subdir": "osx-64",
+  "timestamp": 1720853679409,
+  "version": "75.1"
+}

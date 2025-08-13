@@ -1,0 +1,70 @@
+{
+    "arch": "x86_64",
+    "build": "h6e16a3a_0",
+    "build_number": 0,
+    "build_string": "h6e16a3a_0",
+    "channel": "conda-forge",
+    "constrains": [],
+    "depends": [
+        "__osx >=10.13"
+    ],
+    "extracted_package_dir": "/Users/Arief/.ai-navigator/micromamba/envs/pkgs/tzcode-2025b-h6e16a3a_0",
+    "files": [
+        "bin/tzselect",
+        "bin/zdump",
+        "bin/zic",
+        "lib/libtz.a"
+    ],
+    "fn": "tzcode-2025b-h6e16a3a_0.conda",
+    "license": "BSD-3-Clause",
+    "license_family": "BSD",
+    "link": {
+        "source": "/Users/Arief/.ai-navigator/micromamba/envs/pkgs/tzcode-2025b-h6e16a3a_0",
+        "type": 1
+    },
+    "md5": "1054d90d9e8f4014be19f2b8ac4dc80d",
+    "name": "tzcode",
+    "package_tarball_full_path": "/Users/Arief/.ai-navigator/micromamba/envs/pkgs/tzcode-2025b-h6e16a3a_0.tar.bz2",
+    "paths_data": {
+        "paths": [
+            {
+                "_path": "bin/tzselect",
+                "path_type": "hardlink",
+                "sha256": "1e2251a6d67a7ce5450d2201f08483be745c0ab60ff0ea98fd59e0a37824f40c",
+                "sha256_in_prefix": "1e2251a6d67a7ce5450d2201f08483be745c0ab60ff0ea98fd59e0a37824f40c",
+                "size_in_bytes": 21839
+            },
+            {
+                "_path": "bin/zdump",
+                "path_type": "hardlink",
+                "sha256": "7dc9dc0433fa359d5e001e3a47b6c536865fc9a8b567c73d51db58bbb8f60f6e",
+                "sha256_in_prefix": "7dc9dc0433fa359d5e001e3a47b6c536865fc9a8b567c73d51db58bbb8f60f6e",
+                "size_in_bytes": 44992
+            },
+            {
+                "_path": "bin/zic",
+                "path_type": "hardlink",
+                "sha256": "b1de7dc59b597c02721d4247527cb1118043394d9b0f421e6cb91546c063bad9",
+                "sha256_in_prefix": "b1de7dc59b597c02721d4247527cb1118043394d9b0f421e6cb91546c063bad9",
+                "size_in_bytes": 55120
+            },
+            {
+                "_path": "lib/libtz.a",
+                "path_type": "hardlink",
+                "sha256": "db4fbd4d3ddc0249db93685430279a929e3a35c3bc8335a2cb5afd204d7e7626",
+                "sha256_in_prefix": "db4fbd4d3ddc0249db93685430279a929e3a35c3bc8335a2cb5afd204d7e7626",
+                "size_in_bytes": 32728
+            }
+        ],
+        "paths_version": 1
+    },
+    "platform": "osx",
+    "requested_spec": "",
+    "sha256": "536745f5021bf0d1bbd2df908b35375f984b8ee71411a3d9808a69cdfc3ece4e",
+    "size": 63461,
+    "subdir": "osx-64",
+    "timestamp": 1742776979777,
+    "track_features": "",
+    "url": "https://conda.anaconda.org/conda-forge/osx-64/tzcode-2025b-h6e16a3a_0.conda",
+    "version": "2025b"
+}

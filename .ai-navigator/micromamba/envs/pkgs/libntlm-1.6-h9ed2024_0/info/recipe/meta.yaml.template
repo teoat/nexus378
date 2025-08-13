@@ -1,0 +1,49 @@
+{% set version = "1.6" %}
+{% set name = "libntlm" %}
+
+package:
+  name: {{ name }}
+  version: "{{ version }}"
+
+source:
+  fn: libntlm-{{ version }}.tar.gz
+  url: http://www.nongnu.org/libntlm/releases/libntlm-{{ version }}.tar.gz
+  sha256: f2376b87b06d8755aa3498bb1226083fdb1d2cf4460c3982b05a9aa0b51d6821
+
+build:
+  number: 0
+  skip: True  # [win]
+  run_exports:
+    # good compatibility
+    # https://abi-laboratory.pro/index.php?view=timeline&l=libntlm
+    - {{ pin_subpackage('libntlm') }}
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - make
+    - libtool
+
+test:
+  commands:
+    - test -f $PREFIX/include/ntlm.h
+    - test -f $PREFIX/lib/libntlm.a
+    - test -f $PREFIX/lib/libntlm.so          # [linux]
+    - test -f $PREFIX/lib/libntlm.so.0        # [linux]
+    - test -f $PREFIX/lib/libntlm.so.0.0.21   # [linux]
+    - test -f $PREFIX/lib/libntlm.dylib          # [osx]
+    - test -f $PREFIX/lib/libntlm.0.dylib        # [osx]
+    - test -f $PREFIX/lib/pkgconfig/libntlm.pc
+
+about:
+  home: http://www.nongnu.org/libntlm/
+  license: LGPL-2.1
+  license_file: COPYING
+  summary: Improved implementation of Microsoft's NTLM authentication
+
+extra:
+  recipe-maintainers:
+    - koverholt
+    - mariusvniekerk
+    - martindurant
+    - katietz

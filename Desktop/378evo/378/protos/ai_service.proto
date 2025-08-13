@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package ai_service;
+
+service AiService {
+  rpc GetDiscrepancyAnalysis(DiscrepancyAnalysisRequest) returns (DiscrepancyAnalysisResponse);
+}
+
+message DiscrepancyAnalysisRequest {
+  string case_id = 1;
+}
+
+message DiscrepancyAnalysisResponse {
+  string analysis_id = 1;
+  string status = 2;
+}

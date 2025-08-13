@@ -1,0 +1,27 @@
+{
+    "arch": "x86_64",
+    "build": "hf9bab2b_7",
+    "build_number": 7,
+    "build_string": "hf9bab2b_7",
+    "channel": "conda-forge",
+    "constrains": [],
+    "depends": [
+        "krb5 >=1.21.1,<1.22.0a0",
+        "libcxx >=15.0.7",
+        "libntlm",
+        "openssl >=3.1.1,<4.0a0"
+    ],
+    "fn": "cyrus-sasl-2.1.27-hf9bab2b_7.conda",
+    "license": "BSD-3-Clause-Attribution",
+    "license_family": "BSD",
+    "md5": "b3a8aa48d3d5e1bfb31ee3bde1f2c544",
+    "name": "cyrus-sasl",
+    "platform": "osx",
+    "sha256": "d4be27d58beb762f9392a35053404d5129e1ec41d24a9a7b465b4d84de2e5819",
+    "size": 209174,
+    "subdir": "osx-64",
+    "timestamp": 1690061476074,
+    "track_features": "",
+    "url": "https://conda.anaconda.org/conda-forge/osx-64/cyrus-sasl-2.1.27-hf9bab2b_7.conda",
+    "version": "2.1.27"
+}

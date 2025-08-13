@@ -1,0 +1,17 @@
+# Process this file with autoconf to produce a pkg-config metadata file.
+# Copyright 2002-2020 Simon Josefsson
+# 
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.
+
+prefix=/opt/concourse/worker/volumes/live/a2f1cd4c-a54a-4fd7-4d41-89e49df7262d/volume/libntlm_1631837577179/_h_env_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placeho
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Libntlm
+Description: Library for NTLM authentication
+Version: 1.6
+Libs: -L${libdir} -lntlm
+Cflags: -I${includedir}

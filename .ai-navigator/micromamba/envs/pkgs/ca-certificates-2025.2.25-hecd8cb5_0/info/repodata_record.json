@@ -1,0 +1,22 @@
+{
+    "arch": "x86_64",
+    "build": "hecd8cb5_0",
+    "build_number": 0,
+    "build_string": "hecd8cb5_0",
+    "channel": "pkgs/main",
+    "constrains": [],
+    "depends": [],
+    "fn": "ca-certificates-2025.2.25-hecd8cb5_0.conda",
+    "license": "MPL-2.0",
+    "license_family": "Other",
+    "md5": "12ab77db61795036e15a5b14929ad4a1",
+    "name": "ca-certificates",
+    "platform": "osx",
+    "sha256": "218c8f86fe4eef060c3c5ebd194f1db12e45a46abeb00fe7457ab3a5902a0ef1",
+    "size": 133715,
+    "subdir": "osx-64",
+    "timestamp": 1740582484873,
+    "track_features": "",
+    "url": "https://repo.anaconda.com/pkgs/main/osx-64/ca-certificates-2025.2.25-hecd8cb5_0.conda",
+    "version": "2025.2.25"
+}

@@ -1,0 +1,55 @@
+# This file created by conda-build 25.5.0
+# ------------------------------------------------
+
+package:
+  name: libcxx
+  version: 20.1.6
+source:
+  - url: https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-20.1.6.tar.gz
+    sha256: afa487c401613f5e4a35935b2abfb5d07e6ebfa20df32787e34a5c7e97c6ea4b
+    patches:
+      - patches/0002-custom-error-message-for-old-sdk.patch
+      - patches/0003-disable-_LIBCPP_AVAILABILITY_HAS_INIT_PRIMARY_EXCEPT.patch
+      - patches/0004-Work-around-stray-nostdlib-flags-causing-errors-with.patch
+      - patches/0005-patch-__libcpp_tzdb_directory-to-allow-use-on-osx.patch
+build:
+  string: hf95d169_0
+  ignore_run_exports_from:
+    - clang_bootstrap_osx-64 *
+  number: 0
+requirements:
+  build:
+    - clang_bootstrap_osx-64 20.1.5 hf3b57be_24
+    - macosx_deployment_target_osx-64 10.13 hbc8f3bb_2
+  host:
+    - __osx >=10.13
+  run:
+    - __osx >=10.13
+test:
+  commands:
+    - test -f $PREFIX/lib/libc++.dylib
+    - test -f $PREFIX/lib/libc++.a
+    - test -f $PREFIX/lib/libc++experimental.a
+    - test ! -d $PREFIX/include/c++
+about:
+  home: http://libcxx.llvm.org/
+  license: Apache-2.0 WITH LLVM-exception
+  license_file: libcxx/LICENSE.TXT
+  license_family: Apache
+  summary: LLVM C++ standard library
+  dev_url: https://github.com/llvm/llvm-project
+extra:
+  recipe-maintainers:
+    - SylvainCorlay
+    - beckermr
+    - h-vetinari
+    - inducer
+    - isuruf
+    - jakirkham
+    - timsnyder
+  feedstock-name: libcxx
+  final: true
+  copy_test_source_files: true
+  flow_run_id: azure_20250529.3.1
+  remote_url: https://github.com/conda-forge/libcxx-feedstock
+  sha: 9ecb9753cdfc7a9e6d4828aab57570b16af2a08f

@@ -1,0 +1,94 @@
+# This file created by conda-build 25.4.2
+# ------------------------------------------------
+
+package:
+  name: libpq
+  version: '17.5'
+source:
+  patches:
+    - patches/0002-disable-new-dtags.patch
+    - patches/fix_mac10_9_clock_realtime.patch
+  sha256: fcb7ab38e23b264d1902cb25e6adafb4525a6ebcbd015434aeef9eda80f528d8
+  url: https://ftp.postgresql.org/pub/source/v17.5/postgresql-17.5.tar.bz2
+build:
+  number: 0
+  run_exports:
+    - libpq >=17.5,<18.0a0
+  string: h9c5cfc2_0
+requirements:
+  build:
+    - bison 3.8.2 hd7636e7_0
+    - ca-certificates 2025.4.26 hbd8a1cb_0
+    - cctools_osx-64 1010.6 hd19c6af_6
+    - clang 18.1.8 default_h576c50e_9
+    - clang-18 18.1.8 default_h3571c67_9
+    - clang_impl_osx-64 18.1.8 h6a44ed1_24
+    - clang_osx-64 18.1.8 h7e5c614_24
+    - clangxx 18.1.8 default_heb2e8d1_9
+    - compiler-rt 18.1.8 h1020d70_1
+    - compiler-rt_osx-64 18.1.8 hf2b8a54_1
+    - flex 2.6.4 hcc69e7b_1004
+    - gnuconfig 2020.11.07 hd8ed1ab_0
+    - icu 75.1 h120a0e1_0
+    - ld64_osx-64 951.9 h33512f0_6
+    - libclang-cpp18.1 18.1.8 default_h3571c67_9
+    - libcxx 20.1.4 hf95d169_1
+    - libcxx-devel 18.1.8 h7c275be_8
+    - libiconv 1.18 h4b5e92a_1
+    - libllvm18 18.1.8 default_h3571c67_5
+    - liblzma 5.8.1 hd471939_1
+    - libxml2 2.14.2 h8c082e5_0
+    - libzlib 1.3.1 hd23fc13_2
+    - llvm-tools 18.1.8 default_h3571c67_5
+    - llvm-tools-18 18.1.8 default_h3571c67_5
+    - m4 1.4.18 haf1e3a3_1001
+    - macosx_deployment_target_osx-64 10.13 hbc8f3bb_2
+    - make 4.4.1 h00291cd_2
+    - ncurses 6.5 h0622a9a_3
+    - openssl 3.5.0 hc426f3f_1
+    - pkg-config 0.29.2 hf7e621a_1009
+    - sigtool 0.1.3 h88f4db0_0
+    - tapi 1300.6.5 h390ca13_0
+    - zstd 1.5.7 h8210216_2
+  host:
+    - ca-certificates 2025.4.26 hbd8a1cb_0
+    - cyrus-sasl 2.1.27 hf9bab2b_7
+    - icu 75.1 h120a0e1_0
+    - krb5 1.21.3 h37d8d59_0
+    - libcxx 20.1.4 hf95d169_1
+    - libedit 3.1.20250104 pl5321ha958ccf_0
+    - libntlm 1.8 h6e16a3a_0
+    - ncurses 6.5 h0622a9a_3
+    - openldap 2.6.9 hd8a590d_0
+    - openssl 3.5.0 hc426f3f_1
+    - tzcode 2025b h6e16a3a_0
+    - tzdata 2025b h78e105d_0
+  run:
+    - __osx >=10.13
+    - icu >=75.1,<76.0a0
+    - krb5 >=1.21.3,<1.22.0a0
+    - openldap >=2.6.9,<2.7.0a0
+    - openssl >=3.5.0,<4.0a0
+test:
+  commands:
+    - pg_config
+    - test -f $PREFIX/lib/libpq.5.dylib
+    - test -f $PREFIX/lib/libpq.dylib
+about:
+  license: PostgreSQL
+  license_file: COPYRIGHT
+  summary: The postgres runtime libraries and utilities (not the server itself)
+extra:
+  copy_test_source_files: true
+  final: true
+  flow_run_id: azure_20250508.11.1
+  recipe-maintainers:
+    - akrherz
+    - flaviomartins
+    - gillins
+    - mariusvniekerk
+    - msarahan
+    - ocefpaf
+    - sodre
+  remote_url: https://github.com/conda-forge/postgresql-feedstock
+  sha: 2142997bc50ac457468226917b56f7b5356d291e

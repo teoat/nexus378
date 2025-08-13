@@ -1,0 +1,29 @@
+==> 2025-06-06 00:10:34 <==
+# cmd: /Applications/AI-Navigator.app/Contents/Resources/micromamba --no-rc --no-env --root-prefix /Users/Arief/.ai-navigator/micromamba/envs create --json --yes -p /Users/Arief/.ai-navigator/micromamba/envs/cpu -f /Applications/AI-Navigator.app/Contents/Resources/assets/environments/cpu.yml
+# conda version: 3.8.0
++conda-forge::icu-75.1-h120a0e1_0
++conda-forge::libzlib-1.3.1-hd23fc13_2
++conda-forge::tzcode-2025b-h6e16a3a_0
++conda-forge::libcxx-20.1.6-hf95d169_0
++conda-forge::libiconv-1.18-h4b5e92a_1
++conda-forge::liblzma-5.8.1-hd471939_1
++conda-forge::zstd-1.5.7-h8210216_2
++conda-forge::lz4-c-1.10.0-h240833e_1
++conda-forge::libxml2-2.13.8-h93c44a6_0
++pkgs/main::tzdata-2025b-h04d1e81_0
++pkgs/main::ca-certificates-2025.2.25-hecd8cb5_0
++pkgs/main::libntlm-1.6-h9ed2024_0
++pkgs/main::llvm-openmp-14.0.6-h0dcd299_0
++pkgs/main::ncurses-6.4-hcec6c5f_0
++pkgs/main::libxslt-1.1.41-ha190046_0
++pkgs/main::libedit-3.1.20230828-h6c40b1e_0
++pkgs/main::readline-8.2-hca72f7f_0
++conda-forge::openssl-3.5.0-hc426f3f_1
++ai-staging::llama.cpp-0.0.4575-cpu_v1_accelerate_h18ae472_0
++pkgs/main::krb5-1.21.3-h424b1a7_0
++conda-forge::cyrus-sasl-2.1.27-hf9bab2b_7
++conda-forge::openldap-2.6.10-hd8a590d_0
++conda-forge::libpq-17.5-h9c5cfc2_0
++conda-forge::postgresql-17.5-h9e5ec7e_0
++conda-forge::pgvector-0.8.0-he3aba54_2
+# update specs: ["llama.cpp[version=\"==0.0.4575\",build=\"cpu_*\"]", "postgresql", "pgvector"]

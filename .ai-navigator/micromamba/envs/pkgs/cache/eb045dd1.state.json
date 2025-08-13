@@ -1,0 +1,12 @@
+{
+    "cache_control": "public, max-age=1200",
+    "etag": "\"c474b2ee428ef3da80b573677ebc6af2\"",
+    "has_zst": {
+        "last_checked": "2025-06-05T15:09:50Z",
+        "value": true
+    },
+    "mod": "Thu, 05 Jun 2025 15:01:12 GMT",
+    "mtime_ns": 1749136219767978868,
+    "size": 133543425,
+    "url": "https://conda.anaconda.org/conda-forge/noarch/repodata.json"
+}

@@ -1,0 +1,12 @@
+{
+  "arch": "x86_64",
+  "build": "h9ed2024_0",
+  "build_number": 0,
+  "depends": [],
+  "license": "LGPL-2.1",
+  "name": "libntlm",
+  "platform": "osx",
+  "subdir": "osx-64",
+  "timestamp": 1631837645049,
+  "version": "1.6"
+}

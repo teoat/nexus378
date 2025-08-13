@@ -1,0 +1,13 @@
+prefix=/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_cfobk8lkrt/croot/libxslt_1722525477737/_h_env_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placeh
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+
+Name: libxslt
+Version: 1.1.41
+Description: XSLT library version 2.
+Requires: libxml-2.0
+Cflags: -I${includedir} 
+Libs: -L${libdir} -lxslt
+Libs.private: 
