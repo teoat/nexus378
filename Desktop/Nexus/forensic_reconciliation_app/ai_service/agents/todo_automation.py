@@ -181,6 +181,54 @@ class GeneralAgent(TodoAgent):
     async def _execute_todo(self, todo: TodoItem) -> str:
         return f"Processed general TODO: {todo.content}"
 
+class ReconciliationAgent(TodoAgent):
+    """Agent specialized in reconciliation tasks."""
+    def __init__(self):
+        super().__init__("reconciliation_agent", ["reconciliation"])
+
+    async def _execute_todo(self, todo: TodoItem) -> str:
+        return f"Reconciliation complete for: {todo.content}"
+
+class FraudAgent(TodoAgent):
+    """Agent specialized in fraud detection tasks."""
+    def __init__(self):
+        super().__init__("fraud_agent", ["fraud"])
+
+    async def _execute_todo(self, todo: TodoItem) -> str:
+        return f"Fraud analysis complete for: {todo.content}"
+
+class RiskAgent(TodoAgent):
+    """Agent specialized in risk assessment tasks."""
+    def __init__(self):
+        super().__init__("risk_agent", ["risk"])
+
+    async def _execute_todo(self, todo: TodoItem) -> str:
+        return f"Risk assessment complete for: {todo.content}"
+
+class EvidenceAgent(TodoAgent):
+    """Agent specialized in evidence processing tasks."""
+    def __init__(self):
+        super().__init__("evidence_agent", ["evidence"])
+
+    async def _execute_todo(self, todo: TodoItem) -> str:
+        return f"Evidence processing complete for: {todo.content}"
+
+class LitigationAgent(TodoAgent):
+    """Agent specialized in litigation support tasks."""
+    def __init__(self):
+        super().__init__("litigation_agent", ["litigation"])
+
+    async def _execute_todo(self, todo: TodoItem) -> str:
+        return f"Litigation support task complete for: {todo.content}"
+
+class HelpAgent(TodoAgent):
+    """Agent specialized in providing help and guidance."""
+    def __init__(self):
+        super().__init__("help_agent", ["help"])
+
+    async def _execute_todo(self, todo: TodoItem) -> str:
+        return f"Help and guidance provided for: {todo.content}"
+
 class TodoAutomationSystem:
     """Main system for parallel TODO processing"""
     
@@ -205,21 +253,29 @@ class TodoAutomationSystem:
     def _initialize_agents(self):
         """Initialize the pool of agents"""
         self.agents = [
-            CodeReviewAgent(),
-            DocumentationAgent(),
-            TestingAgent(),
-            InfrastructureAgent(),
-            GeneralAgent()
+            ReconciliationAgent(),
+            FraudAgent(),
+            RiskAgent(),
+            EvidenceAgent(),
+            LitigationAgent(),
+            HelpAgent(),
+            GeneralAgent() # Keep GeneralAgent for any untagged TODOs
         ]
-        logger.info(f"Initialized {len(self.agents)} agents")
+        logger.info(f"Initialized {len(self.agents)} specialized agents")
     
-    def load_todos_from_files(self, root_directory: str = "."):
-        """Load TODOs from all files in the directory"""
-        root_path = Path(root_directory)
+    def load_todos_from_files(self, path_str: str = "."):
+        """Load TODOs from all files in a directory or from a single file."""
+        root_path = Path(path_str)
         todo_pattern = re.compile(r'#\s*TODO[:\s].*', re.IGNORECASE)
-        
-        for file_path in root_path.rglob("*"):
-            if file_path.is_file() and not self._should_skip_file(file_path):
+
+        files_to_scan = []
+        if root_path.is_file():
+            files_to_scan.append(root_path)
+        elif root_path.is_dir():
+            files_to_scan.extend(p for p in root_path.rglob("*") if p.is_file() and not self._should_skip_file(p))
+
+        for file_path in files_to_scan:
+            if not self._should_skip_file(file_path):
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         for line_num, line in enumerate(f, 1):
@@ -236,7 +292,7 @@ class TodoAutomationSystem:
                 except Exception as e:
                     logger.warning(f"Could not read file {file_path}: {e}")
         
-        logger.info(f"Loaded {len(self.todo_queue)} TODOs from files")
+        logger.info(f"Loaded {len(self.todo_queue)} TODOs from {path_str}")
     
     def _should_skip_file(self, file_path: Path) -> bool:
         """Determine if a file should be skipped"""
@@ -300,23 +356,48 @@ class TodoAutomationSystem:
         """Start new tasks if we have capacity"""
         available_agents = [agent for agent in self.agents if not agent.is_busy]
         available_slots = self.max_concurrent_agents - len(self.processing_todos)
+
+        if not available_agents or available_slots <= 0:
+            return
+
+        # Create a copy of the queue to iterate over
+        todos_to_process = self.todo_queue[:]
         
-        while self.todo_queue and available_agents and available_slots > 0:
-            todo = self.todo_queue.pop(0)
-            agent = available_agents.pop(0)
+        for todo in todos_to_process:
+            if not available_agents or available_slots <= 0:
+                break
+
+            assigned_agent = None
             
-            # Mark TODO as in progress
-            todo.status = TodoStatus.IN_PROGRESS
-            todo.assigned_agent = agent.agent_id
-            todo.start_time = datetime.now()
+            # Find an agent with matching capabilities
+            for agent in available_agents:
+                if any(tag in agent.capabilities for tag in todo.tags):
+                    assigned_agent = agent
+                    break
             
-            # Add to processing list
-            self.processing_todos[todo.id] = todo
-            
-            # Start processing in background
-            asyncio.create_task(self._process_todo_with_agent(todo, agent))
-            
-            available_slots -= 1
+            # If no specific agent was found, try to assign to a general agent
+            if not assigned_agent:
+                for agent in available_agents:
+                    if "general" in agent.capabilities:
+                        assigned_agent = agent
+                        break
+
+            if assigned_agent:
+                # We found an agent, so process the todo
+                self.todo_queue.remove(todo)
+                available_agents.remove(assigned_agent)
+                available_slots -= 1
+
+                # Mark TODO as in progress
+                todo.status = TodoStatus.IN_PROGRESS
+                todo.assigned_agent = assigned_agent.agent_id
+                todo.start_time = datetime.now()
+
+                # Add to processing list
+                self.processing_todos[todo.id] = todo
+
+                # Start processing in background
+                asyncio.create_task(self._process_todo_with_agent(todo, assigned_agent))
     
     async def _process_todo_with_agent(self, todo: TodoItem, agent: TodoAgent):
         """Process a TODO with a specific agent"""
@@ -400,10 +481,10 @@ class TodoAutomationSystem:
 async def main():
     """Main function to run the TODO automation"""
     # Initialize the system
-    automation = TodoAutomationSystem(max_concurrent_agents=5)
+    automation = TodoAutomationSystem(max_concurrent_agents=10)
     
-    # Load TODOs from the current directory
-    automation.load_todos_from_files(".")
+    # Load TODOs from the specific test file
+    automation.load_todos_from_files("Desktop/Nexus/forensic_reconciliation_app/forensic_cases.md")
     
     # Run the automation
     await automation.run_automation()
