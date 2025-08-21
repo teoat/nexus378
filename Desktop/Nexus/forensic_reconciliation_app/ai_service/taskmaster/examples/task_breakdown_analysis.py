@@ -318,13 +318,13 @@ class TaskBreakdownAnalyzer:
         print("📊 Current MCP Status:")
         status = mcp_server.get_system_status()
         print(f"   Total Tasks: {status['total_tasks']}")
-        print(f"   Pending: {status['tasks_pending']}")
-        print(f"   Active Agents: {status['active_agents']}")
+        print(f"   Pending: {status['task_status']['pending']}")
+        print(f"   Active Agents: {status['agents']['active_agents']}")
         print()
         
         # Get priority todos
         print("📋 Analyzing Next 10 Priority TODO Items...")
-        summary = mcp_server.get_priority_todo_summary()
+        summary = await mcp_server.get_priority_todo_summary()
         
         total_subtasks = 0
         breakdown_results = []
