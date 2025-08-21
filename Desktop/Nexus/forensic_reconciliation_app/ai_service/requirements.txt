@@ -117,3 +117,7 @@ cython==3.0.6
 # Container and Deployment
 gunicorn==21.2.0
 supervisor==4.2.5
+
+# Fuzzy Matching
+thefuzz==0.20.0
+python-Levenshtein==0.23.0
