@@ -13,7 +13,7 @@ class TestRetryPolicy(unittest.TestCase):
     def test_retry_policy(self):
         async def run_test():
             step = WorkflowStep(id="step1", name="Step 1", step_type="test_step")
-            job = Job(id="job1", name="Test Job", description="", job_type="test", retry_policy=JobRetryPolicy(max_retries=1))
+            job = Job(id="job1", type="test", retry_policy=JobRetryPolicy(max_retries=1))
 
             self.orchestrator._create_step_job = AsyncMock(return_value=job)
             self.orchestrator._wait_for_job_completion.side_effect = [
