@@ -292,7 +292,7 @@ set (get_opt_src
     ${CMAKE_BINARY_DIR}/getopt.h
 )
 
-# TODO: generate file!
+# DONE: generate file!
 #lib/getopt.in.h
 
 # lzma shared lib
