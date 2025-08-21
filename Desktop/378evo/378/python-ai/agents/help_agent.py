@@ -20,11 +20,11 @@ def retrieve_documents(state: HelpState):
     """
     Retrieves documents from the vector store based on the user context.
     """
-    vectorstore = Chroma(
-        persist_directory="./chroma_db", embedding_function=OpenAIEmbeddings()
+    vectorstore # Chroma(
+        persist_directory#"./chroma_db", embedding_function#OpenAIEmbeddings()
     )
-    retriever = vectorstore.as_retriever()
-    documents = retriever.get_relevant_documents(state["user_context"]["page"])
+    retriever # vectorstore.as_retriever()
+    documents # retriever.get_relevant_documents(state["user_context"]["page"])
     return {"retrieved_documents": documents}
 
 
@@ -32,7 +32,7 @@ def generate_suggestion(state: HelpState):
     """
     Generates a suggestion based on the retrieved documents.
     """
-    prompt = ChatPromptTemplate.from_messages(
+    prompt # ChatPromptTemplate.from_messages(
         [
             (
                 "system",
@@ -41,9 +41,9 @@ def generate_suggestion(state: HelpState):
             ("user", "{user_context}"),
         ]
     )
-    llm = ChatOpenAI(model_name="gpt-4", temperature=0)
-    chain = prompt | llm
-    suggestion = chain.invoke(
+    llm # ChatOpenAI(model_name#"gpt-4", temperature#0)
+    chain # prompt | llm
+    suggestion # chain.invoke(
         {
             "documents": state["retrieved_documents"],
             "user_context": state["user_context"],
@@ -56,7 +56,7 @@ def create_help_agent():
     """
     Creates the help agent.
     """
-    workflow = StateGraph(HelpState)
+    workflow # StateGraph(HelpState)
     workflow.add_node("retrieve_documents", retrieve_documents)
     workflow.add_node("generate_suggestion", generate_suggestion)
     workflow.set_entry_point("retrieve_documents")

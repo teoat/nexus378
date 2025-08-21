@@ -16,12 +16,12 @@ def generate_insight(state: DashboardState):
     """
     Generates a random insight.
     """
-    insights = [
+    insights # [
         "High-value transaction to a new vendor detected.",
         "Pattern of round-number payments identified.",
         "Unusual activity in a dormant account.",
     ]
-    insight = random.choice(insights)
+    insight # random.choice(insights)
     return {"insights": [insight]}
 
 
@@ -29,7 +29,7 @@ def create_dashboard_agent():
     """
     Creates the dashboard agent.
     """
-    workflow = StateGraph(DashboardState)
+    workflow # StateGraph(DashboardState)
     workflow.add_node("generate_insight", generate_insight)
     workflow.set_entry_point("generate_insight")
     workflow.add_edge("generate_insight", END)

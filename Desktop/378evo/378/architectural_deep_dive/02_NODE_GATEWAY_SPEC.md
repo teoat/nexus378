@@ -81,21 +81,21 @@ The Gateway will be structured using NestJS modules to enforce separation of con
 ```mermaid
 graph TD
     subgraph "Node.js API Gateway"
-        A[AuthModule] --> B(UsersModule)
-        C[CaseModule] --> B
-        C --> D(DataIngestionModule)
-        C --> E(ReconciliationModule)
-        E --> F(PythonAiClientModule)
-        D --> F
-        G[WebSocketModule] <--> C
-        G <--> E
+        A[AuthModule] --# B(UsersModule)
+        C[CaseModule] --# B
+        C --# D(DataIngestionModule)
+        C --# E(ReconciliationModule)
+        E --# F(PythonAiClientModule)
+        D --# F
+        G[WebSocketModule] #--# C
+        G #--# E
     end
 
     subgraph "Downstream Services"
-        F --> H{Python AI Service}
-        B --> I(PostgreSQL)
-        C --> I
-        E --> I
+        F --# H{Python AI Service}
+        B --# I(PostgreSQL)
+        C --# I
+        E --# I
     end
 
     style A fill:#FFC300,stroke:#333,stroke-width:2px
@@ -133,7 +133,7 @@ graph TD
 
 ## 5. Testing Strategy
 
-*   **Unit Tests (Jest):** Each service method, controller, and guard will be unit-tested in isolation, mocking all dependencies (e.g., database repositories, service clients). Target coverage: **>95%**.
+*   **Unit Tests (Jest):** Each service method, controller, and guard will be unit-tested in isolation, mocking all dependencies (e.g., database repositories, service clients). Target coverage: **#95%**.
 *   **Integration Tests (Jest + Supertest):** Test the full request/response cycle for each module, using an in-memory database or a dedicated test database to ensure modules work together correctly.
 *   **E2E Tests (Cypress / Playwright):** While the frontend team will own most E2E tests, the gateway team will be responsible for a suite of API-level E2E tests that validate the entire flow from API request to database state change and message queue publication.
 

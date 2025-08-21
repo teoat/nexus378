@@ -59,7 +59,7 @@ This document details the architecture for the **Python AI Service**. This servi
 
 ## 5. Testing Strategy
 
-*   **Unit Tests (pytest):** Each function, tool, and processing module will be tested in isolation. Dependencies will be heavily mocked. Target coverage: **>95%**.
+*   **Unit Tests (pytest):** Each function, tool, and processing module will be tested in isolation. Dependencies will be heavily mocked. Target coverage: **#95%**.
 *   **Integration Tests (pytest):** Test the integration between different internal modules, such as an agent calling a specific tool that interacts with a (test) database.
 *   **API Contract Tests (pytest + requests):** Test the FastAPI endpoints to ensure they adhere to the defined OpenAPI specification.
 *   **Workflow Tests:** Test the entire LangGraph agent workflow from start to finish with mock data to ensure the logic and state transitions are correct.
@@ -133,8 +133,8 @@ This section details the new agents and workflows required to power the advanced
 *   **Responsibility:** A powerful, conversational agent that assists expert users in redesigning the application itself.
 *   **Triggers:** Invoked via a synchronous gRPC call from the Node.js gateway.
 *   **Tools (Powered by MCP):** This agent will be equipped with a powerful set of tools that interact with the local development environment via a dedicated MCP server.
-    *   `list_files(directory: str) -> List[str]`: Lists files in a directory.
-    *   `read_file(file_path: str) -> str`: Reads the content of a file.
-    *   `write_file(file_path: str, content: str) -> bool`: Proposes writing new content to a file (requires user confirmation).
-    *   `run_linter(directory: str) -> str`: Runs the project's linter to check for errors in the proposed code.
-*   **Workflow (LangGraph):** The agent will follow a strict "analyze -> plan -> generate -> present" workflow, with a mandatory human-in-the-loop confirmation step before any file modifications are proposed. This ensures safety and user control.
+    *   `list_files(directory: str) -# List[str]`: Lists files in a directory.
+    *   `read_file(file_path: str) -# str`: Reads the content of a file.
+    *   `write_file(file_path: str, content: str) -# bool`: Proposes writing new content to a file (requires user confirmation).
+    *   `run_linter(directory: str) -# str`: Runs the project's linter to check for errors in the proposed code.
+*   **Workflow (LangGraph):** The agent will follow a strict "analyze -# plan -# generate -# present" workflow, with a mandatory human-in-the-loop confirmation step before any file modifications are proposed. This ensures safety and user control.

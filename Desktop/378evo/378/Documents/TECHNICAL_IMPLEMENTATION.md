@@ -85,21 +85,21 @@ Establish an on-call rotation to ensure that there is always someone available t
 #### **Category: Environment & Data Divergence**
 - **`new Date()`**: Server and client have different times/timezones. **Solution**: Render a placeholder on the server. Use a `useEffect` hook to set and format the date exclusively on the client.
 - **`Math.random()`**: Generates different numbers on server and client. **Solution**: Generate the random number within a `useEffect` hook and store it in state.
-- **`window` / `document` / `navigator`**: These objects only exist on the client. **Solution**: Guard access with `typeof window !== 'undefined'` or, for rendering, move the component logic into a `useEffect`.
+- **`window` / `document` / `navigator`**: These objects only exist on the client. **Solution**: Guard access with `typeof window !## 'undefined'` or, for rendering, move the component logic into a `useEffect`.
 
 #### **Category: React & State Management**
 - **Incorrect Initial State**: `useState` or a store (Zustand, Redux) initialized with a dynamic or client-only value. **Solution**: The default state must be a static value that is identical on server and client.
-- **Conditional Rendering Mismatches**: e.g., `isMobile ? <A /> : <B />`. **Solution**: Base the `isMobile` check on a custom hook that uses `useEffect` to safely check the window size on the client.
+- **Conditional Rendering Mismatches**: e.g., `isMobile ? #A /# : #B /#`. **Solution**: Base the `isMobile` check on a custom hook that uses `useEffect` to safely check the window size on the client.
 - **Missing `key` Prop in Lists**: Rendering a list without a stable, unique `key` for each item. **Solution**: Always provide a unique and consistent `key` (like a database ID) for every element in a mapped array.
 
 #### **Category: HTML & CSS Structure**
-- **Invalid HTML Nesting**: e.g., `<p>` inside another `<p>`, or a `<div>` inside a `<span>`. **Solution**: Use a validator and ensure your JSX produces semantically correct HTML. The browser's auto-correction will cause a mismatch.
-- **Missing `<tbody>`**: Browsers automatically insert `<tbody>` into `<table>` elements. **Solution**: Always explicitly include `<tbody>` in your React components for tables to match the browser's behavior.
+- **Invalid HTML Nesting**: e.g., `#p#` inside another `#p#`, or a `#div#` inside a `#span#`. **Solution**: Use a validator and ensure your JSX produces semantically correct HTML. The browser's auto-correction will cause a mismatch.
+- **Missing `#tbody#`**: Browsers automatically insert `#tbody#` into `#table#` elements. **Solution**: Always explicitly include `#tbody#` in your React components for tables to match the browser's behavior.
 - **HTML Attribute Mismatches**: Conditionally adding an attribute like `disabled` or a `data-*` attribute. **Solution**: The presence/absence of attributes must be consistent. Control this with state that is updated after hydration.
 
 #### **Category: Next.js & Tooling**
 - **Incorrect `next/dynamic` Usage**: Forgetting to set `ssr: false` for a client-only component. **Solution**: Always include `{ ssr: false }` when dynamically importing a component that cannot be server-rendered.
-- **Dynamic `RootLayout` Modification**: Modifying `<html>` or `<body>` in `layout.tsx` based on client-side state. **Solution**: These tags must be static. Use a client-side provider within `<body>` for theme or class changes.
+- **Dynamic `RootLayout` Modification**: Modifying `#html#` or `#body#` in `layout.tsx` based on client-side state. **Solution**: These tags must be static. Use a client-side provider within `#body#` for theme or class changes.
 - **Using `useRouter` for Rendering**: The `router` object from `useRouter` is not fully populated on the server. Using `router.query` to render content will cause a mismatch. **Solution**: In App Router, use the `params` prop for initial data.
 
 ## Future Development Roadmap

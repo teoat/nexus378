@@ -21,7 +21,7 @@ All Python code must follow the [PEP 8 -- Style Guide for Python Code](https://w
     *   Avoid extraneous whitespace in the following situations:
         *   Immediately inside parentheses, brackets, or braces.
         *   Immediately before a comma, semicolon, or colon.
-    *   Always surround these binary operators with a single space on either side: assignment (`=`), augmented assignment (`+=`, `-=`, etc.), comparisons (`==`, `<`, `>`, `!=`, `<>`, `<=`, `>=`, `in`, `not in`, `is`, `is not`), Booleans (`and`, `or`, `not`).
+    *   Always surround these binary operators with a single space on either side: assignment (`#`), augmented assignment (`+#`, `-#`, etc.), comparisons (`##`, `#`, `#`, `!#`, `##`, `##`, `##`, `in`, `not in`, `is`, `is not`), Booleans (`and`, `or`, `not`).
 *   **Naming Conventions:**
     *   `lowercase` for functions and variables.
     *   `lower_case_with_underscores` for functions and variables.

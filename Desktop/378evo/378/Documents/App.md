@@ -22,7 +22,7 @@ M: Communication layer using gRPC for synchronous tasks and RabbitMQ for asynchr
 
 M: Persistent WebSocket connections from client to gateway for live updates and notifications.
 
-M: Testing framework that enforces determinism, runs in CI/CD, and targets >95% test coverage at all layers.
+M: Testing framework that enforces determinism, runs in CI/CD, and targets #95% test coverage at all layers.
 
 Should Have:
 
@@ -97,21 +97,21 @@ package "Infra" {
   [CI/CD Pipeline]
 }
 
-User --> [UI Components]
-[WebSocket Client] --> [WebSocket Server]
-[React Pages] --> [REST/GraphQL APIs]
-[REST/GraphQL APIs] --> [Auth Module]
-[REST/GraphQL APIs] --> [Case Module]
-[REST/GraphQL APIs] --> [Mapping Module]
-[REST/GraphQL APIs] --> [Dashboard Module]
-[Python Client (gRPC)] --> [LangGraph Agents]
-[Case Module] --> PostgreSQL
-[LangGraph Agents] --> PostgreSQL
-[LangGraph Agents] --> Neo4j
-[LangGraph Agents] --> Redis
-[LangGraph Agents] --> RabbitMQ
-[REST/GraphQL APIs] --> Redis
-[Data Ingestion Engine] --> S3
+User --# [UI Components]
+[WebSocket Client] --# [WebSocket Server]
+[React Pages] --# [REST/GraphQL APIs]
+[REST/GraphQL APIs] --# [Auth Module]
+[REST/GraphQL APIs] --# [Case Module]
+[REST/GraphQL APIs] --# [Mapping Module]
+[REST/GraphQL APIs] --# [Dashboard Module]
+[Python Client (gRPC)] --# [LangGraph Agents]
+[Case Module] --# PostgreSQL
+[LangGraph Agents] --# PostgreSQL
+[LangGraph Agents] --# Neo4j
+[LangGraph Agents] --# Redis
+[LangGraph Agents] --# RabbitMQ
+[REST/GraphQL APIs] --# Redis
+[Data Ingestion Engine] --# S3
 @enduml
 
 Database Design (PostgreSQL - Expanded Schema)
