@@ -14,7 +14,7 @@ class TestAutoScaler(unittest.TestCase):
         self.auto_scaler._scale_up_agents = AsyncMock()
         self.auto_scaler._scale_down_agents = AsyncMock()
 
-    @patch('__main__.AutoScaler._collect_workload_metrics')
+    @patch('ai_service.taskmaster.core.auto_scaler.AutoScaler._collect_workload_metrics')
     def test_scale_up(self, mock_metrics):
         async def run_test():
             # Simulate high load
