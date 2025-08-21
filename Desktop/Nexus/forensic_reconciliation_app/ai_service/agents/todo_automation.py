@@ -422,7 +422,7 @@ class TodoAutomationSystem:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     for line_num, line in enumerate(f, 1):
                         if todo_pattern.search(line):
-                            todo_id = f"{file_path}_{line_num}"
+                            todo_id = self._generate_todo_id(file_path, line_num)
                             if todo_id not in self.mcp_log or self.mcp_log[todo_id].get("status") == "pending":
                                 todo = TodoItem(
                                     id=todo_id,
