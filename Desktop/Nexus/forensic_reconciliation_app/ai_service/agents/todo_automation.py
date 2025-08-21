@@ -17,7 +17,15 @@ import json
 from datetime import datetime, timedelta
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+log_file_path = Path.home() / "automation_log.json"
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler(log_file_path)
+    ]
+)
 logger = logging.getLogger(__name__)
 
 class TodoStatus(Enum):
@@ -314,6 +322,10 @@ class TodoAutomationSystem:
     
     def _should_skip_file(self, file_path: Path) -> bool:
         """Determine if a file should be skipped"""
+        # Only process markdown files
+        if file_path.suffix != ".md":
+            return True
+
         skip_patterns = [
             r'\.git', r'\.pyc$', r'__pycache__', r'\.DS_Store',
             r'\.log$', r'\.tmp$', r'\.cache$', r'node_modules'
@@ -346,29 +358,52 @@ class TodoAutomationSystem:
         
         return tags
     
-    async def run_automation(self):
-        """Main automation loop"""
-        logger.info("Starting TODO automation system...")
+    async def _process_single_batch(self):
+        """Process one batch of TODOs in the queue."""
+        logger.info("Starting new batch processing...")
         start_time = time.time()
         
+        # Reset stats for this batch
+        self.stats = {
+            "total_processed": 0,
+            "successful": 0,
+            "failed": 0,
+            "skipped": 0,
+            "total_processing_time": 0.0
+        }
+        self.completed_todos.clear()
+        self.failed_todos.clear()
+        self.todo_queue.clear()
+
+        # Load TODOs from all configured files
+        self.load_todos_from_files("Desktop/Nexus/forensic_reconciliation_app/forensic_cases.md")
+        self.load_todos_from_files("Desktop/Nexus/forensic_reconciliation_app/ui_ux_tasks.md")
+
+        if not self.todo_queue:
+            logger.info("No TODOs found in this batch.")
+            return
+
         # Sort todos by priority (highest first)
         self.todo_queue.sort(key=lambda x: x.priority, reverse=True)
         
         while self.todo_queue or self.processing_todos:
-            # Start new tasks if we have capacity
             await self._start_new_tasks()
-            
-            # Check for completed tasks
             await self._check_completed_tasks()
-            
-            # Small delay to prevent busy waiting
             await asyncio.sleep(0.1)
         
         total_time = time.time() - start_time
         self.stats["total_processing_time"] = total_time
         
-        logger.info("TODO automation completed!")
+        logger.info("Batch processing completed!")
         self._print_final_stats()
+
+    async def run_automation(self):
+        """Main automation loop, runs continuously."""
+        logger.info("Starting TODO automation system in continuous mode...")
+        while True:
+            await self._process_single_batch()
+            logger.info("Waiting for 60 seconds before next cycle...")
+            await asyncio.sleep(60)
     
     async def _start_new_tasks(self):
         """Start new tasks if we have capacity"""
@@ -496,17 +531,6 @@ class TodoAutomationSystem:
             "stats": self.stats.copy()
         }
 
-async def main():
-    """Main function to run the TODO automation"""
-    # Initialize the system
-    automation = TodoAutomationSystem(max_concurrent_agents=5)
-    
-    # Load TODOs from the current directory
-    automation.load_todos_from_files(".")
-    
-    # Run the automation
-    await automation.run_automation()
-
 if __name__ == "__main__":
-    # Run the automation
-    asyncio.run(main())
+    automation = TodoAutomationSystem(max_concurrent_agents=5)
+    asyncio.run(automation.run_automation())
