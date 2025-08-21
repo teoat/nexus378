@@ -1,0 +1,25 @@
+# DuckDB Setup Requirements for Forensic Reconciliation App
+# MCP Tracked Task: DuckDB OLAP Engine Setup
+
+# Core DuckDB package
+duckdb>=0.9.0
+
+# Additional dependencies for enhanced functionality
+pandas>=2.0.0
+numpy>=1.24.0
+pyarrow>=12.0.0
+
+# Logging and configuration
+python-json-logger>=2.0.0
+
+# Performance monitoring
+psutil>=5.9.0
+
+# Data validation and testing
+pytest>=7.0.0
+pytest-benchmark>=4.0.0
+
+# Development tools
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0
