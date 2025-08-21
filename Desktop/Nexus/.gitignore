@@ -23,3 +23,12 @@ node_modules/
 
 # OS specific
 .DS_Store
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache/
