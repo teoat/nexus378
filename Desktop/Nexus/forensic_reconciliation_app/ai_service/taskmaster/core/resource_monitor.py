@@ -25,14 +25,15 @@ class SystemMetrics:
 class ResourceMonitor:
     """Resource monitoring system for Taskmaster"""
     
-    def __init__(self):
+    def __init__(self, config=None):
+        self.config = config or {}
         self.is_monitoring = False
         self.metrics_history: List[SystemMetrics] = []
-        self.alert_thresholds = {
+        self.alert_thresholds = self.config.get('alert_thresholds', {
             'cpu_percent': 80.0,
             'memory_percent': 85.0,
             'disk_percent': 90.0
-        }
+        })
         
         logger.info("Resource Monitor initialized")
     
@@ -126,3 +127,9 @@ class ResourceMonitor:
                 "active_connections": latest.active_connections
             }
         }
+
+    def get_health(self) -> Dict:
+        """Get health status of the resource monitor."""
+        summary = self.get_system_summary()
+        healthy = summary.get("status") == "monitoring"
+        return {"healthy": healthy, "metrics": summary}

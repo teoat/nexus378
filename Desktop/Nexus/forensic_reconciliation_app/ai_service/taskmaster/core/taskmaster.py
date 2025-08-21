@@ -116,6 +116,7 @@ class Taskmaster:
         self.task_router: Optional[TaskRouter] = None
         self.workflow_orchestrator: Optional[WorkflowOrchestrator] = None
         self.resource_monitor: Optional[ResourceMonitor] = None
+        self.auto_scaler: Optional[AutoScaler] = None
         
         # System state
         self.active_jobs: Dict[str, Job] = {}
@@ -236,15 +237,30 @@ class Taskmaster:
             # Validate job
             self._validate_job(job)
             
-            # Submit to job scheduler
-            job_id = await self.job_scheduler.submit_job(job)
-            
-            # Update metrics
-            self.metrics["jobs_submitted"] += 1
-            self.active_jobs[job_id] = job
-            
-            self.logger.info(f"Job submitted successfully: {job_id}")
-            return job_id
+            # Route the job to an agent
+            decision, agent_id, metadata = await self.task_router.route_job(job, list(self.active_agents.values()))
+
+            if decision == "route" and agent_id:
+                agent = self.active_agents.get(agent_id)
+                if agent:
+                    # Assign job to agent via job scheduler
+                    await self.job_scheduler._assign_job_to_agent(job, agent)
+
+                    # Update metrics
+                    self.metrics["jobs_submitted"] += 1
+                    self.active_jobs[job.id] = job
+
+                    self.logger.info(f"Job {job.id} routed to agent {agent.id}")
+                    return job.id
+                else:
+                    self.logger.error(f"Could not find agent with id {agent_id}")
+                    raise RuntimeError(f"Could not find agent with id {agent_id}")
+            else:
+                self.logger.warning(f"Job {job.id} could not be routed. Decision: {decision}, Metadata: {metadata}")
+                # For now, we just queue the job. A more advanced implementation
+                # could have a dedicated queue for un-routed jobs.
+                await self.job_scheduler.submit_job(job)
+                return job.id
             
         except Exception as e:
             self.logger.error(f"Failed to submit job: {e}")
@@ -329,16 +345,20 @@ class Taskmaster:
             await self.job_scheduler.start()
             
             # Initialize task router
-            self.task_router = TaskRouter(self.config)
+            self.task_router = TaskRouter(self.config, taskmaster=self)
             await self.task_router.start()
             
             # Initialize workflow orchestrator
-            self.workflow_orchestrator = WorkflowOrchestrator(self.config)
+            self.workflow_orchestrator = WorkflowOrchestrator(self.config, taskmaster=self)
             await self.workflow_orchestrator.start()
             
             # Initialize resource monitor
             self.resource_monitor = ResourceMonitor(self.config)
             await self.resource_monitor.start()
+
+            # Initialize auto scaler
+            self.auto_scaler = AutoScaler(self.config, taskmaster=self)
+            await self.auto_scaler.start()
             
             # Initialize queues
             await self._initialize_queues()
@@ -465,11 +485,11 @@ class Taskmaster:
         """Background task for automatic scaling."""
         while self.status == TaskmasterStatus.RUNNING:
             try:
-                # Check if scaling is needed
-                await self._check_scaling_needs()
+                if self.auto_scaler:
+                    await self.auto_scaler._evaluate_scaling_needs()
                 
                 # Wait for next check
-                await asyncio.sleep(300)  # Check every 5 minutes
+                await asyncio.sleep(60)  # Check every minute
                 
             except asyncio.CancelledError:
                 break

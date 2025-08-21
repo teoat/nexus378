@@ -113,9 +113,10 @@ class AutoScaler:
     - Optimizing resource utilization
     """
     
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any], taskmaster=None):
         """Initialize the AutoScaler."""
         self.config = config
+        self.taskmaster = taskmaster
         self.logger = logging.getLogger(__name__)
         
         # Scaling configuration
@@ -568,14 +569,21 @@ class AutoScaler:
     
     async def _create_agent(self, agent_id: str):
         """Create a new agent."""
-        # This would integrate with your agent management system
-        self.logger.info(f"Creating agent: {agent_id}")
+        if self.taskmaster:
+            # This is a simplified implementation. A real implementation would
+            # involve a more complex agent lifecycle management.
+            agent = Agent(id=agent_id, agent_type=AgentType.GENERAL, status=AgentStatus.AVAILABLE)
+            self.taskmaster.active_agents[agent.id] = agent
+            self.logger.info(f"Creating agent: {agent_id}")
         await asyncio.sleep(1)  # Simulate creation time
     
     async def _remove_agent(self, agent_id: str):
         """Remove an existing agent."""
-        # This would integrate with your agent management system
-        self.logger.info(f"Removing agent: {agent_id}")
+        if self.taskmaster and agent_id in self.taskmaster.active_agents:
+            # This is a simplified implementation. A real implementation would
+            # need to handle graceful shutdown of the agent.
+            del self.taskmaster.active_agents[agent_id]
+            self.logger.info(f"Removing agent: {agent_id}")
         await asyncio.sleep(1)  # Simulate removal time
     
     async def _collect_workload_metrics(self) -> Dict[str, Any]:
@@ -619,9 +627,9 @@ class AutoScaler:
     
     async def _get_current_agent_count(self) -> int:
         """Get current number of active agents."""
-        # This would integrate with your agent management system
-        # For now, return a simulated count
-        return 10
+        if self.taskmaster:
+            return len(self.taskmaster.active_agents)
+        return 0
     
     def _calculate_scale_up_amount(self, metrics: Dict[str, Any]) -> int:
         """Calculate how many agents to add."""

@@ -132,9 +132,10 @@ class TaskRouter:
     - Monitoring routing performance
     """
     
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any], taskmaster=None):
         """Initialize the TaskRouter."""
         self.config = config
+        self.taskmaster = taskmaster
         self.logger = logging.getLogger(__name__)
         
         # Routing configuration
@@ -473,9 +474,26 @@ class TaskRouter:
     
     async def _initialize_agent_capabilities(self):
         """Initialize agent capabilities from available agents."""
-        # This would be implemented based on your agent management system
-        # For now, create some mock capabilities
-        pass
+        if not self.taskmaster:
+            return
+
+        for agent in self.taskmaster.active_agents.values():
+            # Create a mock capability for now.
+            # In a real implementation, this would come from the agent's registration.
+            capability = AgentCapability(
+                agent_id=agent.id,
+                agent_type=agent.agent_type,
+                supported_job_types=[JobType.RECONCILIATION, JobType.FRAUD_DETECTION],
+                resource_capacity={'cpu': 1.0, 'memory': 1024},
+                performance_metrics={'throughput': 1.0},
+                specializations=[],
+                reliability_score=0.95,
+                cost_per_hour=10.0,
+                last_updated=datetime.utcnow()
+            )
+            self.agent_capabilities[agent.id] = capability
+
+        await self._rebuild_capability_index()
     
     async def _rebuild_capability_index(self):
         """Rebuild capability index for efficient lookups."""

@@ -140,9 +140,10 @@ class WorkflowOrchestrator:
     - Monitoring workflow performance
     """
     
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any], taskmaster=None):
         """Initialize the WorkflowOrchestrator."""
         self.config = config
+        self.taskmaster = taskmaster
         self.logger = logging.getLogger(__name__)
         
         # Workflow configuration
@@ -552,12 +553,19 @@ class WorkflowOrchestrator:
                     'execution_time': job_result.get('execution_time', 0)
                 }
             else:
-                step_status = StepStatus.FAILED
-                step_result = {
-                    'status': step_status,
-                    'error': job_result.get('error', 'Unknown error'),
-                    'execution_time': job_result.get('execution_time', 0)
-                }
+                if job.can_retry():
+                    job.retry_count += 1
+                    delay = job.get_retry_delay()
+                    self.logger.info(f"Job {job.id} failed, retrying in {delay.total_seconds()} seconds...")
+                    await asyncio.sleep(delay.total_seconds())
+                    return await self._execute_step(execution_id, step)
+                else:
+                    step_status = StepStatus.FAILED
+                    step_result = {
+                        'status': step_status,
+                        'error': job_result.get('error', 'Unknown error'),
+                        'execution_time': job_result.get('execution_time', 0)
+                    }
             
             # Update step execution state
             self.step_executions[execution_id][step_id].update({
@@ -580,33 +588,48 @@ class WorkflowOrchestrator:
     
     async def _create_step_job(self, execution_id: str, step: WorkflowStep) -> Job:
         """Create a job for step execution."""
-        # This would integrate with your job management system
-        # For now, create a mock job
         job = Job(
             id=str(uuid.uuid4()),
-            type=JobType(step.step_type),
+            job_type=JobType(step.step_type),
             priority=JobPriority.MEDIUM,
+            data={'workflow_execution_id': execution_id, 'step_id': step.id, 'inputs': step.inputs},
             resource_requirements=step.resource_requirements,
             metadata={
                 'workflow_execution_id': execution_id,
                 'workflow_step_id': step.id,
-                'step_type': step.step_type
             }
         )
         
+        if self.taskmaster:
+            await self.taskmaster.submit_job(job)
+
         return job
     
     async def _wait_for_job_completion(self, job_id: str, timeout: timedelta) -> Dict[str, Any]:
         """Wait for job completion."""
-        # This would integrate with your job management system
-        # For now, simulate job completion
-        await asyncio.sleep(1)
+        if not self.taskmaster:
+            # Simulate job completion if no taskmaster is present
+            await asyncio.sleep(1)
+            return {
+                'status': JobStatus.COMPLETED,
+                'outputs': {'result': 'success'},
+                'execution_time': 1.0
+            }
+
+        start_time = datetime.utcnow()
+        while datetime.utcnow() - start_time < timeout:
+            job_status = await self.taskmaster.get_job_status(job_id)
+            if job_status in [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED]:
+                job = self.taskmaster.active_jobs.get(job_id)
+                return {
+                    'status': job_status,
+                    'outputs': job.outputs if job else {},
+                    'error': job.error_message if job else None,
+                    'execution_time': (datetime.utcnow() - start_time).total_seconds()
+                }
+            await asyncio.sleep(1)
         
-        return {
-            'status': JobStatus.COMPLETED,
-            'outputs': {'result': 'success'},
-            'execution_time': 1.0
-        }
+        return {'status': JobStatus.FAILED, 'error': 'Timeout'}
     
     def _initialize_step_dependencies(self, workflow: Workflow):
         """Initialize step dependencies for a workflow."""
@@ -705,9 +728,27 @@ class WorkflowOrchestrator:
     
     async def _attempt_workflow_recovery(self, execution_id: str):
         """Attempt to recover from workflow failure."""
-        # This would implement recovery strategies
-        # For now, just log the attempt
         self.logger.info(f"Attempting recovery for failed workflow {execution_id}")
+        execution = self.executions.get(execution_id)
+        if not execution:
+            return
+
+        # Simple recovery: restart the workflow from the failed step
+        if execution.failed_steps:
+            failed_step_id = list(execution.failed_steps)[0]
+            self.logger.info(f"Restarting workflow from failed step: {failed_step_id}")
+
+            # Reset the status of the failed step and re-queue the execution
+            execution.status = WorkflowStatus.PENDING
+            execution.failed_steps.clear()
+            execution.error_message = None
+
+            # We need to be careful not to create an infinite loop.
+            # A real implementation would have a limit on the number of retries.
+            # For now, we will just re-queue it once.
+            if execution.metadata.get("retry_count", 0) < 1:
+                execution.metadata["retry_count"] = 1
+                self.execution_queue.append(execution_id)
     
     def _apply_workflow_parameters(self, workflow: Workflow, parameters: Dict[str, Any]) -> Workflow:
         """Apply parameters to workflow template."""
