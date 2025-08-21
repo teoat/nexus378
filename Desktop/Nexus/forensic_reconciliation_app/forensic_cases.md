@@ -20,3 +20,13 @@
 - # TODO: [evidence] Analyze email communications for keywords in Case #012.
 - # TODO: [litigation] Prepare a summary of findings for the legal team for Case #002.
 - # TODO: [help] Document the procedure for requesting a new type of fraud analysis.
+- # TODO: [reconciliation] Validate expense claims against company policy for Case #013.
+- # TODO: [reconciliation] Reconcile inventory records with sales data for Case #014.
+- # TODO: [fraud] Investigate suspicious wire transfers to offshore accounts in Case #015. [urgent]
+- # TODO: [fraud] Check for duplicate invoices in the accounts payable system for Case #016.
+- # TODO: [risk] Review and update the company's anti-fraud policies.
+- # TODO: [risk] Conduct a risk assessment of third-party vendors.
+- # TODO: [evidence] Perform a forensic analysis of a compromised hard drive for Case #017.
+- # TODO: [evidence] Transcribe and analyze audio recordings for Case #018.
+- # TODO: [litigation] Draft a report on the findings for Case #003 for external counsel.
+- # TODO: [help] Create a tutorial on using the new risk dashboard.
