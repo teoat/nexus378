@@ -229,6 +229,22 @@ class HelpAgent(TodoAgent):
     async def _execute_todo(self, todo: TodoItem) -> str:
         return f"Help and guidance provided for: {todo.content}"
 
+class UIAgent(TodoAgent):
+    """Agent specialized in UI implementation tasks."""
+    def __init__(self):
+        super().__init__("ui_agent", ["ui", "frontend"])
+
+    async def _execute_todo(self, todo: TodoItem) -> str:
+        return f"UI task complete for: {todo.content}"
+
+class UXAgent(TodoAgent):
+    """Agent specialized in UX improvement tasks."""
+    def __init__(self):
+        super().__init__("ux_agent", ["ux", "user_experience"])
+
+    async def _execute_todo(self, todo: TodoItem) -> str:
+        return f"UX task complete for: {todo.content}"
+
 class TodoAutomationSystem:
     """Main system for parallel TODO processing"""
     
@@ -259,6 +275,8 @@ class TodoAutomationSystem:
             EvidenceAgent(),
             LitigationAgent(),
             HelpAgent(),
+            UIAgent(),
+            UXAgent(),
             GeneralAgent() # Keep GeneralAgent for any untagged TODOs
         ]
         logger.info(f"Initialized {len(self.agents)} specialized agents")
@@ -481,10 +499,10 @@ class TodoAutomationSystem:
 async def main():
     """Main function to run the TODO automation"""
     # Initialize the system
-    automation = TodoAutomationSystem(max_concurrent_agents=10)
+    automation = TodoAutomationSystem(max_concurrent_agents=5)
     
-    # Load TODOs from the specific test file
-    automation.load_todos_from_files("Desktop/Nexus/forensic_reconciliation_app/forensic_cases.md")
+    # Load TODOs from the current directory
+    automation.load_todos_from_files(".")
     
     # Run the automation
     await automation.run_automation()
