@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class TaskStatus(Enum):
+    """Task status enumeration"""
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -22,15 +23,7 @@ class TaskStatus(Enum):
 
 
 class TaskPriority(Enum):
-    CRITICAL = "critical"
-    HIGH = "high"
-    NORMAL = "normal"
-    LOW = "low"
-    MAINTENANCE = "maintenance"
-    BLOCKED = "blocked"
-
-
-class TaskPriority(Enum):
+    """Task priority levels"""
     CRITICAL = "critical"
     HIGH = "high"
     NORMAL = "normal"
@@ -40,6 +33,7 @@ class TaskPriority(Enum):
 
 @dataclass
 class Task:
+    """Task definition for MCP system"""
     id: str
     name: str
     description: str
@@ -55,6 +49,7 @@ class Task:
 
 @dataclass
 class Agent:
+    """Agent information for MCP system"""
     id: str
     name: str
     capabilities: List[str]
@@ -64,6 +59,8 @@ class Agent:
 
 
 class MCPServer:
+    """Central MCP server for coordinating all agents"""
+    
     def __init__(self):
         self.tasks: Dict[str, Task] = {}
         self.agents: Dict[str, Agent] = {}
@@ -181,10 +178,12 @@ class MCPServer:
         logger.info(f"Priority TODO submitted: {todo_data['name']} - {todo_data['priority'].value}")
     
     async def register_agent(self, agent_id: str, name: str, capabilities: List[str]) -> bool:
+        """Register a new agent with the MCP system"""
         async with self.lock:
             if agent_id in self.agents:
+                logger.warning(f"Agent {agent_id} already registered")
                 return False
-            
+                
             agent = Agent(
                 id=agent_id,
                 name=name,
@@ -202,13 +201,12 @@ class MCPServer:
                          priority: TaskPriority = TaskPriority.NORMAL, 
                          required_capabilities: List[str] = None,
                          estimated_duration: str = "Unknown") -> str:
+        """Submit a new task to the MCP system"""
         async with self.lock:
             # Check for duplicates
-            for task in self.tasks.values():
-                if (task.name == name and 
-                    task.status in [TaskStatus.PENDING, TaskStatus.IN_PROGRESS]):
-                    logger.warning(f"Duplicate task: {name}")
-                    return None
+            if await self._is_duplicate_task(name, description):
+                logger.warning(f"Duplicate task detected: {name}")
+                return None
             
             import uuid
             task_id = str(uuid.uuid4())
@@ -228,10 +226,21 @@ class MCPServer:
             
             self.tasks[task_id] = task
             self.task_queue.append(task_id)
+            
             logger.info(f"Task submitted: {name} - Priority: {priority.value}")
             return task_id
     
+    async def _is_duplicate_task(self, name: str, description: str) -> bool:
+        """Check if a task is a duplicate based on name and description"""
+        for task in self.tasks.values():
+            if (task.name.lower() == name.lower() and 
+                task.description.lower() == description.lower() and
+                task.status in [TaskStatus.PENDING, TaskStatus.IN_PROGRESS]):
+                return True
+        return False
+    
     async def get_available_tasks(self, agent_id: str) -> List[Task]:
+        """Get available tasks for a specific agent"""
         async with self.lock:
             if agent_id not in self.agents:
                 return []
@@ -276,16 +285,19 @@ class MCPServer:
         return priority_scores.get(priority, 0)
     
     async def claim_task(self, agent_id: str, task_id: str) -> bool:
+        """Claim a task for execution by an agent"""
         async with self.lock:
             if agent_id not in self.agents or task_id not in self.tasks:
                 return False
             
             task = self.tasks[task_id]
-            if task.status != TaskStatus.PENDING:
+            agent = self.agents[agent_id]
+            
+            if (task.status != TaskStatus.PENDING or 
+                task.agent_id is not None):
                 return False
             
             # Check if agent can handle the task
-            agent = self.agents[agent_id]
             if not self._agent_can_handle_task(agent, task):
                 logger.warning(f"Agent {agent.name} lacks capabilities for task {task.name}")
                 return False
@@ -316,6 +328,7 @@ class MCPServer:
         return True
     
     async def complete_task(self, agent_id: str, task_id: str, result: Dict[str, Any] = None) -> bool:
+        """Mark a task as completed"""
         async with self.lock:
             if agent_id not in self.agents or task_id not in self.tasks:
                 return False
@@ -337,6 +350,7 @@ class MCPServer:
             return True
     
     async def fail_task(self, agent_id: str, task_id: str, error: str = None) -> bool:
+        """Mark a task as failed"""
         async with self.lock:
             if agent_id not in self.agents or task_id not in self.tasks:
                 return False

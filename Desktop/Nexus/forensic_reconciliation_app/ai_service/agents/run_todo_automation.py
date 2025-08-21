@@ -32,8 +32,8 @@ def main():
                     max_agents_input = input("Enter number of concurrent agents (default 10): ").strip()
         max_agents = int(max_agents_input) if max_agents_input else 10
     except ValueError:
-        print("❌ Invalid number of agents, using default: 5")
-        max_agents = 5
+        print("❌ Invalid number of agents, using default: 10")
+        max_agents = 10
     
     # Validate directory
     target_path = Path(target_dir)

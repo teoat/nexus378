@@ -20,7 +20,7 @@ class AgentConfig:
 @dataclass
 class SystemConfig:
     """System-wide configuration"""
-    max_concurrent_agents: int = 5
+    max_concurrent_agents: int = 10
     max_retries: int = 3
     retry_delay: float = 1.0
     processing_timeout: float = 300.0  # 5 minutes
@@ -118,7 +118,7 @@ CONFIGURATIONS = {
         processing_timeout=30.0
     ),
     "production": SystemConfig(
-        max_concurrent_agents=10,
+        max_concurrent_agents=20,
         log_level="WARNING",
         processing_timeout=600.0
     )
