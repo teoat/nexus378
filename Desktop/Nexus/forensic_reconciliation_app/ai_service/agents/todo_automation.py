@@ -742,7 +742,7 @@ class TodoAutomationSystem:
 
             if 0 < todo.line_number <= len(lines):
                 line_content = lines[todo.line_number - 1]
-                if todo.content in line_content:
+                if "# TODO:" in line_content:
                     lines[todo.line_number - 1] = line_content.replace("# TODO:", "# DONE:", 1)
 
                     with open(todo.file_path, 'w') as f:
