@@ -532,7 +532,18 @@ class TodoAutomationSystem:
 
         if not self.todo_queue:
             logger.info("No TODOs found in this batch.")
-            return
+    parser = argparse.ArgumentParser(description="Run the TODO Automation System.")
+    parser.add_argument(
+        "--max-concurrent-agents",
+        type=int,
+        default=None,
+        help="Maximum number of concurrent agents (can also be set via MAX_CONCURRENT_AGENTS env variable)."
+    )
+    args = parser.parse_args()
+    max_agents = args.max_concurrent_agents
+    if max_agents is None:
+        max_agents = int(os.environ.get("MAX_CONCURRENT_AGENTS", 5))
+    automation = TodoAutomationSystem(max_concurrent_agents=max_agents)
 
         # Sort todos by priority (highest first)
         self.todo_queue.sort(key=lambda x: x.priority, reverse=True)
