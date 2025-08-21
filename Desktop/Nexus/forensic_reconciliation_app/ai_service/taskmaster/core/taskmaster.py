@@ -240,7 +240,7 @@ class Taskmaster:
             # Route the job to an agent
             decision, agent_id, metadata = await self.task_router.route_job(job, list(self.active_agents.values()))
 
-            if decision == "route" and agent_id:
+            if decision == RoutingDecision.ROUTE and agent_id:
                 agent = self.active_agents.get(agent_id)
                 if agent:
                     # Assign job to agent via job scheduler
