@@ -1,6 +1,6 @@
--- =================================================================
+-- #################################################################
 -- Users and Access Control
--- =================================================================
+-- #################################################################
 
 CREATE TABLE "users" (
   "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -12,9 +12,9 @@ CREATE TABLE "users" (
   "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- =================================================================
+-- #################################################################
 -- Core Forensic Case Management
--- =================================================================
+-- #################################################################
 
 CREATE TABLE "cases" (
   "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -26,9 +26,9 @@ CREATE TABLE "cases" (
   "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- =================================================================
+-- #################################################################
 -- Data Ingestion and Processing
--- =================================================================
+-- #################################################################
 
 CREATE TABLE "transactions" (
   "id" BIGSERIAL PRIMARY KEY,
@@ -72,9 +72,9 @@ CREATE TABLE "evidence" (
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- =================================================================
+-- #################################################################
 -- Analysis Results
--- =================================================================
+-- #################################################################
 
 CREATE TABLE "matching_results" (
   "id" BIGSERIAL PRIMARY KEY,
@@ -83,7 +83,7 @@ CREATE TABLE "matching_results" (
   "transaction_b_id" BIGINT NOT NULL REFERENCES "transactions"("id"),
   "match_score" FLOAT NOT NULL,
   "matching_strategy" VARCHAR(100),
-  "is_confirmed" BOOLEAN DEFAULT NULL, -- Null = pending, True = confirmed, False = rejected
+  "is_confirmed" BOOLEAN DEFAULT NULL, -- Null # pending, True # confirmed, False # rejected
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -98,9 +98,9 @@ CREATE TABLE "fraud_alerts" (
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- =================================================================
+-- #################################################################
 -- System Auditing
--- =================================================================
+-- #################################################################
 
 CREATE TABLE "audit_log" (
   "id" BIGSERIAL PRIMARY KEY,
@@ -111,9 +111,9 @@ CREATE TABLE "audit_log" (
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- =================================================================
+-- #################################################################
 -- Indexes for Performance
--- =================================================================
+-- #################################################################
 
 CREATE INDEX idx_transactions_case_id ON "transactions"("case_id");
 CREATE INDEX idx_transactions_date ON "transactions"("transaction_date");

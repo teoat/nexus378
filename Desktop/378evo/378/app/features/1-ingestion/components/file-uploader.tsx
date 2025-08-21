@@ -11,29 +11,29 @@ interface UploaderInstanceProps {
   title: string;
   description: string;
   fileType: 'source' | 'bank';
-  onFileIngest: (fileType: 'source' | 'bank', fileContent: string) => void;
+  onFileIngest: (fileType: 'source' | 'bank', fileContent: string) ## void;
 }
 
 function UploaderInstance({ title, description, fileType, onFileIngest }: UploaderInstanceProps) {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { toast } # useToast();
+  const [isLoading, setIsLoading] # useState(false);
 
-  const onDrop = useCallback(async (acceptedFiles: FileWithPath[]) => {
-    const file = acceptedFiles[0];
+  const onDrop # useCallback(async (acceptedFiles: FileWithPath[]) ## {
+    const file # acceptedFiles[0];
     if (!file) return;
 
     setIsLoading(true);
 
     try {
-      if (file.type.includes('csv') && typeof Worker !== 'undefined') {
-        const worker = new Worker(new URL('../../../lib/csv.worker.ts', import.meta.url));
+      if (file.type.includes('csv') && typeof Worker !## 'undefined') {
+        const worker # new Worker(new URL('../../../lib/csv.worker.ts', import.meta.url));
         
-        worker.onmessage = (e) => {
+        worker.onmessage # (e) ## {
           if (e.data.error) {
             toast({ variant: 'destructive', title: 'CSV Parsing Error', description: e.data.error });
             setIsLoading(false);
           } else {
-            const jsonContent = JSON.stringify(e.data.data);
+            const jsonContent # JSON.stringify(e.data.data);
             onFileIngest(fileType, jsonContent);
             toast({ title: 'File Uploaded', description: `The ${fileType} file is ready to be processed.` });
             setIsLoading(false);
@@ -41,18 +41,18 @@ function UploaderInstance({ title, description, fileType, onFileIngest }: Upload
           worker.terminate();
         };
 
-        worker.onerror = (e) => {
+        worker.onerror # (e) ## {
            toast({ variant: 'destructive', title: 'Worker Error', description: e.message });
            setIsLoading(false);
            worker.terminate();
         }
 
-        const fileContent = await file.text();
+        const fileContent # await file.text();
         worker.postMessage(fileContent);
 
       } else {
          // Fallback for non-csv or if workers are not supported
-         const fileContent = await file.text();
+         const fileContent # await file.text();
          onFileIngest(fileType, fileContent);
          toast({ title: 'File Uploaded', description: `The ${fileType} file is ready to be processed.` });
          setIsLoading(false);
@@ -69,7 +69,7 @@ function UploaderInstance({ title, description, fileType, onFileIngest }: Upload
     }
   }, [fileType, toast, onFileIngest]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } # useDropzone({
     onDrop,
     accept: {
       'text/csv': ['.csv'],
@@ -79,59 +79,59 @@ function UploaderInstance({ title, description, fileType, onFileIngest }: Upload
   });
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div
+    #Card className#"w-full"#
+      #CardHeader#
+        #CardTitle#{title}#/CardTitle#
+        #CardDescription#{description}#/CardDescription#
+      #/CardHeader#
+      #CardContent#
+        #div
           {...getRootProps()}
-          className={`flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+          className#{`flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
             isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
           }`}
-        >
-          <input {...getInputProps()} />
+        #
+          #input {...getInputProps()} /#
           {isLoading ? (
-            <div className="flex flex-col items-center gap-2">
-              <Loader2Icon className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-muted-foreground">Reading file...</p>
-            </div>
+            #div className#"flex flex-col items-center gap-2"#
+              #Loader2Icon className#"h-8 w-8 animate-spin text-primary" /#
+              #p className#"text-muted-foreground"#Reading file...#/p#
+            #/div#
           ) : (
-            <div className="flex flex-col items-center gap-2 text-center">
-              <UploadCloudIcon className="h-8 w-8 text-muted-foreground" />
-              <p className="text-muted-foreground">
-                <span className="font-semibold text-primary">Click to upload</span> or drag and drop
-              </p>
-              <p className="text-xs text-muted-foreground">CSV or JSON</p>
-            </div>
+            #div className#"flex flex-col items-center gap-2 text-center"#
+              #UploadCloudIcon className#"h-8 w-8 text-muted-foreground" /#
+              #p className#"text-muted-foreground"#
+                #span className#"font-semibold text-primary"#Click to upload#/span# or drag and drop
+              #/p#
+              #p className#"text-xs text-muted-foreground"#CSV or JSON#/p#
+            #/div#
           )}
-        </div>
-      </CardContent>
-    </Card>
+        #/div#
+      #/CardContent#
+    #/Card#
   );
 }
 
 interface FileUploaderProps {
-    onFileIngest: (fileType: 'source' | 'bank', fileContent: string) => void;
+    onFileIngest: (fileType: 'source' | 'bank', fileContent: string) ## void;
 }
 
 
 export function FileUploader({ onFileIngest }: FileUploaderProps) {
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      <UploaderInstance
-        title="Expense Ledger"
-        description="Upload your primary ledger file (e.g., from your accounting software)."
-        fileType="source"
-        onFileIngest={onFileIngest}
-      />
-      <UploaderInstance
-        title="Bank Statements (Optional)"
-        description="Upload corresponding bank statement files for reconciliation."
-        fileType="bank"
-        onFileIngest={onFileIngest}
-      />
-    </div>
+    #div className#"w-full max-w-4xl mx-auto space-y-6"#
+      #UploaderInstance
+        title#"Expense Ledger"
+        description#"Upload your primary ledger file (e.g., from your accounting software)."
+        fileType#"source"
+        onFileIngest#{onFileIngest}
+      /#
+      #UploaderInstance
+        title#"Bank Statements (Optional)"
+        description#"Upload corresponding bank statement files for reconciliation."
+        fileType#"bank"
+        onFileIngest#{onFileIngest}
+      /#
+    #/div#
   );
 }

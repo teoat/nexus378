@@ -1,17 +1,17 @@
 -- Forensic Reconciliation + Fraud Platform Database Schema
 -- PostgreSQL 15+ Initialization Script
 
--- =============================================================================
+-- #############################################################################
 -- CREATE EXTENSIONS
--- =============================================================================
+-- #############################################################################
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
--- =============================================================================
+-- #############################################################################
 -- CREATE SCHEMAS
--- =============================================================================
+-- #############################################################################
 
 CREATE SCHEMA IF NOT EXISTS auth;
 CREATE SCHEMA IF NOT EXISTS core;
@@ -20,9 +20,9 @@ CREATE SCHEMA IF NOT EXISTS investigation;
 CREATE SCHEMA IF NOT EXISTS audit;
 CREATE SCHEMA IF NOT EXISTS compliance;
 
--- =============================================================================
+-- #############################################################################
 -- AUTHENTICATION SCHEMA
--- =============================================================================
+-- #############################################################################
 
 -- Users table
 CREATE TABLE auth.users (
@@ -69,9 +69,9 @@ CREATE TABLE auth.sessions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- =============================================================================
+-- #############################################################################
 -- CORE SCHEMA
--- =============================================================================
+-- #############################################################################
 
 -- Organizations table
 CREATE TABLE core.organizations (
@@ -104,9 +104,9 @@ CREATE TABLE core.cases (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- =============================================================================
+-- #############################################################################
 -- EVIDENCE SCHEMA
--- =============================================================================
+-- #############################################################################
 
 -- Evidence files table
 CREATE TABLE evidence.files (
@@ -147,9 +147,9 @@ CREATE TABLE evidence.relationships (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- =============================================================================
+-- #############################################################################
 -- INVESTIGATION SCHEMA
--- =============================================================================
+-- #############################################################################
 
 -- Investigation steps table
 CREATE TABLE investigation.steps (
@@ -185,9 +185,9 @@ CREATE TABLE investigation.findings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- =============================================================================
+-- #############################################################################
 -- AUDIT SCHEMA
--- =============================================================================
+-- #############################################################################
 
 -- Audit logs table
 CREATE TABLE audit.logs (
@@ -214,9 +214,9 @@ CREATE TABLE audit.data_access (
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- =============================================================================
+-- #############################################################################
 -- COMPLIANCE SCHEMA
--- =============================================================================
+-- #############################################################################
 
 -- Compliance rules table
 CREATE TABLE compliance.rules (
@@ -245,9 +245,9 @@ CREATE TABLE compliance.violations (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- =============================================================================
+-- #############################################################################
 -- CREATE INDEXES FOR PERFORMANCE
--- =============================================================================
+-- #############################################################################
 
 -- Users indexes
 CREATE INDEX idx_users_username ON auth.users(username);
@@ -276,15 +276,15 @@ CREATE INDEX idx_audit_user ON audit.logs(user_id);
 CREATE INDEX idx_audit_timestamp ON audit.logs(timestamp);
 CREATE INDEX idx_audit_action ON audit.logs(action);
 
--- =============================================================================
+-- #############################################################################
 -- CREATE TRIGGERS FOR AUDIT LOGGING
--- =============================================================================
+-- #############################################################################
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = NOW();
+    NEW.updated_at # NOW();
     RETURN NEW;
 END;
 $$ language 'plpgsql';
@@ -311,9 +311,9 @@ CREATE TRIGGER update_rules_updated_at BEFORE UPDATE ON compliance.rules
 CREATE TRIGGER update_violations_updated_at BEFORE UPDATE ON compliance.violations
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- =============================================================================
+-- #############################################################################
 -- INSERT DEFAULT DATA
--- =============================================================================
+-- #############################################################################
 
 -- Insert default roles
 INSERT INTO auth.roles (name, description, permissions) VALUES
@@ -328,9 +328,9 @@ INSERT INTO compliance.rules (rule_name, rule_type, description, rule_definition
 ('PCI_Data_Protection', 'PCI', 'Protect sensitive payment card information', '{"type": "encryption", "fields": ["card_number", "cvv"], "algorithm": "AES-256"}'),
 ('AML_Transaction_Monitoring', 'AML', 'Monitor transactions for suspicious activity', '{"type": "threshold", "fields": ["amount", "frequency"], "limits": {"daily": 10000, "monthly": 100000}}');
 
--- =============================================================================
+-- #############################################################################
 -- CREATE VIEWS FOR COMMON QUERIES
--- =============================================================================
+-- #############################################################################
 
 -- Case summary view
 CREATE VIEW core.case_summary AS
@@ -349,11 +349,11 @@ SELECT
     COUNT(s.id) as step_count,
     COUNT(f.id) as finding_count
 FROM core.cases c
-LEFT JOIN auth.users u ON c.assigned_investigator_id = u.id
-LEFT JOIN core.organizations o ON c.organization_id = o.id
-LEFT JOIN evidence.files e ON c.id = e.case_id
-LEFT JOIN investigation.steps s ON c.id = s.case_id
-LEFT JOIN investigation.findings f ON c.id = f.case_id
+LEFT JOIN auth.users u ON c.assigned_investigator_id # u.id
+LEFT JOIN core.organizations o ON c.organization_id # o.id
+LEFT JOIN evidence.files e ON c.id # e.case_id
+LEFT JOIN investigation.steps s ON c.id # s.case_id
+LEFT JOIN investigation.findings f ON c.id # f.case_id
 GROUP BY c.id, c.case_number, c.title, c.case_type, c.priority, c.status,
          c.estimated_completion_date, c.actual_completion_date, u.username, o.name;
 
@@ -371,20 +371,20 @@ SELECT
     c.case_number,
     c.title as case_title
 FROM evidence.files f
-LEFT JOIN auth.users u ON f.uploaded_by = u.id
-LEFT JOIN core.cases c ON f.case_id = c.id;
+LEFT JOIN auth.users u ON f.uploaded_by # u.id
+LEFT JOIN core.cases c ON f.case_id # c.id;
 
--- =============================================================================
+-- #############################################################################
 -- GRANT PERMISSIONS
--- =============================================================================
+-- #############################################################################
 
 -- Grant permissions to authenticated users
 GRANT USAGE ON SCHEMA auth, core, evidence, investigation, audit, compliance TO postgres;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth, core, evidence, investigation, audit, compliance TO postgres;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth, core, evidence, investigation, audit, compliance TO postgres;
 
--- =============================================================================
+-- #############################################################################
 -- COMMIT TRANSACTION
--- =============================================================================
+-- #############################################################################
 
 COMMIT;
