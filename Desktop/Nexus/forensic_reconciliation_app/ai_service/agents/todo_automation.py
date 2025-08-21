@@ -341,6 +341,7 @@ class HelpAgent(TodoAgent):
 class TodoAutomationSystem:
     """Main system for parallel TODO processing with continuous loops"""
     
+    def __init__(self, max_concurrent_agents: int = 5, mcp_log_path: str = "mcp_log.json"):
     def __init__(self, max_concurrent_agents: int = 10):
         self.max_concurrent_agents = max_concurrent_agents
         self.agents: List[TodoAgent] = []
@@ -348,6 +349,8 @@ class TodoAutomationSystem:
         self.completed_todos: List[TodoItem] = []
         self.failed_todos: List[TodoItem] = []
         self.processing_todos: Dict[str, TodoItem] = {}
+        self.mcp_log_path = mcp_log_path
+        self.mcp_log: Dict[str, Any] = {}
         self.marked_todos: List[TodoItem] = []  # New: marked TODOs for processing
         self.mcp_logger = MCPLogger()
         self.current_batch = 0
@@ -363,6 +366,26 @@ class TodoAutomationSystem:
         
         # Initialize agents
         self._initialize_agents()
+        self._load_mcp_log()
+
+    def _load_mcp_log(self):
+        """Load the MCP log from a JSON file"""
+        try:
+            if Path(self.mcp_log_path).exists():
+                with open(self.mcp_log_path, 'r') as f:
+                    self.mcp_log = json.load(f)
+                logger.info(f"Loaded MCP log from {self.mcp_log_path}")
+        except (IOError, json.JSONDecodeError) as e:
+            logger.error(f"Could not load MCP log: {e}")
+            self.mcp_log = {}
+
+    def _save_mcp_log(self):
+        """Save the MCP log to a JSON file"""
+        try:
+            with open(self.mcp_log_path, 'w') as f:
+                json.dump(self.mcp_log, f, indent=4)
+        except IOError as e:
+            logger.error(f"Could not save MCP log: {e}")
     
     def _initialize_agents(self):
         """Initialize the pool of agents"""
@@ -375,7 +398,6 @@ class TodoAutomationSystem:
             HelpAgent(),
             GeneralAgent() # Keep GeneralAgent for any untagged TODOs
         ]
-<<<<<<< HEAD
         
         # Set MCP logger for all agents
         for agent in self.agents:
@@ -383,8 +405,8 @@ class TodoAutomationSystem:
         
         logger.info(f"Initialized {len(self.agents)} specialized agents")
     
-    def load_todos_from_files(self, path_str: str = "."):
-        """Load TODOs from all files in a directory or from a single file."""
+    def load_todos_from_files(self, path_str: str = ".", limit: int = 10):
+        """Load TODOs from all files, filtering out processed ones and respecting the limit."""
         root_path = Path(path_str)
         todo_pattern = re.compile(r'#\s*TODO[:\s].*', re.IGNORECASE)
 
@@ -394,25 +416,34 @@ class TodoAutomationSystem:
         elif root_path.is_dir():
             files_to_scan.extend(p for p in root_path.rglob("*") if p.is_file() and not self._should_skip_file(p))
 
+        pending_todos = []
         for file_path in files_to_scan:
-            if not self._should_skip_file(file_path):
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        for line_num, line in enumerate(f, 1):
-                            if todo_pattern.search(line):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    for line_num, line in enumerate(f, 1):
+                        if todo_pattern.search(line):
+                            todo_id = self._generate_todo_id(file_path, line_num)
+                            if todo_id not in self.mcp_log or self.mcp_log[todo_id].get("status") == "pending":
                                 todo = TodoItem(
-                                    id=f"{file_path}_{line_num}",
+                                    id=todo_id,
                                     content=line.strip(),
                                     file_path=str(file_path),
                                     line_number=line_num,
                                     priority=self._determine_priority(line),
                                     tags=self._extract_tags(line)
                                 )
-                                self.todo_queue.append(todo)
-                except Exception as e:
-                    logger.warning(f"Could not read file {file_path}: {e}")
+                                pending_todos.append(todo)
+            except Exception as e:
+                logger.warning(f"Could not read file {file_path}: {e}")
+
+        # Sort by priority before taking the top N
+        pending_todos.sort(key=lambda x: x.priority, reverse=True)
         
-        logger.info(f"Loaded {len(self.todo_queue)} TODOs from {path_str}")
+        # Add the top N pending todos to the queue
+        todos_to_add = pending_todos[:limit]
+        self.todo_queue.extend(todos_to_add)
+
+        logger.info(f"Loaded {len(todos_to_add)} new TODOs into the queue.")
     
     def _should_skip_file(self, file_path: Path) -> bool:
         """Determine if a file should be skipped"""
@@ -476,8 +507,10 @@ class TodoAutomationSystem:
     async def run_automation(self):
         """Main automation loop with continuous processing"""
         logger.info("Starting TODO automation system...")
-        start_time = time.time()
         
+        while True:
+            logger.info("--- Starting new TODO processing cycle ---")
+            self.load_todos_from_files("Desktop/Nexus/forensic_reconciliation_app/forensic_cases.md", limit=10)
         # Create MCP session
         session_id = str(uuid.uuid4())
         self.mcp_logger.create_session(session_id, "TODO Automation Session")
@@ -497,9 +530,34 @@ class TodoAutomationSystem:
             # Start processing marked TODOs
             await self._start_new_tasks(session_id)
             
-            # Check for completed tasks
-            await self._check_completed_tasks()
+            if not self.todo_queue:
+                logger.info("No new TODOs to process. Waiting...")
+                await asyncio.sleep(60)
+                continue
+
+            start_time = time.time()
             
+            # Sort todos by priority (highest first)
+            self.todo_queue.sort(key=lambda x: x.priority, reverse=True)
+
+            while self.todo_queue or self.processing_todos:
+                # Start new tasks if we have capacity
+                await self._start_new_tasks()
+
+                # Check for completed tasks
+                await self._check_completed_tasks()
+
+                # Small delay to prevent busy waiting
+                await asyncio.sleep(0.1)
+
+            total_time = time.time() - start_time
+            self.stats["total_processing_time"] += total_time
+
+            logger.info("Batch of TODOs completed!")
+            self._print_final_stats()
+
+            logger.info("Waiting for 60 seconds before next cycle...")
+            await asyncio.sleep(60)
             # Small delay to prevent busy waiting
             await asyncio.sleep(0.1)
         
@@ -523,8 +581,7 @@ class TodoAutomationSystem:
 
         # Create a copy of the queue to iterate over
         todos_to_process = self.todo_queue[:]
-        
-<<<<<<< HEAD
+
         # Process marked TODOs
         marked_todos_to_process = [todo for todo in self.marked_todos if todo.status == TodoStatus.MARKED]
         
@@ -551,7 +608,6 @@ class TodoAutomationSystem:
             asyncio.create_task(self._process_todo_with_agent(todo, agent, session_id))
             
             available_slots -= 1
-=======
         for todo in todos_to_process:
             if not available_agents or available_slots <= 0:
                 break
@@ -585,9 +641,16 @@ class TodoAutomationSystem:
                 # Add to processing list
                 self.processing_todos[todo.id] = todo
 
+                # Update MCP log
+                self.mcp_log[todo.id] = {
+                    "status": "in_progress",
+                    "agent": assigned_agent.agent_id,
+                    "startTime": todo.start_time.isoformat()
+                }
+                self._save_mcp_log()
+
                 # Start processing in background
                 asyncio.create_task(self._process_todo_with_agent(todo, assigned_agent))
->>>>>>> 950f8cdf8bf7fc737bb4bd60211a33e8978f0dfc
     
     async def _process_todo_with_agent(self, todo: TodoItem, agent: TodoAgent, session_id: str):
         """Process a TODO with a specific agent"""
@@ -600,6 +663,11 @@ class TodoAutomationSystem:
                 self.completed_todos.append(todo)
                 self.stats["successful"] += 1
                 logger.info(f"✅ Completed TODO: {todo.content[:50]}...")
+                self.mcp_log[todo.id] = {
+                    "status": "completed",
+                    "completionTime": todo.completion_time.isoformat()
+                }
+                self._update_source_file(todo)
             else:
                 todo.status = TodoStatus.FAILED
                 todo.error_message = result.error
@@ -609,11 +677,14 @@ class TodoAutomationSystem:
                     # Retry the TODO
                     self.marked_todos.append(todo)
                     logger.warning(f"🔄 Retrying TODO {todo.id} (attempt {todo.attempts + 1})")
+                    self.mcp_log[todo.id] = {"status": "pending", "retries": todo.attempts}
                 else:
                     self.failed_todos.append(todo)
                     self.stats["failed"] += 1
                     logger.error(f"❌ Failed TODO after {todo.attempts} attempts: {todo.content[:50]}...")
+                    self.mcp_log[todo.id] = {"status": "failed", "error": str(result.error)}
             
+            self._save_mcp_log()
             self.stats["total_processed"] += 1
             self.stats["total_processing_time"] += result.processing_time
             
@@ -624,6 +695,8 @@ class TodoAutomationSystem:
             self.failed_todos.append(todo)
             self.stats["failed"] += 1
             self.stats["total_processed"] += 1
+            self.mcp_log[todo.id] = {"status": "failed", "error": str(e)}
+            self._save_mcp_log()
         finally:
             # Remove from processing list and marked list
             if todo.id in self.processing_todos:
@@ -660,7 +733,24 @@ class TodoAutomationSystem:
         
         if self.completed_todos:
             print(f"\n✅ Successfully completed {len(self.completed_todos)} TODOs!")
-    
+
+    def _update_source_file(self, todo: TodoItem):
+        """Update the source file to mark a TODO as done"""
+        try:
+            with open(todo.file_path, 'r') as f:
+                lines = f.readlines()
+
+            if 0 < todo.line_number <= len(lines):
+                line_content = lines[todo.line_number - 1]
+                if "# TODO:" in line_content:
+                    lines[todo.line_number - 1] = line_content.replace("# TODO:", "# DONE:", 1)
+
+                    with open(todo.file_path, 'w') as f:
+                        f.writelines(lines)
+                    logger.info(f"Updated source file for TODO: {todo.id}")
+        except Exception as e:
+            logger.error(f"Could not update source file for TODO {todo.id}: {e}")
+
     def _print_mcp_summary(self, session_id: str):
         """Print MCP session summary"""
         summary = self.mcp_logger.get_session_summary(session_id)
@@ -690,11 +780,12 @@ class TodoAutomationSystem:
 
 async def main():
     """Main function to run the TODO automation"""
-<<<<<<< HEAD
     # Initialize the system with 10 concurrent agents
-=======
     # Initialize the system
->>>>>>> 950f8cdf8bf7fc737bb4bd60211a33e8978f0dfc
+    automation = TodoAutomationSystem(
+        max_concurrent_agents=10,
+        mcp_log_path="Desktop/Nexus/forensic_reconciliation_app/ai_service/mcp_log.json"
+    )
     automation = TodoAutomationSystem(max_concurrent_agents=10)
     
     # Load TODOs from the specific test file
