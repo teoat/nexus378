@@ -1,35 +1,5 @@
 # Forensic Investigation Cases - TODO List
 
-- # TODO: [reconciliation] Reconcile bank statements for Case #001 against transaction logs.
-- # TODO: [reconciliation] Perform a fuzzy match on vendor names for Case #002. @urgent
-- # TODO: [fraud] Analyze transaction patterns for circular payments in Case #003. [high-priority]
-- # TODO: [fraud] Identify potential shell companies connected to the main entity in Case #001.
-- # TODO: [risk] Assess the compliance risk for Case #004 based on SOX regulations.
-- # TODO: [risk] Generate a multi-factor risk score for the transactions in Case #002.
-- # TODO: [evidence] Process and verify the hash integrity of all PDF documents for Case #005.
-- # TODO: [evidence] Extract EXIF metadata from all image files related to Case #003.
-- # TODO: [litigation] Create a timeline of events for the legal proceedings in Case #001.
-- # TODO: [help] Provide a step-by-step guide for handling evidence in compliance with internal policies.
-- # TODO: [reconciliation] Cross-reference payment records with invoices for Case #006.
-- # TODO: [reconciliation] Identify discrepancies in the ledger for Q3 for Case #007. @high
-- # TODO: [fraud] Scan for ghost employees in the payroll for Case #008. [critical]
-- # TODO: [fraud] Detect asset misappropriation in the expense reports for Case #009.
-- # TODO: [risk] Evaluate the internal controls for financial reporting for Case #010.
-- # TODO: [risk] Perform a security audit on the evidence storage system.
-- # TODO: [evidence] Catalog all digital evidence for Case #011, ensuring chain of custody.
-- # TODO: [evidence] Analyze email communications for keywords in Case #012.
-- # TODO: [litigation] Prepare a summary of findings for the legal team for Case #002.
-- # TODO: [help] Document the procedure for requesting a new type of fraud analysis.
-- # TODO: [reconciliation] Validate expense claims against company policy for Case #013.
-- # TODO: [reconciliation] Reconcile inventory records with sales data for Case #014.
-- # TODO: [fraud] Investigate suspicious wire transfers to offshore accounts in Case #015. [urgent]
-- # TODO: [fraud] Check for duplicate invoices in the accounts payable system for Case #016.
-- # TODO: [risk] Review and update the company's anti-fraud policies.
-- # TODO: [risk] Conduct a risk assessment of third-party vendors.
-- # TODO: [evidence] Perform a forensic analysis of a compromised hard drive for Case #017.
-- # TODO: [evidence] Transcribe and analyze audio recordings for Case #018.
-- # TODO: [litigation] Draft a report on the findings for Case #003 for external counsel.
-- # TODO: [help] Create a tutorial on using the new risk dashboard.
 - # DONE: [reconciliation] Reconcile bank statements for Case #001 against transaction logs.
 - # DONE: [reconciliation] Perform a fuzzy match on vendor names for Case #002. @urgent
 - # DONE: [fraud] Analyze transaction patterns for circular payments in Case #003. [high-priority]
@@ -50,3 +20,13 @@
 - # DONE: [evidence] Analyze email communications for keywords in Case #012.
 - # DONE: [litigation] Prepare a summary of findings for the legal team for Case #002.
 - # DONE: [help] Document the procedure for requesting a new type of fraud analysis.
+- # DONE: [reconciliation] Validate expense claims against company policy for Case #013.
+- # DONE: [reconciliation] Reconcile inventory records with sales data for Case #014.
+- # DONE: [fraud] Investigate suspicious wire transfers to offshore accounts in Case #015. [urgent]
+- # DONE: [fraud] Check for duplicate invoices in the accounts payable system for Case #016.
+- # DONE: [risk] Review and update the company's anti-fraud policies.
+- # DONE: [risk] Conduct a risk assessment of third-party vendors.
+- # DONE: [evidence] Perform a forensic analysis of a compromised hard drive for Case #017.
+- # DONE: [evidence] Transcribe and analyze audio recordings for Case #018.
+- # DONE: [litigation] Draft a report on the findings for Case #003 for external counsel.
+- # DONE: [help] Create a tutorial on using the new risk dashboard.
