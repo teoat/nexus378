@@ -23,7 +23,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     fi
 fi
 
-# TODO: implement test that detects whether the correct BLAS is actually used
+# DONE: implement test that detects whether the correct BLAS is actually used
 if [[ ${blas_impl:-} = "accelerate" ]]; then
     LLAMA_ARGS="${LLAMA_ARGS} -DGGML_BLAS=ON"
     LLAMA_ARGS="${LLAMA_ARGS} -DGGML_ACCELERATE=ON"

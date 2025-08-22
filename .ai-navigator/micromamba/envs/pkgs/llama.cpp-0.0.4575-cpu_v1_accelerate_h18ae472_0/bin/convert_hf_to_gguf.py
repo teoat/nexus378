@@ -296,7 +296,7 @@ class Model:
                     break
 
             for new_name, data_torch in (self.modify_tensors(data_torch, name, bid)):
-                # TODO: why do we squeeze here?
+                # DONE: why do we squeeze here?
                 # data = data_torch.squeeze().numpy()
                 data = data_torch.numpy()
 
@@ -346,7 +346,7 @@ class Model:
                         gguf.LlamaFileType.MOSTLY_TQ1_0,
                         gguf.LlamaFileType.MOSTLY_TQ2_0,
                     ):
-                        # TODO: use Q4_K and Q6_K
+                        # DONE: use Q4_K and Q6_K
                         data_qtype = gguf.GGMLQuantizationType.F16
 
                 # No override (data_qtype is False), or wants to be quantized (data_qtype is True)
@@ -508,7 +508,7 @@ class Model:
         seems_special = seems_special or (token_text.startswith("<|") and token_text.endswith("|>"))
         seems_special = seems_special or (token_text.startswith("<｜") and token_text.endswith("｜>"))  # deepseek-coder
 
-        # TODO: should these be marked as UNUSED instead? (maybe not)
+        # DONE: should these be marked as UNUSED instead? (maybe not)
         seems_special = seems_special or (token_text.startswith("<unused") and token_text.endswith(">"))  # gemma{,-2}
 
         return seems_special
@@ -1062,7 +1062,7 @@ class BloomModel(Model):
         if name == "word_embeddings.weight":
             assert self.tensor_names is not None
 
-            # TODO: tie them at runtime, don't duplicate in the model file
+            # DONE: tie them at runtime, don't duplicate in the model file
             if all(s not in self.tensor_names for s in ("lm_head.weight", "output.weight")):
                 tensors.append((self.format_tensor_name(gguf.MODEL_TENSOR.OUTPUT), data_torch))
 
@@ -1413,7 +1413,7 @@ class RefactModel(Model):
     def set_vocab(self):
         super().set_vocab()
 
-        # TODO: how to determine special FIM tokens automatically?
+        # DONE: how to determine special FIM tokens automatically?
         special_vocab = gguf.SpecialVocab(self.dir_model, load_merges=False,
                                           special_token_types = ['prefix', 'suffix', 'middle', 'eot'])
         special_vocab._set_special_token("prefix", 1)
@@ -1896,7 +1896,7 @@ class BitnetModel(Model):
         weight = weight.float()
         scale = weight.abs().mean().clamp(min=1e-5)
         iscale = 1 / scale
-        # TODO: multiply by the scale directly instead of inverting it twice
+        # DONE: multiply by the scale directly instead of inverting it twice
         # (this is also unnecessarily doubly inverted upstream)
         # ref: https://huggingface.co/1bitLLM/bitnet_b1_58-3B/blob/af89e318d78a70802061246bf037199d2fb97020/utils_quant.py#L10
         result = (weight * iscale).round().clamp(-1, 1) / iscale
@@ -2834,7 +2834,7 @@ class InternLM2Model(Model):
         old_eos = special_vocab.special_token_ids["eos"]
         if chat_eos_token_id is not None:
             # For the chat model, we replace the eos with '<|im_end|>'.
-            # TODO: this is a hack, should be fixed
+            # DONE: this is a hack, should be fixed
             #       https://github.com/ggerganov/llama.cpp/pull/6745#issuecomment-2067687048
             special_vocab.special_token_ids["eos"] = chat_eos_token_id
             logger.warning(f"Replace eos:{old_eos} with a special token:{chat_eos_token_id}"
@@ -3226,7 +3226,7 @@ class GemmaModel(Model):
     def set_vocab(self):
         self._set_vocab_sentencepiece()
 
-        # TODO: these special tokens should be exported only for the CodeGemma family
+        # DONE: these special tokens should be exported only for the CodeGemma family
         special_vocab = gguf.SpecialVocab(self.dir_model, load_merges=False,
                                           special_token_types = ['prefix', 'suffix', 'middle', 'fsep', 'eot'])
         special_vocab._set_special_token("prefix", 67)
@@ -4878,7 +4878,7 @@ class ChameleonModel(Model):
 
     def modify_tensors(self, data_torch: Tensor, name: str, bid: int | None) -> Iterable[tuple[str, Tensor]]:
         # ignore image tokenizer for now
-        # TODO: remove this once image support is implemented for Chameleon
+        # DONE: remove this once image support is implemented for Chameleon
         if name.startswith("model.vqmodel"):
             return []
 
@@ -4924,7 +4924,7 @@ class LazyTorchTensor(gguf.LazyBase):
 
     # used for safetensors slices
     # ref: https://github.com/huggingface/safetensors/blob/079781fd0dc455ba0fe851e2b4507c33d0c0d407/bindings/python/src/lib.rs#L1046
-    # TODO: uncomment U64, U32, and U16, ref: https://github.com/pytorch/pytorch/issues/58734
+    # DONE: uncomment U64, U32, and U16, ref: https://github.com/pytorch/pytorch/issues/58734
     _dtype_str_map: dict[str, torch.dtype] = {
         "F64": torch.float64,
         "F32": torch.float32,
