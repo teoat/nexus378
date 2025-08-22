@@ -73,7 +73,7 @@ class PatternDetector:
         # This would query the graph for incoming and outgoing transactions,
         # aggregating amounts, sources, and destinations.
 
-        print(f"Placeholder: Simulating transaction flow analysis for account {account_id}.")
+        logger.info(f"Placeholder: Simulating transaction flow analysis for account {account_id}.")
         return {
             'account_id': account_id,
             'incoming_transactions': 15,
