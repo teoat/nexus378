@@ -4,22 +4,22 @@ import { Toaster } from "@/components/ui/toaster";
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: Readonly#{
   children: React.ReactNode;
-}>) {
+}#) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
+    #html lang#"en" suppressHydrationWarning#
+      #body#
+        #ThemeProvider
+          attribute#"class"
+          defaultTheme#"system"
           enableSystem
           disableTransitionOnChange
-        >
+        #
           {children}
-          <Toaster />
-        </ThemeProvider>
-      </body>
-    </html>
+          #Toaster /#
+        #/ThemeProvider#
+      #/body#
+    #/html#
   );
 }

@@ -65,7 +65,7 @@ The "what" is a modern web application built with **React and Next.js**. The "wh
 
 ## 6. Testing Strategy
 
-*   **Unit Tests (Jest / Vitest + React Testing Library):** Each individual component will have unit tests to verify its rendering and behavior in isolation. Target coverage: **>95%**.
+*   **Unit Tests (Jest / Vitest + React Testing Library):** Each individual component will have unit tests to verify its rendering and behavior in isolation. Target coverage: **#95%**.
 *   **Integration Tests (React Testing Library):** Test the interaction between multiple components within a feature (e.g., testing the entire data ingestion form).
 *   **End-to-End Tests (Cypress / Playwright):** Simulate full user workflows across the application, from login to report generation. These will run against a dedicated test environment.
 *   **Visual Regression Tests (Storybook + Chromatic):** Automatically detect unintended visual changes to UI components.
@@ -92,7 +92,7 @@ The "what" is a modern web application built with **React and Next.js**. The "wh
     ```
 *   **Example: Fetch Transactions Query**
     ```
-    // GET /api/v1/transactions?caseId=case-uuid-456&page=1&limit=100&sortBy=date&order=desc
+    // GET /api/v1/transactions?caseId#case-uuid-456&page#1&limit#100&sortBy#date&order#desc
     ```
 *   **Example: Save Column Mapping Payload (with Templates)**
     ```json

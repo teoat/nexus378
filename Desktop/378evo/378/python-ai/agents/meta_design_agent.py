@@ -12,24 +12,24 @@ class MetaDesignState(TypedDict):
 
 def analyze_code(state: MetaDesignState):
     # Placeholder for code analysis logic
-    analysis = "This is a dummy analysis of the existing codebase."
+    analysis # "This is a dummy analysis of the existing codebase."
     return {"analysis": analysis}
 
 
 def generate_plan(state: MetaDesignState):
     # Placeholder for planning logic
-    plan = ["Step 1: Do this", "Step 2: Do that"]
+    plan # ["Step 1: Do this", "Step 2: Do that"]
     return {"plan": plan}
 
 
 def generate_code(state: MetaDesignState):
     # Placeholder for code generation logic
-    code = "print('Hello, World!')"
+    code # "print('Hello, World!')"
     return {"generated_code": code}
 
 
 def create_meta_design_agent():
-    workflow = StateGraph(MetaDesignState)
+    workflow # StateGraph(MetaDesignState)
     workflow.add_node("analyze_code", analyze_code)
     workflow.add_node("generate_plan", generate_plan)
     workflow.add_node("generate_code", generate_code)

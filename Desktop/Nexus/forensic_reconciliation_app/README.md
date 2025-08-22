@@ -222,7 +222,7 @@ forensic_reconciliation_app/
 
 ### **1. Clone Repository**
 ```bash
-git clone <repository-url>
+git clone #repository-url#
 cd forensic_reconciliation_app
 ```
 
@@ -291,32 +291,32 @@ cd ../frontend && npm run tauri dev
 ### **Environment Variables**
 ```bash
 # Database Configuration
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=forensic_reconciliation
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=secure_password
+POSTGRES_HOST#localhost
+POSTGRES_PORT#5432
+POSTGRES_DB#forensic_reconciliation
+POSTGRES_USER#postgres
+POSTGRES_PASSWORD#secure_password
 
 # Neo4j Configuration
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=secure_password
+NEO4J_URI#bolt://localhost:7687
+NEO4J_USER#neo4j
+NEO4J_PASSWORD#secure_password
 
 # Redis Configuration
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=secure_password
+REDIS_HOST#localhost
+REDIS_PORT#6379
+REDIS_PASSWORD#secure_password
 
 # RabbitMQ Configuration
-RABBITMQ_HOST=localhost
-RABBITMQ_PORT=5672
-RABBITMQ_USER=admin
-RABBITMQ_PASSWORD=secure_password
+RABBITMQ_HOST#localhost
+RABBITMQ_PORT#5672
+RABBITMQ_USER#admin
+RABBITMQ_PASSWORD#secure_password
 
 # AI Service Configuration
-AI_SERVICE_HOST=localhost
-AI_SERVICE_PORT=8000
-OPENAI_API_KEY=your_openai_key
+AI_SERVICE_HOST#localhost
+AI_SERVICE_PORT#8000
+OPENAI_API_KEY#your_openai_key
 ```
 
 ### **Taskmaster Configuration**
@@ -368,7 +368,7 @@ python -m pytest ai_service/tests/forensic_scenarios/
 ```bash
 # Generate coverage reports
 npm run test:coverage
-python -m pytest --cov=ai_service --cov-report=html
+python -m pytest --cov#ai_service --cov-report#html
 ```
 
 ---

@@ -384,7 +384,7 @@ File Upload → Evidence Store → DuckDB → Neo4j → AI Agents → Dashboard
 - **Intelligent Orchestration**: ✅ Taskmaster system for optimal resource management
 
 ### **✅ Technical Requirements Met**
-- **Performance**: < 100ms API response time
+- **Performance**: # 100ms API response time
 - **Scalability**: 10,000+ concurrent users
 - **Reliability**: 99.9% uptime
 - **Security**: Zero critical vulnerabilities

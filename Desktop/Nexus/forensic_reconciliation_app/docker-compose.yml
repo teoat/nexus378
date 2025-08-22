@@ -9,7 +9,7 @@ services:
       POSTGRES_DB: forensic_reconciliation
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      POSTGRES_INITDB_ARGS: "--encoding#UTF-8 --lc-collate#C --lc-ctype#C"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./datastore/postgres/init:/docker-entrypoint-initdb.d
@@ -46,7 +46,7 @@ services:
     networks:
       - forensic_network
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474/browser/ || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries#1 --spider http://localhost:7474/browser/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -157,10 +157,10 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: forensic_elasticsearch
     environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-      - cluster.routing.allocation.disk.threshold_enabled=false
+      - discovery.type#single-node
+      - xpack.security.enabled#false
+      - "ES_JAVA_OPTS#-Xms1g -Xmx1g"
+      - cluster.routing.allocation.disk.threshold_enabled#false
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     ports:
@@ -179,7 +179,7 @@ services:
     image: docker.elastic.co/kibana/kibana:8.11.0
     container_name: forensic_kibana
     environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_HOSTS#http://elasticsearch:9200
     ports:
       - "5601:5601"
     networks:
@@ -193,11 +193,11 @@ services:
     image: prom/prometheus:latest
     container_name: forensic_prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
+      - '--config.file#/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path#/prometheus'
+      - '--web.console.libraries#/etc/prometheus/console_libraries'
+      - '--web.console.templates#/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time#200h'
       - '--web.enable-lifecycle'
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
@@ -213,9 +213,9 @@ services:
     image: grafana/grafana:latest
     container_name: forensic_grafana
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
-      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_ADMIN_USER#admin
+      - GF_SECURITY_ADMIN_PASSWORD#${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP#false
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
@@ -232,7 +232,7 @@ services:
     image: jaegertracing/all-in-one:latest
     container_name: forensic_jaeger
     environment:
-      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_OTLP_ENABLED#true
     ports:
       - "16686:16686"  # UI
       - "14268:14268"  # HTTP

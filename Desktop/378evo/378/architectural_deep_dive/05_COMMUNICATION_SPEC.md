@@ -13,7 +13,7 @@ This document specifies the communication protocols between the various services
 *   **What:** A multi-modal communication strategy utilizing **REST/GraphQL** for client-to-gateway communication, **gRPC** for synchronous inter-service requests, and **RabbitMQ** for asynchronous, decoupled tasking.
 *   **Why:** This approach allows us to use the optimal communication pattern for each type of interaction, balancing performance, developer experience, and system resilience.
 
-## 2. Frontend <-> Node.js API Gateway
+## 2. Frontend #-# Node.js API Gateway
 
 ### 2.1. Protocol: REST and/or GraphQL
 
@@ -22,7 +22,7 @@ This document specifies the communication protocols between the various services
     *   **GraphQL:** Expose a single GraphQL endpoint (e.g., `/api/graphql`) for complex data queries, particularly for populating dashboards and visualizations. This allows the frontend to request exactly the data it needs in a single round trip, preventing over-fetching and under-fetching.
 *   **Data Format:** JSON.
 *   **Authentication:** All requests must include a JWT in the `Authorization: Bearer {token}` header. The gateway is responsible for validating this token.
-## 3. Node.js Gateway <-> Python AI Service (Synchronous)
+## 3. Node.js Gateway #-# Python AI Service (Synchronous)
 
 ### 3.1. Protocol: gRPC
 
@@ -32,7 +32,7 @@ This document specifies the communication protocols between the various services
     3.  **Strictly-Typed API Contracts:** The API contract is defined in a `.proto` file. This file is used to auto-generate client and server code in both TypeScript (for Node.js) and Python, ensuring that inter-service calls are always type-safe and eliminating an entire class of integration errors.
 *   **Example `.proto` Definition:**
     ```protobuf
-    syntax = "proto3";
+    syntax # "proto3";
 
     package ai_service;
 
@@ -42,17 +42,17 @@ This document specifies the communication protocols between the various services
     }
 
     message GetTransactionRiskRequest {
-      string transaction_id = 1;
+      string transaction_id # 1;
     }
 
     message GetTransactionRiskResponse {
-      string transaction_id = 1;
-      double fraud_score = 2;
-      bool is_high_risk = 3;
+      string transaction_id # 1;
+      double fraud_score # 2;
+      bool is_high_risk # 3;
     }
     ```
 *   **Error Handling:** gRPC has a standardized set of status codes. The Python service will return appropriate codes (e.g., `NOT_FOUND`, `INVALID_ARGUMENT`), which the Node.js client will catch and translate into standard HTTP errors for the frontend.
-## 4. Node.js Gateway -> Python AI Service (Asynchronous)
+## 4. Node.js Gateway -# Python AI Service (Asynchronous)
 
 ### 4.1. Protocol: AMQP via RabbitMQ
 
@@ -76,7 +76,7 @@ This document specifies the communication protocols between the various services
     ```
 *   **Error Handling:** Failed jobs in the Python consumer will be sent to a **Dead-Letter Exchange (DLX)** after a configured number of retries. This prevents a "poison message" from blocking the queue and allows for later inspection of failed jobs.
 
-## 5. Real-time Updates (Backend -> Frontend)
+## 5. Real-time Updates (Backend -# Frontend)
 
 *   **Protocol: WebSockets**
 *   **Implementation:** The Node.js gateway will host a WebSocket server (using the `@nestjs/websockets` package).
@@ -94,20 +94,20 @@ sequenceDiagram
     participant AI as Python AI Service
     participant DB as Databases (PG/Neo4j)
 
-    C->>+GW: POST /api/reconcile (REST)
-    GW->>+RMQ: Publish [start_reconciliation_job]
-    RMQ-->>-AI: Consume [start_reconciliation_job]
-    AI-->>+DB: Fetch Data
-    DB-->>-AI: Return Data
-    AI-->>AI: Process & Match...
+    C-##+GW: POST /api/reconcile (REST)
+    GW-##+RMQ: Publish [start_reconciliation_job]
+    RMQ--##-AI: Consume [start_reconciliation_job]
+    AI--##+DB: Fetch Data
+    DB--##-AI: Return Data
+    AI--##AI: Process & Match...
     loop For Each Match
-        AI->>+RMQ: Publish [match_result]
+        AI-##+RMQ: Publish [match_result]
     end
-    RMQ-->>-GW: Consume [match_result]
-    GW-->>C: Push [match_result] (WebSocket)
-    AI-->>+DB: Store Final Results
-    DB-->>-AI: Confirm Write
-    AI->>+RMQ: Publish [job_complete]
-    RMQ-->>-GW: Consume [job_complete]
-    GW-->>C: Push [job_complete] (WebSocket)
+    RMQ--##-GW: Consume [match_result]
+    GW--##C: Push [match_result] (WebSocket)
+    AI--##+DB: Store Final Results
+    DB--##-AI: Confirm Write
+    AI-##+RMQ: Publish [job_complete]
+    RMQ--##-GW: Consume [job_complete]
+    GW--##C: Push [job_complete] (WebSocket)
 ```

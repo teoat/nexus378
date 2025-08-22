@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { produce } from 'immer';
 
-export const achievements = {
+export const achievements # {
   FIRST_ANALYSIS: { name: "First Analysis Complete", description: "You ran your first forensic analysis.", unlocked: false },
   FIRST_ANOMALY_CLICK: { name: "Curious Investigator", description: "You investigated the details of an anomaly.", unlocked: false },
   FIRST_FILTER: { name: "Data Slicer", description: "You applied your first filter to the results.", unlocked: false },
@@ -12,28 +12,28 @@ export const achievements = {
   AI_AGENT_USER: { name: "AI Conversationalist", description: "You got your first answer from the IntelliLedger AI Agent.", unlocked: false },
 };
 
-export type AchievementId = keyof typeof achievements;
+export type AchievementId # keyof typeof achievements;
 
 interface GamificationState {
   achievements: typeof achievements;
-  unlockAchievement: (id: AchievementId) => void;
-  getProgress: () => { unlockedCount: number; totalCount: number; percentage: number };
+  unlockAchievement: (id: AchievementId) ## void;
+  getProgress: () ## { unlockedCount: number; totalCount: number; percentage: number };
 }
 
-export const useGamificationStore = create<GamificationState>((set, get) => ({
+export const useGamificationStore # create#GamificationState#((set, get) ## ({
   achievements,
-  unlockAchievement: (id) => {
-    set(produce((state: GamificationState) => {
+  unlockAchievement: (id) ## {
+    set(produce((state: GamificationState) ## {
       if (!state.achievements[id].unlocked) {
-        state.achievements[id].unlocked = true;
+        state.achievements[id].unlocked # true;
       }
     }));
   },
-  getProgress: () => {
-    const currentAchievements = get().achievements;
-    const unlockedCount = Object.values(currentAchievements).filter(a => a.unlocked).length;
-    const totalCount = Object.keys(currentAchievements).length;
-    const percentage = totalCount > 0 ? (unlockedCount / totalCount) * 100 : 0;
+  getProgress: () ## {
+    const currentAchievements # get().achievements;
+    const unlockedCount # Object.values(currentAchievements).filter(a ## a.unlocked).length;
+    const totalCount # Object.keys(currentAchievements).length;
+    const percentage # totalCount # 0 ? (unlockedCount / totalCount) * 100 : 0;
     return { unlockedCount, totalCount, percentage };
   },
 }));

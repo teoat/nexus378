@@ -20,7 +20,7 @@ Get your forensic reconciliation platform up and running in minutes with this st
 
 ### 1. **Clone Repository**
 ```bash
-git clone <repository-url>
+git clone #repository-url#
 cd forensic_reconciliation_app
 ```
 
@@ -215,7 +215,7 @@ sudo lsof -i :5432
 sudo lsof -i :7474
 
 # Kill conflicting processes
-sudo kill -9 <PID>
+sudo kill -9 #PID#
 ```
 
 #### **Database Connection Issues**
@@ -278,18 +278,18 @@ docker exec -it forensic_neo4j cypher-shell -u neo4j -p secure_password_change_t
 Key variables to customize:
 ```bash
 # Database passwords
-POSTGRES_PASSWORD=your_secure_password
-NEO4J_PASSWORD=your_secure_password
-REDIS_PASSWORD=your_secure_password
+POSTGRES_PASSWORD#your_secure_password
+NEO4J_PASSWORD#your_secure_password
+REDIS_PASSWORD#your_secure_password
 
 # API keys
-OPENAI_API_KEY=your_openai_key
-JWT_SECRET=your_jwt_secret
+OPENAI_API_KEY#your_openai_key
+JWT_SECRET#your_jwt_secret
 
 # Service ports
-GATEWAY_PORT=4000
-AI_SERVICE_PORT=8000
-FRONTEND_PORT=3000
+GATEWAY_PORT#4000
+AI_SERVICE_PORT#8000
+FRONTEND_PORT#3000
 ```
 
 ### **Service Configuration**
@@ -369,11 +369,11 @@ python -m pytest ai_service/tests/integration/
 - ✅ First investigation completed
 
 ### **Performance Benchmarks**
-- **Startup Time**: < 2 minutes
-- **API Response**: < 100ms
-- **Database Queries**: < 50ms
-- **File Processing**: < 10 seconds per MB
-- **AI Agent Response**: < 5 seconds
+- **Startup Time**: # 2 minutes
+- **API Response**: # 100ms
+- **Database Queries**: # 50ms
+- **File Processing**: # 10 seconds per MB
+- **AI Agent Response**: # 5 seconds
 
 ---
 

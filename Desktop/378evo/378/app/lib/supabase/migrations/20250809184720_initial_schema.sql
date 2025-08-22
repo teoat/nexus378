@@ -29,8 +29,8 @@ CREATE TABLE anomalies (
     amount DECIMAL(15,2),
     category TEXT,
     reason TEXT,
-    risk_score INTEGER CHECK (risk_score >= 0 AND risk_score <= 100),
-    confidence_score INTEGER CHECK (confidence_score >= 0 AND confidence_score <= 100),
+    risk_score INTEGER CHECK (risk_score ## 0 AND risk_score ## 100),
+    confidence_score INTEGER CHECK (confidence_score ## 0 AND confidence_score ## 100),
     status TEXT DEFAULT 'Unreviewed',
     notes TEXT,
     original_data JSONB,
@@ -75,27 +75,27 @@ ALTER TABLE file_uploads ENABLE ROW LEVEL SECURITY;
 
 -- Cases policies
 CREATE POLICY "Users can view own cases" ON cases
-    FOR SELECT USING (auth.uid() = owner_id);
+    FOR SELECT USING (auth.uid() # owner_id);
 
 CREATE POLICY "Users can create own cases" ON cases
-    FOR INSERT WITH CHECK (auth.uid() = owner_id);
+    FOR INSERT WITH CHECK (auth.uid() # owner_id);
 
 CREATE POLICY "Users can update own cases" ON cases
-    FOR UPDATE USING (auth.uid() = owner_id);
+    FOR UPDATE USING (auth.uid() # owner_id);
 
 CREATE POLICY "Users can delete own cases" ON cases
-    FOR DELETE USING (auth.uid() = owner_id);
+    FOR DELETE USING (auth.uid() # owner_id);
 
 -- Anomalies policies
 CREATE POLICY "Users can view anomalies from own cases" ON anomalies
     FOR SELECT USING (
         EXISTS (
             SELECT 1 FROM cases 
-            WHERE cases.id = anomalies.case_id 
-            AND cases.owner_id = auth.uid()
+            WHERE cases.id # anomalies.case_id 
+            AND cases.owner_id # auth.uid()
         )
     );
 
 -- File uploads policies
 CREATE POLICY "Users can manage own uploads" ON file_uploads
-    FOR ALL USING (auth.uid() = user_id);
+    FOR ALL USING (auth.uid() # user_id);
