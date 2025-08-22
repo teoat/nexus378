@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 """
 MCP Server Orchestrator for Forensic Reconciliation App
-Manages all MCP servers and their coordination
+Manages all MCP servers and their coordination, including auto-scaling.
 """
 
 import asyncio
 import logging
 import json
 import time
+import uuid
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, asdict
 from datetime import datetime
 import signal
 import sys
+
+from .mcp_server import mcp_server
+from .autoscaler import AutoScaler, ScalingDecision
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +48,16 @@ class MCPServerOrchestrator:
         # Initialize server registry
         self._initialize_server_registry()
         
+        # Initialize AutoScaler
+        autoscaler_config = {
+            "MIN_AGENTS": 2,
+            "MAX_AGENTS": 10,
+            "TASKS_PER_AGENT_THRESHOLD": 5,
+            "IDLE_AGENT_PERCENT_THRESHOLD": 0.5,
+            "COOLDOWN_PERIOD_S": 30,
+        }
+        self.autoscaler = AutoScaler(mcp_server, autoscaler_config)
+
         logger.info("MCP Server Orchestrator initialized")
     
     def _initialize_server_registry(self):
@@ -186,7 +200,7 @@ class MCPServerOrchestrator:
             self.orchestrator_status = "failed"
             return False
     
-    async def _start_server(self, server_id: str) -> bool:
+    async def _start_server(self, server_id: str, server_info_override: Optional[Dict] = None) -> bool:
         """Start a specific MCP server"""
         try:
             logger.info(f"Starting {server_id}...")
@@ -194,7 +208,7 @@ class MCPServerOrchestrator:
             # For now, we'll simulate server startup
             # In a real implementation, this would actually start the server processes
             
-            server_info = self.server_registry[server_id]
+            server_info = server_info_override or self.server_registry[server_id]
             
             # Create server status
             server_status = MCPServerInfo(
@@ -234,7 +248,8 @@ class MCPServerOrchestrator:
         try:
             logger.info("Stopping all MCP servers...")
             
-            for server_id in self.server_status:
+            # Use list(self.server_status.keys()) to avoid issues with changing dict size during iteration
+            for server_id in list(self.server_status.keys()):
                 await self._stop_server(server_id)
                 await asyncio.sleep(0.5)
             
@@ -258,31 +273,104 @@ class MCPServerOrchestrator:
             
         except Exception as e:
             logger.error(f"Error stopping {server_id}: {e}")
-    
+
     async def monitor_servers(self):
-        """Monitor all MCP servers"""
+        """Monitor all MCP servers and perform auto-scaling."""
         try:
             logger.info("Starting server monitoring...")
             
             while self.orchestrator_status == "running":
                 # Update server health and status
                 await self._update_server_health()
+
+                # Perform auto-scaling
+                await self._perform_autoscaling()
                 
                 # Log system status
                 await self._log_system_status()
                 
                 # Wait before next check
-                await asyncio.sleep(30)  # Check every 30 seconds
+                await asyncio.sleep(15)  # Check more frequently for scaling
                 
         except Exception as e:
             logger.error(f"Error in server monitoring: {e}")
+
+    async def _perform_autoscaling(self):
+        """Check metrics and perform scaling actions if needed."""
+        decision = self.autoscaler.make_scaling_decision()
+        if decision == ScalingDecision.SCALE_UP:
+            await self._scale_up()
+        elif decision == ScalingDecision.SCALE_DOWN:
+            await self._scale_down()
+
+    async def _scale_up(self):
+        """
+        Simulates scaling up by adding a new agent server to the pool.
+        NOTE: In a real-world scenario, this method would interface with a
+        container orchestrator (like Docker, Kubernetes) to start a new agent container.
+        """
+        if len(mcp_server.agents) >= self.autoscaler.max_agents:
+            logger.debug("Max agents reached, cannot scale up.")
+            return
+
+        new_agent_id = f"agent_{uuid.uuid4().hex[:8]}"
+        logger.info(f"Scaling up: adding new agent {new_agent_id}")
+
+        # Register the new agent with the MCP server
+        await mcp_server.register_agent(
+            agent_id=new_agent_id,
+            name=f"AutoScaledAgent-{new_agent_id}",
+            capabilities=["general_purpose"]
+        )
+
+        # Create a server entry for it in the orchestrator to simulate it running
+        server_info = {
+            "name": f"Auto-Scaled Agent Server {new_agent_id}",
+            "type": "ai_agent",
+            "priority": "NORMAL",
+        }
+        await self._start_server(new_agent_id, server_info_override=server_info)
+        logger.info(f"Agent {new_agent_id} added to orchestrator pool.")
+
+    async def _scale_down(self):
+        """
+        Simulates scaling down by removing an idle agent server from the pool.
+        NOTE: In a real-world scenario, this method would interface with a
+        container orchestrator to stop an agent container.
+        """
+        if len(mcp_server.agents) <= self.autoscaler.min_agents:
+            logger.debug("Min agents reached, cannot scale down.")
+            return
+
+        idle_agent_id = await self._find_idle_agent_server()
+        if idle_agent_id:
+            logger.info(f"Scaling down: removing idle agent {idle_agent_id}")
+            # Simulate stopping the server and remove it from tracking
+            await self._stop_server(idle_agent_id)
+            if idle_agent_id in self.server_status:
+                del self.server_status[idle_agent_id]
+            if idle_agent_id in mcp_server.agents:
+                del mcp_server.agents[idle_agent_id]
+            logger.info(f"Agent {idle_agent_id} removed from pool.")
+        else:
+            logger.debug("No idle agents found to scale down.")
+
+    async def _find_idle_agent_server(self) -> Optional[str]:
+        """Finds an agent server that is currently idle."""
+        for agent_id, agent in mcp_server.agents.items():
+            if not agent.current_tasks:
+                # Only scale down agents that are not part of the original, fixed registry
+                if agent_id not in self.server_registry:
+                     return agent_id
+        return None
     
     async def _update_server_health(self):
         """Update health status of all servers"""
         try:
             current_time = datetime.now()
             
-            for server_id, server_status in self.server_status.items():
+            # Use list() to create a copy, allowing dict to be modified during iteration
+            for server_id, server_status in list(self.server_status.items()):
                 if server_status.status == "running":
                     # Update uptime
                     start_time = datetime.fromisoformat(server_status.last_updated)

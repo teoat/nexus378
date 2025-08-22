@@ -1,0 +1,671 @@
+#!/usr/bin/env python3
+"""
+Unified Task Management System
+Complete system for managing TODOs, workers, and preventing conflicts
+"""
+
+import asyncio
+import logging
+import json
+import time
+import uuid
+import threading
+from datetime import datetime, timedelta
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+import sqlite3
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('unified_task_system.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+class TaskStatus(Enum):
+    """Task status enumeration"""
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    BLOCKED = "blocked"
+
+class TaskPriority(Enum):
+    """Task priority levels"""
+    CRITICAL = "critical"
+    HIGH = "high"
+    NORMAL = "normal"
+    LOW = "low"
+
+class WorkerStatus(Enum):
+    """Worker status enumeration"""
+    IDLE = "idle"
+    BUSY = "busy"
+    OFFLINE = "offline"
+
+@dataclass
+class Task:
+    """Task definition"""
+    id: str
+    name: str
+    description: str
+    priority: TaskPriority
+    status: TaskStatus
+    estimated_duration: str
+    required_capabilities: List[str]
+    assigned_worker: Optional[str]
+    created_at: datetime
+    started_at: Optional[datetime]
+    completed_at: Optional[datetime]
+    progress: float
+    subtasks: List[Dict[str, Any]]
+    dependencies: List[str]
+    metadata: Dict[str, Any]
+    implementation_notes: List[str]
+    last_updated: datetime
+
+@dataclass
+class Worker:
+    """Worker information"""
+    id: str
+    name: str
+    capabilities: List[str]
+    status: WorkerStatus
+    current_task: Optional[str]
+    task_history: List[str]
+    performance_metrics: Dict[str, Any]
+    last_heartbeat: datetime
+    created_at: datetime
+
+class UnifiedTaskSystem:
+    """Complete unified task management system"""
+    
+    def __init__(self, db_path: str = "unified_tasks.db"):
+        self.db_path = db_path
+        self.tasks: Dict[str, Task] = {}
+        self.workers: Dict[str, Worker] = {}
+        self.task_queue: List[str] = []
+        self.completed_tasks: List[str] = []
+        self.failed_tasks: List[str] = []
+        
+        # Threading and locks
+        self.lock = threading.RLock()
+        self.task_locks: Dict[str, threading.Lock] = {}
+        
+        # Initialize system
+        self._initialize_database()
+        self._start_background_processes()
+        
+        logger.info("Unified Task System initialized successfully")
+    
+    def add_new_todo(self, name: str, description: str, priority: str, 
+                     estimated_duration: str, required_capabilities: List[str],
+                     subtasks: List[Dict[str, Any]] = None,
+                     dependencies: List[str] = None) -> str:
+        """Add a new unimplemented TODO to the system"""
+        with self.lock:
+            # Generate unique ID
+            task_id = f"todo_{len(self.tasks) + 1:03d}"
+            
+            # Create new task
+            task = Task(
+                id=task_id,
+                name=name,
+                description=description,
+                priority=TaskPriority(priority.lower()),
+                status=TaskStatus.PENDING,
+                estimated_duration=estimated_duration,
+                required_capabilities=required_capabilities,
+                assigned_worker=None,
+                created_at=datetime.now(),
+                started_at=None,
+                completed_at=None,
+                progress=0.0,
+                subtasks=subtasks or [],
+                dependencies=dependencies or [],
+                metadata={
+                    "type": "new_todo",
+                    "source": "manual_add",
+                    "created_by": "system"
+                },
+                implementation_notes=[],
+                last_updated=datetime.now()
+            )
+            
+            # Add to system
+            self.tasks[task_id] = task
+            self.task_queue.append(task_id)
+            self.task_locks[task_id] = threading.Lock()
+            
+            # Save to database
+            self._save_task(task)
+            
+            logger.info(f"New TODO added: {task_id} - {name}")
+            return task_id
+    
+    def register_worker(self, worker_id: str, name: str, capabilities: List[str]) -> bool:
+        """Register a new worker with the system"""
+        with self.lock:
+            if worker_id in self.workers:
+                logger.warning(f"Worker {worker_id} already registered")
+                return False
+            
+            worker = Worker(
+                id=worker_id,
+                name=name,
+                capabilities=capabilities,
+                status=WorkerStatus.IDLE,
+                current_task=None,
+                task_history=[],
+                performance_metrics={
+                    "tasks_completed": 0,
+                    "tasks_failed": 0,
+                    "average_completion_time": 0.0,
+                    "success_rate": 1.0
+                },
+                last_heartbeat=datetime.now(),
+                created_at=datetime.now()
+            )
+            
+            self.workers[worker_id] = worker
+            self._save_worker(worker)
+            
+            logger.info(f"Worker registered: {worker_id} - {name}")
+            return True
+    
+    def claim_task(self, worker_id: str, task_id: str) -> bool:
+        """Worker claims a task for implementation"""
+        if task_id not in self.tasks:
+            logger.error(f"Task {task_id} not found")
+            return False
+        
+        task = self.tasks[task_id]
+        
+        # Use task-specific lock to prevent race conditions
+        with self.task_locks[task_id]:
+            # Check if task is available
+            if task.status != TaskStatus.PENDING:
+                logger.warning(f"Task {task_id} is not available for claiming")
+                return False
+            
+            # Check if worker has required capabilities
+            if not self._worker_has_capabilities(worker_id, task.required_capabilities):
+                logger.warning(f"Worker {worker_id} lacks required capabilities for task {task_id}")
+                return False
+            
+            # Check dependencies
+            if not self._dependencies_satisfied(task):
+                logger.warning(f"Task {task_id} dependencies not satisfied")
+                return False
+            
+            # Check for conflicts
+            if self._detect_task_conflict(task_id, worker_id):
+                logger.warning(f"Task conflict detected for {task_id}")
+                return False
+            
+            # Assign task to worker
+            task.assigned_worker = worker_id
+            task.status = TaskStatus.IN_PROGRESS
+            task.started_at = datetime.now()
+            task.last_updated = datetime.now()
+            
+            # Update worker status
+            worker = self.workers[worker_id]
+            worker.status = WorkerStatus.BUSY
+            worker.current_task = task_id
+            worker.last_heartbeat = datetime.now()
+            
+            # Remove from queue
+            if task_id in self.task_queue:
+                self.task_queue.remove(task_id)
+            
+            # Save changes
+            self._save_task(task)
+            self._save_worker(worker)
+            
+            logger.info(f"Task {task_id} claimed by worker {worker_id}")
+            return True
+    
+    def update_task_progress(self, worker_id: str, task_id: str, progress: float, 
+                           notes: str = None) -> bool:
+        """Update task progress and add implementation notes"""
+        if task_id not in self.tasks:
+            logger.error(f"Task {task_id} not found")
+            return False
+        
+        task = self.tasks[task_id]
+        
+        # Verify worker owns the task
+        if task.assigned_worker != worker_id:
+            logger.error(f"Worker {worker_id} does not own task {task_id}")
+            return False
+        
+        with self.task_locks[task_id]:
+            # Update progress
+            old_progress = task.progress
+            task.progress = min(100.0, max(0.0, progress))
+            task.last_updated = datetime.now()
+            
+            # Add implementation notes
+            if notes:
+                note_entry = {
+                    "timestamp": datetime.now().isoformat(),
+                    "worker_id": worker_id,
+                    "progress": f"{old_progress:.1f}% -> {task.progress:.1f}%",
+                    "notes": notes
+                }
+                task.implementation_notes.append(note_entry)
+            
+            # Check if task is complete
+            if task.progress >= 100.0:
+                task.status = TaskStatus.COMPLETED
+                task.completed_at = datetime.now()
+                
+                # Update worker
+                worker = self.workers[worker_id]
+                worker.status = WorkerStatus.IDLE
+                worker.current_task = None
+                worker.task_history.append(task_id)
+                worker.performance_metrics["tasks_completed"] += 1
+                
+                # Move to completed list
+                self.completed_tasks.append(task_id)
+                
+                # Update worker performance metrics
+                self._update_worker_performance(worker_id, task)
+                
+                logger.info(f"Task {task_id} completed by worker {worker_id}")
+            
+            # Save changes
+            self._save_task(task)
+            if task.status == TaskStatus.COMPLETED:
+                self._save_worker(worker)
+            
+            return True
+    
+    def complete_task(self, worker_id: str, task_id: str, completion_notes: str = None) -> bool:
+        """Mark task as completed with final notes"""
+        return self.update_task_progress(worker_id, task_id, 100.0, completion_notes)
+    
+    def get_available_tasks(self, worker_id: str) -> List[Dict[str, Any]]:
+        """Get list of available tasks for a worker"""
+        worker = self.workers.get(worker_id)
+        if not worker:
+            return []
+        
+        available_tasks = []
+        
+        for task_id in self.task_queue:
+            task = self.tasks[task_id]
+            
+            # Check if worker has required capabilities
+            if not self._worker_has_capabilities(worker_id, task.required_capabilities):
+                continue
+            
+            # Check if dependencies are satisfied
+            if not self._dependencies_satisfied(task):
+                continue
+            
+            # Check for conflicts
+            if self._detect_task_conflict(task_id, worker_id):
+                continue
+            
+            available_tasks.append({
+                "id": task.id,
+                "name": task.name,
+                "description": task.description,
+                "priority": task.priority.value,
+                "estimated_duration": task.estimated_duration,
+                "required_capabilities": task.required_capabilities,
+                "subtasks": task.subtasks,
+                "dependencies": task.dependencies
+            })
+        
+        return available_tasks
+    
+    def get_system_status(self) -> Dict[str, Any]:
+        """Get comprehensive system status"""
+        with self.lock:
+            return {
+                "total_tasks": len(self.tasks),
+                "pending_tasks": len(self.task_queue),
+                "in_progress_tasks": len([t for t in self.tasks.values() if t.status == TaskStatus.IN_PROGRESS]),
+                "completed_tasks": len(self.completed_tasks),
+                "failed_tasks": len(self.failed_tasks),
+                "total_workers": len(self.workers),
+                "active_workers": len([w for w in self.workers.values() if w.status == WorkerStatus.BUSY]),
+                "idle_workers": len([w for w in self.workers.values() if w.status == WorkerStatus.IDLE]),
+                "last_updated": datetime.now().isoformat()
+            }
+    
+    def _worker_has_capabilities(self, worker_id: str, required_capabilities: List[str]) -> bool:
+        """Check if worker has required capabilities"""
+        worker = self.workers.get(worker_id)
+        if not worker:
+            return False
+        
+        worker_caps = set(worker.capabilities)
+        required_caps = set(required_capabilities)
+        
+        # Worker must have at least 70% of required capabilities
+        overlap = len(worker_caps.intersection(required_caps))
+        return overlap >= len(required_caps) * 0.7
+    
+    def _dependencies_satisfied(self, task: Task) -> bool:
+        """Check if task dependencies are satisfied"""
+        if not task.dependencies:
+            return True
+        
+        for dep_id in task.dependencies:
+            if dep_id not in self.tasks:
+                return False
+            
+            dep_task = self.tasks[dep_id]
+            if dep_task.status != TaskStatus.COMPLETED:
+                return False
+        
+        return True
+    
+    def _detect_task_conflict(self, task_id: str, worker_id: str) -> bool:
+        """Detect potential task conflicts"""
+        task = self.tasks[task_id]
+        
+        # Check if task is already assigned
+        if task.assigned_worker and task.assigned_worker != worker_id:
+            return True
+        
+        # Check for similar tasks being worked on
+        for other_task in self.tasks.values():
+            if (other_task.id != task_id and 
+                other_task.status == TaskStatus.IN_PROGRESS and
+                other_task.assigned_worker and
+                other_task.assigned_worker != worker_id):
+                
+                # Check for similarity (same capabilities, similar names)
+                if (set(other_task.required_capabilities) & set(task.required_capabilities) and
+                    self._calculate_task_similarity(task, other_task) > 0.7):
+                    return True
+        
+        return False
+    
+    def _calculate_task_similarity(self, task1: Task, task2: Task) -> float:
+        """Calculate similarity between two tasks"""
+        # Simple similarity based on name and capabilities
+        name_similarity = self._string_similarity(task1.name.lower(), task2.name.lower())
+        capability_similarity = len(set(task1.required_capabilities) & set(task2.required_capabilities)) / max(len(set(task1.required_capabilities) | set(task2.required_capabilities)), 1)
+        
+        return (name_similarity + capability_similarity) / 2
+    
+    def _string_similarity(self, str1: str, str2: str) -> float:
+        """Calculate string similarity using simple algorithm"""
+        if str1 == str2:
+            return 1.0
+        
+        if len(str1) == 0 or len(str2) == 0:
+            return 0.0
+        
+        # Simple word overlap similarity
+        words1 = set(str1.split())
+        words2 = set(str2.split())
+        
+        if not words1 or not words2:
+            return 0.0
+        
+        intersection = len(words1 & words2)
+        union = len(words1 | words2)
+        
+        return intersection / union if union > 0 else 0.0
+    
+    def _update_worker_performance(self, worker_id: str, completed_task: Task):
+        """Update worker performance metrics after task completion"""
+        worker = self.workers[worker_id]
+        
+        if completed_task.started_at and completed_task.completed_at:
+            completion_time = (completed_task.completed_at - completed_task.started_at).total_seconds()
+            
+            # Update average completion time
+            current_avg = worker.performance_metrics["average_completion_time"]
+            completed_count = worker.performance_metrics["tasks_completed"]
+            
+            if completed_count > 1:
+                new_avg = ((current_avg * (completed_count - 1)) + completion_time) / completed_count
+            else:
+                new_avg = completion_time
+            
+            worker.performance_metrics["average_completion_time"] = new_avg
+        
+        # Update success rate
+        total_tasks = worker.performance_metrics["tasks_completed"] + worker.performance_metrics["tasks_failed"]
+        if total_tasks > 0:
+            worker.performance_metrics["success_rate"] = worker.performance_metrics["tasks_completed"] / total_tasks
+    
+    def _initialize_database(self):
+        """Initialize SQLite database for persistence"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Create tasks table
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS tasks (
+                        id TEXT PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        description TEXT,
+                        priority TEXT NOT NULL,
+                        status TEXT NOT NULL,
+                        estimated_duration TEXT,
+                        required_capabilities TEXT,
+                        assigned_worker TEXT,
+                        created_at TEXT NOT NULL,
+                        started_at TEXT,
+                        completed_at TEXT,
+                        progress REAL DEFAULT 0.0,
+                        subtasks TEXT,
+                        dependencies TEXT,
+                        metadata TEXT,
+                        implementation_notes TEXT,
+                        last_updated TEXT NOT NULL
+                    )
+                ''')
+                
+                # Create workers table
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS workers (
+                        id TEXT PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        capabilities TEXT,
+                        status TEXT NOT NULL,
+                        current_task TEXT,
+                        task_history TEXT,
+                        performance_metrics TEXT,
+                        last_heartbeat TEXT NOT NULL,
+                        created_at TEXT NOT NULL
+                    )
+                ''')
+                
+                conn.commit()
+                logger.info("Database initialized successfully")
+                
+        except Exception as e:
+            logger.error(f"Failed to initialize database: {e}")
+            raise
+    
+    def _save_task(self, task: Task):
+        """Save task to database"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Check if task exists
+                cursor.execute('SELECT id FROM tasks WHERE id = ?', (task.id,))
+                exists = cursor.fetchone()
+                
+                if exists:
+                    # Update existing task
+                    cursor.execute('''
+                        UPDATE tasks SET 
+                            name=?, description=?, priority=?, status=?, estimated_duration=?,
+                            required_capabilities=?, assigned_worker=?, created_at=?, started_at=?,
+                            completed_at=?, progress=?, subtasks=?, dependencies=?, metadata=?,
+                            implementation_notes=?, last_updated=?
+                        WHERE id=?
+                    ''', self._task_to_row(task) + (task.id,))
+                else:
+                    # Insert new task
+                    cursor.execute('''
+                        INSERT INTO tasks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', self._task_to_row(task))
+                
+                conn.commit()
+                
+        except Exception as e:
+            logger.error(f"Failed to save task {task.id}: {e}")
+    
+    def _save_worker(self, worker: Worker):
+        """Save worker to database"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Check if worker exists
+                cursor.execute('SELECT id FROM workers WHERE id = ?', (worker.id,))
+                exists = cursor.fetchone()
+                
+                if exists:
+                    # Update existing worker
+                    cursor.execute('''
+                        UPDATE workers SET 
+                            name=?, capabilities=?, status=?, current_task=?, task_history=?,
+                            performance_metrics=?, last_heartbeat=?, created_at=?
+                        WHERE id=?
+                    ''', (
+                        worker.name, json.dumps(worker.capabilities), worker.status.value,
+                        worker.current_task, json.dumps(worker.task_history),
+                        json.dumps(worker.performance_metrics), worker.last_heartbeat.isoformat(),
+                        worker.created_at.isoformat(), worker.id
+                    ))
+                else:
+                    # Insert new worker
+                    cursor.execute('''
+                        INSERT INTO workers VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        worker.id, worker.name, json.dumps(worker.capabilities), worker.status.value,
+                        worker.current_task, json.dumps(worker.task_history),
+                        json.dumps(worker.performance_metrics), worker.last_heartbeat.isoformat(),
+                        worker.created_at.isoformat()
+                    ))
+                
+                conn.commit()
+                
+        except Exception as e:
+            logger.error(f"Failed to save worker {worker.id}: {e}")
+    
+    def _task_to_row(self, task: Task) -> tuple:
+        """Convert Task object to database row"""
+        return (
+            task.id,
+            task.name,
+            task.description,
+            task.priority.value,
+            task.status.value,
+            task.estimated_duration,
+            json.dumps(task.required_capabilities),
+            task.assigned_worker,
+            task.created_at.isoformat(),
+            task.started_at.isoformat() if task.started_at else None,
+            task.completed_at.isoformat() if task.completed_at else None,
+            task.progress,
+            json.dumps(task.subtasks),
+            json.dumps(task.dependencies),
+            json.dumps(task.metadata),
+            json.dumps(task.implementation_notes),
+            task.last_updated.isoformat()
+        )
+    
+    def _start_background_processes(self):
+        """Start background monitoring processes"""
+        # Start worker monitoring
+        self.worker_monitor_thread = threading.Thread(
+            target=self._worker_monitoring_loop,
+            daemon=True
+        )
+        self.worker_monitor_thread.start()
+        
+        logger.info("Background processes started")
+    
+    def _worker_monitoring_loop(self):
+        """Background loop for monitoring worker health"""
+        while True:
+            try:
+                with self.lock:
+                    current_time = datetime.now()
+                    
+                    for worker_id, worker in self.workers.items():
+                        # Check worker heartbeat
+                        if (current_time - worker.last_heartbeat).total_seconds() > 300:  # 5 minutes
+                            logger.warning(f"Worker {worker_id} timeout detected")
+                            
+                            # Mark worker as offline
+                            worker.status = WorkerStatus.OFFLINE
+                            
+                            # If worker has a current task, mark it as failed
+                            if worker.current_task:
+                                task_id = worker.current_task
+                                task = self.tasks.get(task_id)
+                                if task and task.status == TaskStatus.IN_PROGRESS:
+                                    self.fail_task(worker_id, task_id, "Worker timeout")
+                            
+                            self._save_worker(worker)
+                
+                time.sleep(30)  # Check every 30 seconds
+                
+            except Exception as e:
+                logger.error(f"Error in worker monitoring loop: {e}")
+                time.sleep(10)
+    
+    def fail_task(self, worker_id: str, task_id: str, error_message: str) -> bool:
+        """Mark task as failed with error details"""
+        if task_id not in self.tasks:
+            logger.error(f"Task {task_id} not found")
+            return False
+        
+        task = self.tasks[task_id]
+        
+        if task.assigned_worker != worker_id:
+            logger.error(f"Worker {worker_id} does not own task {task_id}")
+            return False
+        
+        with self.task_locks[task_id]:
+            task.status = TaskStatus.FAILED
+            task.last_updated = datetime.now()
+            
+            # Add failure note
+            failure_note = {
+                "timestamp": datetime.now().isoformat(),
+                "worker_id": worker_id,
+                "action": "task_failed",
+                "error": error_message
+            }
+            task.implementation_notes.append(failure_note)
+            
+            # Update worker
+            worker = self.workers[worker_id]
+            worker.status = WorkerStatus.IDLE
+            worker.current_task = None
+            worker.performance_metrics["tasks_failed"] += 1
+            
+            # Move to failed list
+            self.failed_tasks.append(task_id)
+            
+            # Save changes
+            self._save_task(task)
+            self._save_worker(worker)
+            
+            logger.warning(f"Task {task_id} failed: {error_message}")
+            return True

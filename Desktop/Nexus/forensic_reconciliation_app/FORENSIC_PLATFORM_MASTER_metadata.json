@@ -1,0 +1,141 @@
+{
+  "consolidation_date": "August 22, 2025 at 01:27 AM",
+  "total_files": 21,
+  "categories": {
+    "General Documentation": 5,
+    "Architecture & Design": 5,
+    "Quick Start & Setup": 1,
+    "Documentation & API": 1,
+    "Implementation & Work": 5,
+    "Use Cases & Examples": 1,
+    "Development & Tasks": 3
+  },
+  "files": [
+    {
+      "filename": "README.md",
+      "title": "\ud83d\udd75\ufe0f Forensic Reconciliation + Fraud Platform - MASTER README",
+      "category": "General Documentation",
+      "path": "README.md"
+    },
+    {
+      "filename": "README.md",
+      "title": "\ud83c\udfaf Taskmaster System",
+      "category": "General Documentation",
+      "path": "ai_service/taskmaster/README.md"
+    },
+    {
+      "filename": "README.md",
+      "title": "MCP (Model Context Protocol) System",
+      "category": "General Documentation",
+      "path": "ai_service/taskmaster/core/README.md"
+    },
+    {
+      "filename": "README.md",
+      "title": "\ud83d\udd10 Multi-Factor Authentication (MFA) System",
+      "category": "General Documentation",
+      "path": "ai_service/auth/mfa/README.md"
+    },
+    {
+      "filename": "README.md",
+      "title": "\ud83e\udd16 Parallel Agents TODO Automation System",
+      "category": "General Documentation",
+      "path": "ai_service/agents/README.md"
+    },
+    {
+      "filename": "MASTER_ARCHITECTURE.md",
+      "title": "\ud83c\udfd7\ufe0f Forensic Reconciliation + Fraud Platform - MASTER ARCHITECTURE",
+      "category": "Architecture & Design",
+      "path": "MASTER_ARCHITECTURE.md"
+    },
+    {
+      "filename": "TODO_MASTER.md",
+      "title": "\ud83c\udfaf Forensic Reconciliation + Fraud Platform - MASTER TODO LIST",
+      "category": "Architecture & Design",
+      "path": "TODO_MASTER.md"
+    },
+    {
+      "filename": "QUICKSTART.md",
+      "title": "\ud83d\ude80 Quick Start Guide - Forensic Reconciliation + Fraud Platform",
+      "category": "Quick Start & Setup",
+      "path": "QUICKSTART.md"
+    },
+    {
+      "filename": "project_overview.md",
+      "title": "\ud83d\udd75\ufe0f Forensic Reconciliation + Fraud Platform - Project Overview",
+      "category": "Architecture & Design",
+      "path": "docs/project_overview.md"
+    },
+    {
+      "filename": "architecture.md",
+      "title": "Forensic Reconciliation + Fraud Platform - Architecture Guide",
+      "category": "Architecture & Design",
+      "path": "docs/architecture.md"
+    },
+    {
+      "filename": "api_reference.md",
+      "title": "Forensic Reconciliation + Fraud Platform - API Reference",
+      "category": "Documentation & API",
+      "path": "docs/api_reference.md"
+    },
+    {
+      "filename": "workflows.md",
+      "title": "Forensic Reconciliation + Fraud Platform - Workflows Guide",
+      "category": "Implementation & Work",
+      "path": "docs/workflows.md"
+    },
+    {
+      "filename": "taskmaster_system.md",
+      "title": "\ud83c\udfaf Taskmaster System - Job Assignment & Workflow Management",
+      "category": "Architecture & Design",
+      "path": "docs/taskmaster_system.md"
+    },
+    {
+      "filename": "MCP_SYSTEM_SUMMARY.md",
+      "title": "\ud83d\udd10 MCP System - Master Source of Truth",
+      "category": "Implementation & Work",
+      "path": "MCP_SYSTEM_SUMMARY.md"
+    },
+    {
+      "filename": "MCP_WORK_LOG.md",
+      "title": "\ud83d\udd10 **MCP WORK LOG - Forensic Reconciliation Platform**",
+      "category": "Implementation & Work",
+      "path": "MCP_WORK_LOG.md"
+    },
+    {
+      "filename": "MFA_IMPLEMENTATION_SUMMARY.md",
+      "title": "\ud83d\udd10 MFA System Implementation Summary",
+      "category": "Implementation & Work",
+      "path": "MFA_IMPLEMENTATION_SUMMARY.md"
+    },
+    {
+      "filename": "forensic_cases.md",
+      "title": "Forensic Investigation Cases - TODO List",
+      "category": "Use Cases & Examples",
+      "path": "forensic_cases.md"
+    },
+    {
+      "filename": "TASK_BREAKDOWN_REPORT.md",
+      "title": "\ud83d\udd27 TASK BREAKDOWN REPORT - Forensic Reconciliation + Fraud Platform",
+      "category": "Development & Tasks",
+      "path": "TASK_BREAKDOWN_REPORT.md"
+    },
+    {
+      "filename": "INFRASTRUCTURE_TODOS.md",
+      "title": "HIGH Priority Core Infrastructure TODOs",
+      "category": "Development & Tasks",
+      "path": "INFRASTRUCTURE_TODOS.md"
+    },
+    {
+      "filename": "DETAILED_TASK_BREAKDOWN.md",
+      "title": "Taskmaster Detailed Task Breakdown - Tasks 17-33",
+      "category": "Development & Tasks",
+      "path": "DETAILED_TASK_BREAKDOWN.md"
+    },
+    {
+      "filename": "MCP_SERVERS_SUMMARY.md",
+      "title": "MCP SERVER IMPLEMENTATION SUMMARY",
+      "category": "Implementation & Work",
+      "path": "ai_service/taskmaster/core/MCP_SERVERS_SUMMARY.md"
+    }
+  ]
+}

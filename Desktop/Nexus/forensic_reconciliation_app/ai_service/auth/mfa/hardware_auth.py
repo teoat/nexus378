@@ -1,556 +1,381 @@
 """
-Hardware Token Multi-Factor Authentication
-
-Implements hardware token support including:
-- Challenge-response authentication
-- USB security keys (FIDO2/U2F)
-- Smart card support
-- Hardware token management
+Hardware Token Authentication Service
+Supports YubiKey and other hardware security tokens
 """
 
-import secrets
-import time
+import logging
+import asyncio
 import hashlib
 import hmac
-from typing import Optional, Dict, Any, List, Tuple
-from dataclasses import dataclass
-import logging
-import json
-from enum import Enum
+import base64
 from datetime import datetime, timedelta
-
-from config import HardwareConfig
+from typing import Dict, Optional, Tuple, List
+from dataclasses import dataclass
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 
 class HardwareTokenType(Enum):
     """Supported hardware token types"""
+    YUBIKEY = "yubikey"
     FIDO2 = "fido2"
-    U2F = "u2f"
-    SMART_CARD = "smart_card"
     TOTP_HARDWARE = "totp_hardware"
-    CHALLENGE_RESPONSE = "challenge_response"
+    SMART_CARD = "smart_card"
+
+
+class HardwareTokenStatus(Enum):
+    """Hardware token verification status"""
+    PENDING = "pending"
+    VERIFIED = "verified"
+    FAILED = "failed"
+    EXPIRED = "expired"
 
 
 @dataclass
-class HardwareTokenInfo:
-    """Hardware token information"""
-    token_id: str
-    token_type: HardwareTokenType
-    user_id: str
-    name: str
-    serial_number: Optional[str] = None
-    manufacturer: Optional[str] = None
-    model: Optional[str] = None
-    capabilities: List[str] = None
-    registered_at: Optional[datetime] = None
-    last_used: Optional[datetime] = None
-    is_active: bool = True
-
-
-@dataclass
-class ChallengeResponse:
-    """Challenge-response authentication data"""
-    challenge: str
-    response: str
-    timestamp: datetime
-    token_id: str
-    user_id: str
-
-
-@dataclass
-class HardwareAuthResult:
-    """Result of hardware authentication operation"""
-    success: bool
-    message: str
-    token_id: Optional[str] = None
-    challenge: Optional[str] = None
-    response: Optional[str] = None
-    expires_at: Optional[datetime] = None
-
-
 class HardwareToken:
-    """Base class for hardware tokens"""
-    
-    def __init__(self, token_info: HardwareTokenInfo):
-        self.token_info = token_info
-        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
-    
-    def get_token_type(self) -> HardwareTokenType:
-        """Get token type"""
-        return self.token_info.token_type
-    
-    def get_capabilities(self) -> List[str]:
-        """Get token capabilities"""
-        return self.token_info.capabilities or []
-    
-    def supports_challenge_response(self) -> bool:
-        """Check if token supports challenge-response"""
-        return "challenge_response" in self.get_capabilities()
-    
-    def supports_fido2(self) -> bool:
-        """Check if token supports FIDO2"""
-        return "fido2" in self.get_capabilities()
-    
-    def supports_u2f(self) -> bool:
-        """Check if token supports U2F"""
-        return "u2f" in self.get_capabilities()
-    
-    def supports_smart_card(self) -> bool:
-        """Check if token supports smart card operations"""
-        return "smart_card" in self.get_capabilities()
+    """Hardware token information"""
+    id: str
+    user_id: str
+    token_type: HardwareTokenType
+    serial_number: str
+    public_id: str
+    registered_at: datetime
+    last_used: Optional[datetime]
+    status: str  # active, revoked, expired
 
 
-class FIDO2Token(HardwareToken):
-    """FIDO2 hardware token implementation"""
+@dataclass
+class HardwareChallenge:
+    """Hardware token challenge for verification"""
+    id: str
+    user_id: str
+    token_id: str
+    challenge_data: str
+    created_at: datetime
+    expires_at: datetime
+    status: HardwareTokenStatus
+    attempts: int
+    max_attempts: int = 3
+
+
+class HardwareTokenService:
+    """Hardware token authentication service implementation"""
     
-    def __init__(self, token_info: HardwareTokenInfo):
-        super().__init__(token_info)
-        if not self.supports_fido2():
-            raise ValueError("Token does not support FIDO2")
-    
-    async def authenticate(self, challenge: str, user_id: str) -> HardwareAuthResult:
-        """Authenticate using FIDO2"""
-        try:
-            # In a real implementation, this would use the WebAuthn API
-            # For now, we'll simulate the authentication
-            
-            # Simulate API call delay
-            import asyncio
-            await asyncio.sleep(0.1)
-            
-            # Generate mock response
-            response = self._generate_fido2_response(challenge)
-            
-            self.logger.info(f"FIDO2 authentication successful for user {user_id}")
-            
-            return HardwareAuthResult(
-                success=True,
-                message="FIDO2 authentication successful",
-                token_id=self.token_info.token_id,
-                challenge=challenge,
-                response=response
-            )
-            
-        except Exception as e:
-            self.logger.error(f"FIDO2 authentication failed: {e}")
-            return HardwareAuthResult(
-                success=False,
-                message=f"FIDO2 authentication failed: {str(e)}"
-            )
-    
-    def _generate_fido2_response(self, challenge: str) -> str:
-        """Generate mock FIDO2 response"""
-        # In real implementation, this would be the actual FIDO2 response
-        response_data = {
-            'challenge': challenge,
-            'rpId': 'forensic-reconciliation.local',
-            'userVerification': 'required',
-            'signature': secrets.token_hex(64)
+    def __init__(self):
+        self.registered_tokens: Dict[str, HardwareToken] = {}
+        self.active_challenges: Dict[str, HardwareChallenge] = {}
+        self.hardware_config = {
+            "challenge_timeout": 300,  # 5 minutes
+            "max_attempts": 3,
+            "supported_types": [
+                HardwareTokenType.YUBIKEY,
+                HardwareTokenType.FIDO2,
+                HardwareTokenType.TOTP_HARDWARE
+            ]
         }
-        return json.dumps(response_data)
-
-
-class ChallengeResponseToken(HardwareToken):
-    """Challenge-response hardware token implementation"""
-    
-    def __init__(self, token_info: HardwareTokenInfo):
-        super().__init__(token_info)
-        if not self.supports_challenge_response():
-            raise ValueError("Token does not support challenge-response")
-    
-    def generate_challenge(self, user_id: str) -> str:
-        """Generate authentication challenge"""
-        try:
-            # Generate random challenge
-            challenge_data = {
-                'user_id': user_id,
-                'timestamp': int(time.time()),
-                'nonce': secrets.token_hex(16),
-                'token_id': self.token_info.token_id
-            }
-            
-            # Create challenge string
-            challenge = json.dumps(challenge_data, sort_keys=True)
-            
-            # Hash challenge for storage
-            challenge_hash = hashlib.sha256(challenge.encode()).hexdigest()
-            
-            self.logger.info(f"Generated challenge for user {user_id}")
-            return challenge_hash
-            
-        except Exception as e:
-            self.logger.error(f"Failed to generate challenge: {e}")
-            raise
-    
-    def validate_response(self, challenge: str, response: str, user_id: str) -> bool:
-        """Validate challenge response"""
-        try:
-            # In a real implementation, this would validate against the hardware token
-            # For now, we'll simulate validation
-            
-            # Check if response format is valid
-            if not response or len(response) < 32:
-                return False
-            
-            # Simulate hardware token validation
-            # In reality, this would involve communication with the actual token
-            expected_response = self._generate_expected_response(challenge, user_id)
-            
-            # Compare responses (in real implementation, this would be cryptographic)
-            return response == expected_response
-            
-        except Exception as e:
-            self.logger.error(f"Response validation failed: {e}")
-            return False
-    
-    def _generate_expected_response(self, challenge: str, user_id: str) -> str:
-        """Generate expected response for challenge"""
-        # In real implementation, this would be generated by the hardware token
-        # For simulation, we'll create a deterministic response
-        response_data = f"{challenge}:{user_id}:{self.token_info.token_id}"
-        return hashlib.sha256(response_data.encode()).hexdigest()
-
-
-class HardwareTokenAuthenticator:
-    """
-    Hardware Token Multi-Factor Authentication
-    
-    Features:
-    - Multiple hardware token types
-    - Challenge-response authentication
-    - Token registration and management
-    - Secure challenge generation
-    - Response validation
-    """
-    
-    def __init__(self, config: HardwareConfig):
-        self.config = config
-        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         
-        # Token registry
-        self.tokens: Dict[str, HardwareToken] = {}
+        # Mock hardware token providers (replace with actual implementations)
+        self.token_providers = {
+            HardwareTokenType.YUBIKEY: MockYubiKeyProvider(),
+            HardwareTokenType.FIDO2: MockFIDO2Provider(),
+            HardwareTokenType.TOTP_HARDWARE: MockTOTPHardwareProvider()
+        }
         
-        # Active challenges
-        self.active_challenges: Dict[str, Dict[str, Any]] = {}
-        
-        # Validate configuration
-        if not self._validate_config():
-            raise ValueError("Invalid hardware token configuration")
+        logger.info("Hardware token service initialized")
     
-    def _validate_config(self) -> bool:
-        """Validate hardware token configuration"""
+    async def register_hardware_token(self, user_id: str, token_type: HardwareTokenType, 
+                                    serial_number: str, public_id: str) -> Optional[str]:
+        """Register a new hardware token for user"""
         try:
-            assert self.config.timeout_seconds >= 1, "Timeout must be at least 1 second"
-            assert self.config.max_retries >= 1, "Max retries must be at least 1"
-            return True
-        except AssertionError as e:
-            self.logger.error(f"Hardware token configuration validation failed: {e}")
-            return False
-    
-    def register_token(self, token_info: HardwareTokenInfo) -> bool:
-        """
-        Register a new hardware token
-        
-        Args:
-            token_info: Token information
-            
-        Returns:
-            True if registration successful
-        """
-        try:
-            # Validate token info
-            if not token_info.token_id or not token_info.user_id:
-                raise ValueError("Token ID and user ID are required")
+            # Validate token type
+            if token_type not in self.hardware_config["supported_types"]:
+                logger.warning(f"Unsupported hardware token type: {token_type}")
+                return None
             
             # Check if token already registered
-            if token_info.token_id in self.tokens:
-                self.logger.warning(f"Token {token_info.token_id} already registered")
-                return False
+            for token in self.registered_tokens.values():
+                if token.serial_number == serial_number:
+                    logger.warning(f"Hardware token {serial_number} already registered")
+                    return None
             
-            # Create appropriate token instance
-            if token_info.token_type == HardwareTokenType.FIDO2:
-                token = FIDO2Token(token_info)
-            elif token_info.token_type == HardwareTokenType.CHALLENGE_RESPONSE:
-                token = ChallengeResponseToken(token_info)
-            else:
-                # For other types, create base token
-                token = HardwareToken(token_info)
+            # Create token record
+            token = HardwareToken(
+                id=self._generate_token_id(),
+                user_id=user_id,
+                token_type=token_type,
+                serial_number=serial_number,
+                public_id=public_id,
+                registered_at=datetime.now(),
+                last_used=None,
+                status="active"
+            )
             
-            # Register token
-            self.tokens[token_info.token_id] = token
+            # Store token
+            self.registered_tokens[token.id] = token
             
-            self.logger.info(f"Registered hardware token {token_info.token_id} for user {token_info.user_id}")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to register hardware token: {e}")
-            return False
-    
-    def unregister_token(self, token_id: str) -> bool:
-        """Unregister a hardware token"""
-        try:
-            if token_id in self.tokens:
-                del self.tokens[token_id]
-                self.logger.info(f"Unregistered hardware token {token_id}")
-                return True
-            else:
-                self.logger.warning(f"Token {token_id} not found for unregistration")
-                return False
-                
-        except Exception as e:
-            self.logger.error(f"Failed to unregister token {token_id}: {e}")
-            return False
-    
-    def get_user_tokens(self, user_id: str) -> List[HardwareTokenInfo]:
-        """Get all tokens for a user"""
-        try:
-            user_tokens = []
-            for token in self.tokens.values():
-                if token.token_info.user_id == user_id and token.token_info.is_active:
-                    user_tokens.append(token.token_info)
-            return user_tokens
-        except Exception as e:
-            self.logger.error(f"Failed to get tokens for user {user_id}: {e}")
-            return []
-    
-    def get_token(self, token_id: str) -> Optional[HardwareToken]:
-        """Get token by ID"""
-        return self.tokens.get(token_id)
-    
-    def generate_challenge(self, user_id: str, token_id: str) -> Optional[str]:
-        """
-        Generate authentication challenge for hardware token
-        
-        Args:
-            user_id: User identifier
-            token_id: Hardware token identifier
-            
-        Returns:
-            Challenge string or None if failed
-        """
-        try:
-            # Get token
-            token = self.get_token(token_id)
-            if not token:
-                self.logger.warning(f"Token {token_id} not found")
-                return None
-            
-            # Check if token belongs to user
-            if token.token_info.user_id != user_id:
-                self.logger.warning(f"Token {token_id} does not belong to user {user_id}")
-                return None
-            
-            # Check if token supports challenge-response
-            if not token.supports_challenge_response():
-                self.logger.warning(f"Token {token_id} does not support challenge-response")
-                return None
-            
-            # Generate challenge
-            challenge_token = ChallengeResponseToken(token.token_info)
-            challenge = challenge_token.generate_challenge(user_id)
-            
-            # Store challenge with expiration
-            expires_at = datetime.now() + timedelta(seconds=self.config.timeout_seconds)
-            
-            self.active_challenges[challenge] = {
-                'user_id': user_id,
-                'token_id': token_id,
-                'expires_at': expires_at,
-                'attempts': 0
-            }
-            
-            self.logger.info(f"Generated challenge for user {user_id} with token {token_id}")
-            return challenge
+            logger.info(f"Registered {token_type.value} token {serial_number} for user {user_id}")
+            return token.id
             
         except Exception as e:
-            self.logger.error(f"Failed to generate challenge: {e}")
+            logger.error(f"Failed to register hardware token: {e}")
             return None
     
-    def validate_challenge_response(self, challenge: str, response: str, user_id: str) -> HardwareAuthResult:
-        """
-        Validate challenge response
-        
-        Args:
-            challenge: Challenge string
-            response: Response from hardware token
-            user_id: User identifier
-            
-        Returns:
-            HardwareAuthResult with validation status
-        """
+    async def generate_challenge(self, user_id: str, token_id: str) -> Optional[str]:
+        """Generate hardware token challenge for verification"""
         try:
-            # Check if challenge exists and is valid
-            if challenge not in self.active_challenges:
-                return HardwareAuthResult(
-                    success=False,
-                    message="Invalid or expired challenge"
-                )
+            # Get token
+            token = self.registered_tokens.get(token_id)
+            if not token or token.user_id != user_id:
+                logger.warning(f"Token {token_id} not found or not owned by user {user_id}")
+                return None
             
-            challenge_data = self.active_challenges[challenge]
+            # Check if token is active
+            if token.status != "active":
+                logger.warning(f"Token {token_id} is not active (status: {token.status})")
+                return None
             
-            # Check if challenge belongs to user
-            if challenge_data['user_id'] != user_id:
-                return HardwareAuthResult(
-                    success=False,
-                    message="Challenge does not belong to user"
-                )
+            # Generate challenge based on token type
+            challenge_data = await self._generate_challenge_data(token)
+            if not challenge_data:
+                logger.error(f"Failed to generate challenge for token {token_id}")
+                return None
             
-            # Check if challenge expired
-            if datetime.now() > challenge_data['expires_at']:
-                # Remove expired challenge
-                del self.active_challenges[challenge]
-                return HardwareAuthResult(
-                    success=False,
-                    message="Challenge has expired"
-                )
+            # Create challenge
+            challenge = HardwareChallenge(
+                id=self._generate_challenge_id(),
+                user_id=user_id,
+                token_id=token_id,
+                challenge_data=challenge_data,
+                created_at=datetime.now(),
+                expires_at=datetime.now() + timedelta(seconds=self.hardware_config["challenge_timeout"]),
+                status=HardwareTokenStatus.PENDING,
+                attempts=0,
+                max_attempts=self.hardware_config["max_attempts"]
+            )
+            
+            # Store challenge
+            self.active_challenges[challenge.id] = challenge
+            
+            logger.info(f"Generated challenge for hardware token {token_id}")
+            return challenge.id
+            
+        except Exception as e:
+            logger.error(f"Failed to generate hardware token challenge: {e}")
+            return None
+    
+    async def verify_response(self, user_id: str, challenge_id: str, response: str) -> bool:
+        """Verify hardware token challenge response"""
+        try:
+            # Get challenge
+            challenge = self.active_challenges.get(challenge_id)
+            if not challenge or challenge.user_id != user_id:
+                logger.warning(f"Challenge {challenge_id} not found or not owned by user {user_id}")
+                return False
+            
+            # Check if expired
+            if datetime.now() > challenge.expires_at:
+                challenge.status = HardwareTokenStatus.EXPIRED
+                logger.warning(f"Hardware token challenge expired")
+                return False
             
             # Check attempts
-            if challenge_data['attempts'] >= self.config.max_retries:
-                # Remove exhausted challenge
-                del self.active_challenges[challenge]
-                return HardwareAuthResult(
-                    success=False,
-                    message="Maximum attempts exceeded"
-                )
+            if challenge.attempts >= challenge.max_attempts:
+                challenge.status = HardwareTokenStatus.FAILED
+                logger.warning(f"Maximum attempts exceeded for hardware token challenge")
+                return False
             
             # Increment attempts
-            challenge_data['attempts'] += 1
+            challenge.attempts += 1
             
             # Get token
-            token_id = challenge_data['token_id']
-            token = self.get_token(token_id)
-            
+            token = self.registered_tokens.get(challenge.token_id)
             if not token:
-                return HardwareAuthResult(
-                    success=False,
-                    message="Token not found"
-                )
+                logger.error(f"Token {challenge.token_id} not found")
+                return False
             
-            # Validate response
-            if token.supports_challenge_response():
-                challenge_token = ChallengeResponseToken(token.token_info)
-                if challenge_token.validate_response(challenge, response, user_id):
-                    # Success - remove challenge
-                    del self.active_challenges[challenge]
-                    
-                    # Update token last used
-                    token.token_info.last_used = datetime.now()
-                    
-                    self.logger.info(f"Challenge response validated successfully for user {user_id}")
-                    return HardwareAuthResult(
-                        success=True,
-                        message="Challenge response validated successfully",
-                        token_id=token_id,
-                        challenge=challenge,
-                        response=response
-                    )
+            # Verify response based on token type
+            is_valid = await self._verify_token_response(token, challenge, response)
             
-            # Check if max attempts reached
-            if challenge_data['attempts'] >= self.config.max_retries:
-                del self.active_challenges[challenge]
-                return HardwareAuthResult(
-                    success=False,
-                    message="Maximum attempts exceeded"
-                )
-            
-            return HardwareAuthResult(
-                success=False,
-                message=f"Invalid response. {self.config.max_retries - challenge_data['attempts']} attempts remaining"
-            )
-            
-        except Exception as e:
-            self.logger.error(f"Challenge response validation failed: {e}")
-            return HardwareAuthResult(
-                success=False,
-                message=f"Validation error: {str(e)}"
-            )
-    
-    async def authenticate_fido2(self, token_id: str, challenge: str, user_id: str) -> HardwareAuthResult:
-        """
-        Authenticate using FIDO2 token
-        
-        Args:
-            token_id: FIDO2 token identifier
-            challenge: Authentication challenge
-            user_id: User identifier
-            
-        Returns:
-            HardwareAuthResult with authentication status
-        """
-        try:
-            # Get token
-            token = self.get_token(token_id)
-            if not token:
-                return HardwareAuthResult(
-                    success=False,
-                    message="Token not found"
-                )
-            
-            # Check if token supports FIDO2
-            if not token.supports_fido2():
-                return HardwareAuthResult(
-                    success=False,
-                    message="Token does not support FIDO2"
-                )
-            
-            # Check if token belongs to user
-            if token.token_info.user_id != user_id:
-                return HardwareAuthResult(
-                    success=False,
-                    message="Token does not belong to user"
-                )
-            
-            # Perform FIDO2 authentication
-            if isinstance(token, FIDO2Token):
-                result = await token.authenticate(challenge, user_id)
-                
-                # Update token last used
-                if result.success:
-                    token.token_info.last_used = datetime.now()
-                
-                return result
+            if is_valid:
+                challenge.status = HardwareTokenStatus.VERIFIED
+                token.last_used = datetime.now()
+                logger.info(f"Hardware token challenge verified for user {user_id}")
+                return True
             else:
-                return HardwareAuthResult(
-                    success=False,
-                    message="Token type mismatch"
-                )
+                if challenge.attempts >= challenge.max_attempts:
+                    challenge.status = HardwareTokenStatus.FAILED
+                    return False
+                logger.warning(f"Hardware token challenge verification failed")
+                return False
                 
         except Exception as e:
-            self.logger.error(f"FIDO2 authentication failed: {e}")
-            return HardwareAuthResult(
-                success=False,
-                message=f"FIDO2 authentication failed: {str(e)}"
-            )
+            logger.error(f"Failed to verify hardware token response: {e}")
+            return False
     
-    def cleanup_expired_challenges(self):
+    async def _generate_challenge_data(self, token: HardwareToken) -> Optional[str]:
+        """Generate challenge data based on token type"""
+        try:
+            provider = self.token_providers.get(token.token_type)
+            if not provider:
+                logger.error(f"No provider found for token type {token.token_type}")
+                return None
+            
+            return await provider.generate_challenge(token)
+            
+        except Exception as e:
+            logger.error(f"Failed to generate challenge data: {e}")
+            return None
+    
+    async def _verify_token_response(self, token: HardwareToken, challenge: HardwareChallenge, 
+                                   response: str) -> bool:
+        """Verify response based on token type"""
+        try:
+            provider = self.token_providers.get(token.token_type)
+            if not provider:
+                logger.error(f"No provider found for token type {token.token_type}")
+                return False
+            
+            return await provider.verify_response(token, challenge, response)
+            
+        except Exception as e:
+            logger.error(f"Failed to verify token response: {e}")
+            return False
+    
+    def _generate_token_id(self) -> str:
+        """Generate unique token ID"""
+        import uuid
+        return str(uuid.uuid4())
+    
+    def _generate_challenge_id(self) -> str:
+        """Generate unique challenge ID"""
+        import uuid
+        return str(uuid.uuid4())
+    
+    def get_user_tokens(self, user_id: str) -> List[HardwareToken]:
+        """Get all hardware tokens for user"""
+        return [token for token in self.registered_tokens.values() if token.user_id == user_id]
+    
+    def revoke_hardware_token(self, token_id: str) -> bool:
+        """Revoke hardware token"""
+        try:
+            if token_id in self.registered_tokens:
+                self.registered_tokens[token_id].status = "revoked"
+                logger.info(f"Hardware token {token_id} revoked")
+                return True
+            else:
+                logger.warning(f"Hardware token {token_id} not found")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Failed to revoke hardware token: {e}")
+            return False
+    
+    async def cleanup_expired_challenges(self):
         """Remove expired challenges"""
         try:
             current_time = datetime.now()
-            expired_challenges = []
+            expired_ids = [
+                challenge_id for challenge_id, challenge in self.active_challenges.items()
+                if current_time > challenge.expires_at
+            ]
             
-            for challenge, data in self.active_challenges.items():
-                if current_time > data['expires_at']:
-                    expired_challenges.append(challenge)
+            for challenge_id in expired_ids:
+                del self.active_challenges[challenge_id]
             
-            for challenge in expired_challenges:
-                del self.active_challenges[challenge]
-            
-            if expired_challenges:
-                self.logger.info(f"Cleaned up {len(expired_challenges)} expired challenges")
+            if expired_ids:
+                logger.info(f"Cleaned up {len(expired_ids)} expired hardware token challenges")
                 
         except Exception as e:
-            self.logger.error(f"Failed to cleanup expired challenges: {e}")
+            logger.error(f"Failed to cleanup expired challenges: {e}")
     
-    def get_status(self) -> Dict[str, Any]:
-        """Get hardware token authenticator status"""
+    def get_system_status(self) -> Dict[str, any]:
+        """Get hardware token service status"""
         return {
-            'enabled': True,
-            'total_tokens': len(self.tokens),
-            'active_challenges': len(self.active_challenges),
-            'supported_types': [token_type.value for token_type in HardwareTokenType],
-            'timeout_seconds': self.config.timeout_seconds,
-            'max_retries': self.config.max_retries,
-            'challenge_response_support': self.config.challenge_response
+            "total_tokens": len(self.registered_tokens),
+            "active_tokens": len([t for t in self.registered_tokens.values() if t.status == "active"]),
+            "active_challenges": len(self.active_challenges),
+            "supported_types": [t.value for t in self.hardware_config["supported_types"]],
+            "status": "active"
         }
+
+
+class MockYubiKeyProvider:
+    """Mock YubiKey provider for development/testing"""
+    
+    async def generate_challenge(self, token: HardwareToken) -> str:
+        """Generate mock YubiKey challenge"""
+        # Simulate challenge generation
+        await asyncio.sleep(0.1)
+        
+        # Generate random challenge data
+        import secrets
+        challenge = secrets.token_hex(16)
+        
+        logger.info(f"[MOCK YubiKey] Generated challenge for token {token.serial_number}")
+        return challenge
+    
+    async def verify_response(self, token: HardwareToken, challenge: HardwareChallenge, 
+                            response: str) -> bool:
+        """Verify mock YubiKey response"""
+        # Simulate verification delay
+        await asyncio.sleep(0.1)
+        
+        # Mock verification (in production, this would verify actual YubiKey response)
+        # For now, accept any response that's not empty
+        is_valid = bool(response and len(response) > 0)
+        
+        logger.info(f"[MOCK YubiKey] Verification {'successful' if is_valid else 'failed'} for token {token.serial_number}")
+        return is_valid
+
+
+class MockFIDO2Provider:
+    """Mock FIDO2 provider for development/testing"""
+    
+    async def generate_challenge(self, token: HardwareToken) -> str:
+        """Generate mock FIDO2 challenge"""
+        await asyncio.sleep(0.1)
+        
+        import secrets
+        challenge = secrets.token_hex(32)
+        
+        logger.info(f"[MOCK FIDO2] Generated challenge for token {token.serial_number}")
+        return challenge
+    
+    async def verify_response(self, token: HardwareToken, challenge: HardwareChallenge, 
+                            response: str) -> bool:
+        """Verify mock FIDO2 response"""
+        await asyncio.sleep(0.1)
+        
+        is_valid = bool(response and len(response) > 0)
+        
+        logger.info(f"[MOCK FIDO2] Verification {'successful' if is_valid else 'failed'} for token {token.serial_number}")
+        return is_valid
+
+
+class MockTOTPHardwareProvider:
+    """Mock TOTP Hardware provider for development/testing"""
+    
+    async def generate_challenge(self, token: HardwareToken) -> str:
+        """Generate mock TOTP hardware challenge"""
+        await asyncio.sleep(0.1)
+        
+        import secrets
+        challenge = secrets.token_hex(16)
+        
+        logger.info(f"[MOCK TOTP Hardware] Generated challenge for token {token.serial_number}")
+        return challenge
+    
+    async def verify_response(self, token: HardwareToken, challenge: HardwareChallenge, 
+                            response: str) -> bool:
+        """Verify mock TOTP hardware response"""
+        await asyncio.sleep(0.1)
+        
+        is_valid = bool(response and len(response) > 0)
+        
+        logger.info(f"[MOCK TOTP Hardware] Verification {'successful' if is_valid else 'failed'} for token {token.serial_number}")
+        return is_valid
+
+
+# Global hardware token service instance
+hardware_service = HardwareTokenService()

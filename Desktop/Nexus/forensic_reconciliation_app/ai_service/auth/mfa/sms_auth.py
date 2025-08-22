@@ -1,500 +1,300 @@
 """
-SMS-based Multi-Factor Authentication
-
-Implements SMS code generation, validation, and delivery
+SMS Authentication Service
+Handles SMS-based multi-factor authentication
 """
 
-import secrets
-import time
-import hashlib
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass
 import logging
-import json
-import redis
+import asyncio
+import random
+import string
 from datetime import datetime, timedelta
-
-from config import SMSConfig
+from typing import Dict, Optional, Tuple
+from dataclasses import dataclass
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 
+class SMSStatus(Enum):
+    """SMS verification status"""
+    PENDING = "pending"
+    VERIFIED = "verified"
+    EXPIRED = "expired"
+    FAILED = "failed"
+
+
 @dataclass
-class SMSResult:
-    """Result of SMS operation"""
-    success: bool
-    message: str
-    code: Optional[str] = None
-    message_id: Optional[str] = None
-    expires_at: Optional[datetime] = None
-    attempts_remaining: Optional[int] = None
+class SMSCode:
+    """SMS verification code"""
+    id: str
+    user_id: str
+    phone_number: str
+    code: str
+    created_at: datetime
+    expires_at: datetime
+    status: SMSStatus
+    attempts: int
+    max_attempts: int = 3
 
 
-class SMSProvider:
-    """Base class for SMS providers"""
+class SMSService:
+    """SMS authentication service implementation"""
     
-    def __init__(self, config: Dict[str, Any]):
-        self.config = config
-        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
-    
-    async def send_sms(self, phone_number: str, message: str) -> Dict[str, Any]:
-        """Send SMS message - to be implemented by subclasses"""
-        raise NotImplementedError("Subclasses must implement send_sms")
-    
-    def get_provider_name(self) -> str:
-        """Get provider name"""
-        return self.__class__.__name__
-
-
-class TwilioProvider(SMSProvider):
-    """Twilio SMS provider implementation"""
-    
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__(config)
-        self.account_sid = config.get('account_sid')
-        self.auth_token = config.get('auth_token')
-        self.from_number = config.get('from_number')
+    def __init__(self):
+        self.sms_codes: Dict[str, SMSCode] = {}
+        self.sms_config = {
+            "code_length": 6,
+            "expiry_minutes": 10,
+            "max_attempts": 3,
+            "resend_cooldown": 60,  # seconds
+            "max_codes_per_hour": 5
+        }
         
-        if not all([self.account_sid, self.auth_token, self.from_number]):
-            raise ValueError("Twilio configuration incomplete")
-    
-    async def send_sms(self, phone_number: str, message: str) -> Dict[str, Any]:
-        """Send SMS via Twilio"""
-        try:
-            # In a real implementation, this would use the Twilio API
-            # For now, we'll simulate the response
-            
-            # Simulate API call delay
-            import asyncio
-            await asyncio.sleep(0.1)
-            
-            # Generate mock message ID
-            message_id = f"tw_{int(time.time())}_{secrets.token_hex(4)}"
-            
-            self.logger.info(f"SMS sent via Twilio to {phone_number}: {message_id}")
-            
-            return {
-                'success': True,
-                'message_id': message_id,
-                'status': 'delivered',
-                'provider': 'twilio',
-                'to': phone_number,
-                'from': self.from_number
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Failed to send SMS via Twilio: {e}")
-            return {
-                'success': False,
-                'error': str(e),
-                'provider': 'twilio'
-            }
-    
-    def get_provider_name(self) -> str:
-        return "Twilio"
-
-
-class MockSMSProvider(SMSProvider):
-    """Mock SMS provider for testing"""
-    
-    async def send_sms(self, phone_number: str, message: str) -> Dict[str, Any]:
-        """Mock SMS sending for testing purposes"""
-        try:
-            # Simulate API call delay
-            import asyncio
-            await asyncio.sleep(0.05)
-            
-            # Generate mock message ID
-            message_id = f"mock_{int(time.time())}_{secrets.token_hex(4)}"
-            
-            self.logger.info(f"Mock SMS sent to {phone_number}: {message_id}")
-            self.logger.info(f"Message content: {message}")
-            
-            return {
-                'success': True,
-                'message_id': message_id,
-                'status': 'delivered',
-                'provider': 'mock',
-                'to': phone_number,
-                'from': '+1234567890'
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Failed to send mock SMS: {e}")
-            return {
-                'success': False,
-                'error': str(e),
-                'provider': 'mock'
-            }
-
-
-class SMSAuthenticator:
-    """
-    SMS-based Multi-Factor Authentication
-    
-    Features:
-    - Code generation and validation
-    - Rate limiting and cooldown
-    - Multiple SMS providers
-    - Redis-based storage for codes
-    - Attempt tracking and lockout
-    """
-    
-    def __init__(self, config: SMSConfig, redis_client: Optional[redis.Redis] = None):
-        self.config = config
-        self.redis_client = redis_client
-        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        # Mock SMS provider (replace with actual SMS service)
+        self.sms_provider = MockSMSProvider()
         
-        # Initialize SMS providers
-        self.providers: Dict[str, SMSProvider] = {}
-        self._initialize_providers()
-        
-        # Validate configuration
-        if not self._validate_config():
-            raise ValueError("Invalid SMS configuration")
+        logger.info("SMS service initialized")
     
-    def _validate_config(self) -> bool:
-        """Validate SMS configuration"""
-        try:
-            assert self.config.code_length >= 4, "SMS code length must be at least 4 digits"
-            assert self.config.expiration_minutes >= 1, "SMS expiration must be at least 1 minute"
-            assert self.config.max_attempts >= 1, "SMS max attempts must be at least 1"
-            assert self.config.cooldown_seconds >= 0, "SMS cooldown must be non-negative"
-            return True
-        except AssertionError as e:
-            self.logger.error(f"SMS configuration validation failed: {e}")
-            return False
-    
-    def _initialize_providers(self):
-        """Initialize SMS providers based on configuration"""
-        try:
-            if self.config.provider.lower() == 'twilio':
-                # In a real implementation, these would come from environment variables
-                twilio_config = {
-                    'account_sid': 'mock_account_sid',
-                    'auth_token': 'mock_auth_token',
-                    'from_number': '+1234567890'
-                }
-                self.providers['twilio'] = TwilioProvider(twilio_config)
-            elif self.config.provider.lower() == 'mock':
-                self.providers['mock'] = MockSMSProvider({})
-            else:
-                # Default to mock provider
-                self.logger.warning(f"Unknown SMS provider '{self.config.provider}', using mock")
-                self.providers['mock'] = MockSMSProvider({})
-                
-        except Exception as e:
-            self.logger.error(f"Failed to initialize SMS providers: {e}")
-            # Fallback to mock provider
-            self.providers['mock'] = MockSMSProvider({})
-    
-    def _generate_code(self) -> str:
-        """Generate random SMS code"""
-        # Generate numeric code
-        code = ''.join([str(secrets.randbelow(10)) for _ in range(self.config.code_length)])
-        return code
-    
-    def _get_redis_key(self, phone_number: str, key_type: str) -> str:
-        """Generate Redis key for SMS operations"""
-        # Hash phone number for security
-        phone_hash = hashlib.sha256(phone_number.encode()).hexdigest()[:16]
-        return f"sms:{phone_hash}:{key_type}"
-    
-    def _is_rate_limited(self, phone_number: str) -> bool:
-        """Check if phone number is rate limited"""
-        if not self.redis_client:
-            return False
-        
-        try:
-            rate_limit_key = self._get_redis_key(phone_number, "rate_limit")
-            last_sent = self.redis_client.get(rate_limit_key)
-            
-            if last_sent:
-                last_sent_time = float(last_sent)
-                time_since_last = time.time() - last_sent_time
-                return time_since_last < self.config.cooldown_seconds
-                
-        except Exception as e:
-            self.logger.error(f"Rate limit check failed: {e}")
-        
-        return False
-    
-    def _set_rate_limit(self, phone_number: str):
-        """Set rate limit for phone number"""
-        if not self.redis_client:
-            return
-        
-        try:
-            rate_limit_key = self._get_redis_key(phone_number, "rate_limit")
-            self.redis_client.setex(
-                rate_limit_key,
-                self.config.cooldown_seconds,
-                str(time.time())
-            )
-        except Exception as e:
-            self.logger.error(f"Failed to set rate limit: {e}")
-    
-    def _store_code(self, phone_number: str, code: str, expires_at: datetime):
-        """Store SMS code in Redis"""
-        if not self.redis_client:
-            return
-        
-        try:
-            code_key = self._get_redis_key(phone_number, "code")
-            attempts_key = self._get_redis_key(phone_number, "attempts")
-            
-            # Store code with expiration
-            code_data = {
-                'code': code,
-                'expires_at': expires_at.isoformat(),
-                'attempts_remaining': self.config.max_attempts
-            }
-            
-            ttl_seconds = int((expires_at - datetime.now()).total_seconds())
-            if ttl_seconds > 0:
-                self.redis_client.setex(
-                    code_key,
-                    ttl_seconds,
-                    json.dumps(code_data)
-                )
-                
-                # Store attempts counter
-                self.redis_client.setex(
-                    attempts_key,
-                    ttl_seconds,
-                    self.config.max_attempts
-                )
-                
-        except Exception as e:
-            self.logger.error(f"Failed to store SMS code: {e}")
-    
-    def _get_stored_code(self, phone_number: str) -> Optional[Dict[str, Any]]:
-        """Retrieve stored SMS code from Redis"""
-        if not self.redis_client:
-            return None
-        
-        try:
-            code_key = self._get_redis_key(phone_number, "code")
-            code_data = self.redis_client.get(code_key)
-            
-            if code_data:
-                return json.loads(code_data)
-                
-        except Exception as e:
-            self.logger.error(f"Failed to retrieve SMS code: {e}")
-        
-        return None
-    
-    def _decrement_attempts(self, phone_number: str) -> int:
-        """Decrement remaining attempts for phone number"""
-        if not self.redis_client:
-            return 0
-        
-        try:
-            attempts_key = self._get_redis_key(phone_number, "attempts")
-            attempts = self.redis_client.get(attempts_key)
-            
-            if attempts:
-                remaining = int(attempts) - 1
-                if remaining > 0:
-                    # Update attempts counter
-                    code_key = self._get_redis_key(phone_number, "code")
-                    code_data = self.redis_client.get(code_key)
-                    if code_data:
-                        code_dict = json.loads(code_data)
-                        code_dict['attempts_remaining'] = remaining
-                        
-                        # Get remaining TTL
-                        ttl = self.redis_client.ttl(code_key)
-                        if ttl > 0:
-                            self.redis_client.setex(code_key, ttl, json.dumps(code_dict))
-                            self.redis_client.setex(attempts_key, ttl, remaining)
-                
-                return remaining
-                
-        except Exception as e:
-            self.logger.error(f"Failed to decrement attempts: {e}")
-        
-        return 0
-    
-    async def send_code(self, phone_number: str, user_id: Optional[str] = None) -> SMSResult:
-        """
-        Send SMS verification code
-        
-        Args:
-            phone_number: Phone number to send code to
-            user_id: Optional user identifier for logging
-            
-        Returns:
-            SMSResult with operation status
-        """
+    async def generate_sms_code(self, user_id: str, phone_number: str) -> Optional[str]:
+        """Generate and send SMS verification code"""
         try:
             # Check rate limiting
-            if self._is_rate_limited(phone_number):
-                cooldown_remaining = self._get_redis_key(phone_number, "rate_limit")
-                return SMSResult(
-                    success=False,
-                    message=f"Rate limited. Please wait {self.config.cooldown_seconds} seconds before requesting another code."
-                )
+            if not self._check_rate_limit(user_id):
+                logger.warning(f"Rate limit exceeded for user {user_id}")
+                return None
             
-            # Generate code
-            code = self._generate_code()
+            # Check cooldown period
+            if not self._check_cooldown(user_id):
+                logger.warning(f"Cooldown period active for user {user_id}")
+                return None
             
-            # Calculate expiration
-            expires_at = datetime.now() + timedelta(minutes=self.config.expiration_minutes)
+            # Generate verification code
+            code = self._generate_verification_code()
             
-            # Store code
-            self._store_code(phone_number, code, expires_at)
-            
-            # Set rate limit
-            self._set_rate_limit(phone_number)
-            
-            # Format message
-            message = self.config.message_template.format(code=code)
-            
-            # Send via provider
-            provider_name = list(self.providers.keys())[0]  # Use first available provider
-            provider = self.providers[provider_name]
-            
-            send_result = await provider.send_sms(phone_number, message)
-            
-            if send_result['success']:
-                self.logger.info(f"SMS code sent to {phone_number} for user {user_id}")
-                return SMSResult(
-                    success=True,
-                    message="SMS code sent successfully",
-                    code=code,  # Only return code in development/testing
-                    message_id=send_result.get('message_id'),
-                    expires_at=expires_at,
-                    attempts_remaining=self.config.max_attempts
-                )
-            else:
-                self.logger.error(f"Failed to send SMS: {send_result.get('error')}")
-                return SMSResult(
-                    success=False,
-                    message=f"Failed to send SMS: {send_result.get('error')}"
-                )
-                
-        except Exception as e:
-            self.logger.error(f"Failed to send SMS code to {phone_number}: {e}")
-            return SMSResult(
-                success=False,
-                message=f"Internal error: {str(e)}"
+            # Create SMS code record
+            sms_code = SMSCode(
+                id=self._generate_code_id(),
+                user_id=user_id,
+                phone_number=phone_number,
+                code=code,
+                created_at=datetime.now(),
+                expires_at=datetime.now() + timedelta(minutes=self.sms_config["expiry_minutes"]),
+                status=SMSStatus.PENDING,
+                attempts=0,
+                max_attempts=self.sms_config["max_attempts"]
             )
+            
+            # Store SMS code
+            self.sms_codes[sms_code.id] = sms_code
+            
+            # Send SMS (async)
+            await self._send_sms(phone_number, code)
+            
+            logger.info(f"Generated SMS code for user {user_id} to {phone_number}")
+            return sms_code.id
+            
+        except Exception as e:
+            logger.error(f"Failed to generate SMS code: {e}")
+            return None
     
-    def validate_code(self, phone_number: str, code: str) -> SMSResult:
-        """
-        Validate SMS verification code
-        
-        Args:
-            phone_number: Phone number the code was sent to
-            code: Code to validate
-            
-        Returns:
-            SMSResult with validation status
-        """
+    async def verify_sms_code(self, user_id: str, code: str) -> bool:
+        """Verify SMS verification code"""
         try:
-            # Get stored code
-            stored_data = self._get_stored_code(phone_number)
+            # Find active SMS code for user
+            active_code = self._find_active_code(user_id)
+            if not active_code:
+                logger.warning(f"No active SMS code found for user {user_id}")
+                return False
             
-            if not stored_data:
-                return SMSResult(
-                    success=False,
-                    message="No active code found. Please request a new code."
-                )
-            
-            # Check expiration
-            expires_at = datetime.fromisoformat(stored_data['expires_at'])
-            if datetime.now() > expires_at:
-                return SMSResult(
-                    success=False,
-                    message="Code has expired. Please request a new code."
-                )
+            # Check if expired
+            if datetime.now() > active_code.expires_at:
+                active_code.status = SMSStatus.EXPIRED
+                logger.warning(f"SMS code expired for user {user_id}")
+                return False
             
             # Check attempts
-            attempts_remaining = stored_data['attempts_remaining']
-            if attempts_remaining <= 0:
-                return SMSResult(
-                    success=False,
-                    message="Maximum attempts exceeded. Please request a new code."
-                )
+            if active_code.attempts >= active_code.max_attempts:
+                active_code.status = SMSStatus.FAILED
+                logger.warning(f"Maximum attempts exceeded for user {user_id}")
+                return False
             
-            # Validate code
-            if code == stored_data['code']:
-                # Success - remove stored code
-                if self.redis_client:
-                    code_key = self._get_redis_key(phone_number, "code")
-                    attempts_key = self._get_redis_key(phone_number, "attempts")
-                    self.redis_client.delete(code_key, attempts_key)
-                
-                self.logger.info(f"SMS code validated successfully for {phone_number}")
-                return SMSResult(
-                    success=True,
-                    message="Code validated successfully"
-                )
+            # Increment attempts
+            active_code.attempts += 1
+            
+            # Verify code
+            if active_code.code == code:
+                active_code.status = SMSStatus.VERIFIED
+                logger.info(f"SMS code verified for user {user_id}")
+                return True
             else:
-                # Decrement attempts
-                remaining = self._decrement_attempts(phone_number)
+                if active_code.attempts >= active_code.max_attempts:
+                    active_code.status = SMSStatus.FAILED
+                    return False
+                logger.warning(f"Invalid SMS code for user {user_id}")
+                return False
                 
-                if remaining > 0:
-                    return SMSResult(
-                        success=False,
-                        message=f"Invalid code. {remaining} attempts remaining."
-                    )
+        except Exception as e:
+            logger.error(f"Failed to verify SMS code: {e}")
+            return False
+    
+    def _generate_verification_code(self) -> str:
+        """Generate random verification code"""
+        return ''.join(random.choices(string.digits, k=self.sms_config["code_length"]))
+    
+    def _generate_code_id(self) -> str:
+        """Generate unique code ID"""
+        import uuid
+        return str(uuid.uuid4())
+    
+    def _find_active_code(self, user_id: str) -> Optional[SMSCode]:
+        """Find active SMS code for user"""
+        for code in self.sms_codes.values():
+            if (code.user_id == user_id and 
+                code.status == SMSStatus.PENDING and 
+                datetime.now() <= code.expires_at):
+                return code
+        return None
+    
+    def _check_rate_limit(self, user_id: str) -> bool:
+        """Check if user has exceeded rate limit"""
+        current_time = datetime.now()
+        hour_ago = current_time - timedelta(hours=1)
+        
+        # Count codes generated in last hour
+        codes_count = sum(
+            1 for code in self.sms_codes.values()
+            if code.user_id == user_id and code.created_at >= hour_ago
+        )
+        
+        return codes_count < self.sms_config["max_codes_per_hour"]
+    
+    def _check_cooldown(self, user_id: str) -> bool:
+        """Check if user is in cooldown period"""
+        current_time = datetime.now()
+        cooldown_ago = current_time - timedelta(seconds=self.sms_config["resend_cooldown"])
+        
+        # Check if last code was sent within cooldown period
+        for code in self.sms_codes.values():
+            if (code.user_id == user_id and 
+                code.created_at >= cooldown_ago):
+                return False
+        
+        return True
+    
+    async def _send_sms(self, phone_number: str, code: str):
+        """Send SMS with verification code"""
+        try:
+            # Use mock SMS provider for development
+            await self.sms_provider.send_sms(phone_number, f"Your verification code is: {code}")
+            logger.info(f"SMS sent to {phone_number}")
+            
+        except Exception as e:
+            logger.error(f"Failed to send SMS: {e}")
+            raise
+    
+    async def resend_sms_code(self, user_id: str) -> Optional[str]:
+        """Resend SMS verification code"""
+        try:
+            # Find last active code
+            last_code = None
+            for code in self.sms_codes.values():
+                if code.user_id == user_id:
+                    if not last_code or code.created_at > last_code.created_at:
+                        last_code = code
+            
+            if not last_code:
+                logger.warning(f"No previous SMS code found for user {user_id}")
+                return None
+            
+            # Check cooldown
+            if not self._check_cooldown(user_id):
+                logger.warning(f"Cooldown period active for user {user_id}")
+                return None
+            
+            # Generate new code
+            return await self.generate_sms_code(user_id, last_code.phone_number)
+            
+        except Exception as e:
+            logger.error(f"Failed to resend SMS code: {e}")
+            return None
+    
+    def get_sms_status(self, user_id: str) -> Dict[str, any]:
+        """Get SMS status for user"""
+        try:
+            active_code = self._find_active_code(user_id)
+            if not active_code:
+                return {"status": "no_active_code"}
+            
+            return {
+                "status": active_code.status.value,
+                "phone_number": active_code.phone_number,
+                "expires_at": active_code.expires_at.isoformat(),
+                "attempts": active_code.attempts,
+                "max_attempts": active_code.max_attempts
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get SMS status: {e}")
+            return {"status": "error", "error": str(e)}
+    
+    async def cleanup_expired_codes(self):
+        """Remove expired SMS codes"""
+        try:
+            current_time = datetime.now()
+            expired_ids = [
+                code_id for code_id, code in self.sms_codes.items()
+                if current_time > code.expires_at
+            ]
+            
+            for code_id in expired_ids:
+                del self.sms_codes[code_id]
+            
+            if expired_ids:
+                logger.info(f"Cleaned up {len(expired_ids)} expired SMS codes")
+                
+        except Exception as e:
+            logger.error(f"Failed to cleanup expired SMS codes: {e}")
+    
+    def update_sms_config(self, **kwargs):
+        """Update SMS configuration"""
+        try:
+            for key, value in kwargs.items():
+                if key in self.sms_config:
+                    self.sms_config[key] = value
+                    logger.info(f"Updated SMS config: {key} = {value}")
                 else:
-                    return SMSResult(
-                        success=False,
-                        message="Maximum attempts exceeded. Please request a new code."
-                    )
+                    logger.warning(f"Unknown SMS config key: {key}")
                     
         except Exception as e:
-            self.logger.error(f"SMS code validation error for {phone_number}: {e}")
-            return SMSResult(
-                success=False,
-                message=f"Validation error: {str(e)}"
-            )
+            logger.error(f"Failed to update SMS config: {e}")
     
-    def get_code_status(self, phone_number: str) -> Dict[str, Any]:
-        """Get status of SMS code for phone number"""
-        try:
-            stored_data = self._get_stored_code(phone_number)
-            
-            if not stored_data:
-                return {
-                    'has_active_code': False,
-                    'expires_at': None,
-                    'attempts_remaining': 0
-                }
-            
-            expires_at = datetime.fromisoformat(stored_data['expires_at'])
-            attempts_remaining = stored_data['attempts_remaining']
-            
-            return {
-                'has_active_code': True,
-                'expires_at': expires_at,
-                'attempts_remaining': attempts_remaining,
-                'is_expired': datetime.now() > expires_at,
-                'is_locked': attempts_remaining <= 0
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Failed to get code status for {phone_number}: {e}")
-            return {
-                'has_active_code': False,
-                'expires_at': None,
-                'attempts_remaining': 0,
-                'error': str(e)
-            }
-    
-    def get_status(self) -> Dict[str, Any]:
-        """Get SMS authenticator status"""
+    def get_system_status(self) -> Dict[str, any]:
+        """Get SMS service status"""
         return {
-            'enabled': True,
-            'provider': self.config.provider,
-            'code_length': self.config.code_length,
-            'expiration_minutes': self.config.expiration_minutes,
-            'max_attempts': self.config.max_attempts,
-            'cooldown_seconds': self.config.cooldown_seconds,
-            'available_providers': list(self.providers.keys()),
-            'redis_available': self.redis_client is not None
+            "total_codes": len(self.sms_codes),
+            "active_codes": len([c for c in self.sms_codes.values() if c.status == SMSStatus.PENDING]),
+            "config": self.sms_config,
+            "status": "active"
         }
+
+
+class MockSMSProvider:
+    """Mock SMS provider for development/testing"""
+    
+    async def send_sms(self, phone_number: str, message: str):
+        """Mock SMS sending"""
+        # Simulate SMS sending delay
+        await asyncio.sleep(0.1)
+        
+        # Log the SMS (in production, this would send actual SMS)
+        logger.info(f"[MOCK SMS] To: {phone_number}, Message: {message}")
+        
+        # Simulate 95% success rate
+        if random.random() < 0.95:
+            return True
+        else:
+            raise Exception("Mock SMS delivery failed")
+
+
+# Global SMS service instance
+sms_service = SMSService()
