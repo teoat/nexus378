@@ -44,7 +44,7 @@ class RoundRobinBalancer(BaseLoadBalancer):
         agent = self.agents[self.current_index]
         self.current_index = (self.current_index + 1) % len(self.agents)
 
-        print(f"RoundRobin: Selected agent {agent['id']} for task {task.get('id', 'N/A')}")
+        logger.info(f"RoundRobin: Selected agent {agent['id']} for task {task.get('id', 'N/A')}")
         return agent
 
 class LeastConnectionsBalancer(BaseLoadBalancer):
