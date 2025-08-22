@@ -7,7 +7,8 @@ from unittest.mock import patch, MagicMock
 
 # Use absolute import based on the project structure
 from Desktop.Nexus.forensic_reconciliation_app.ai_service.plugins.plugin_manager import PluginManager
-from Desktop.Nexus.forensic_reconciliation_app.ai_service.plugins.plugin_interface import PluginInterface
+from .plugin_manager import PluginManager
+from .plugin_interface import PluginInterface
 
 # Suppress logging for cleaner test output
 logging.disable(logging.CRITICAL)
