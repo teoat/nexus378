@@ -25,7 +25,7 @@ class TestPluginManager(unittest.TestCase):
         with open(os.path.join(self.test_plugin_dir, "valid_plugin.py"), "w") as f:
             f.write("""
 import logging
-from Desktop.Nexus.forensic_reconciliation_app.ai_service.plugins.plugin_interface import PluginInterface
+from ..plugin_interface import PluginInterface
 
 class ValidPlugin(PluginInterface):
     @property
