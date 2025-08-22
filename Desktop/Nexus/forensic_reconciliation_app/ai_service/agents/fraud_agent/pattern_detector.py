@@ -48,7 +48,7 @@ class PatternDetector:
         # MATCH path = (a:Account)-[:TRANSACTION*1..5]->(a)
         # RETURN path
 
-        print("Placeholder: Simulating detection of 2 circular transaction patterns.")
+        logger.info("Placeholder: Simulating detection of 2 circular transaction patterns.")
         return [
             {'path': ['AccountA', 'AccountB', 'AccountC', 'AccountA'], 'total_amount': 50000},
             {'path': ['AccountX', 'AccountY', 'AccountX'], 'total_amount': 120000},
