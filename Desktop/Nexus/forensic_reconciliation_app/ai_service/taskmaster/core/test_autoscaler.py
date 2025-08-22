@@ -95,10 +95,6 @@ class TestAutoScaler(unittest.TestCase):
         # Try to scale up again, it should now be allowed
         decision3 = self.autoscaler.make_scaling_decision()
         self.assertEqual(decision3, ScalingDecision.SCALE_UP)
-        # Simulate cooldown expiry by patching time.time
-        with patch("time.time", return_value=self.autoscaler._last_scaling_action_time + self.config["COOLDOWN_PERIOD_S"] + 1):
-            # Try to scale up again, it should now be allowed
-            decision3 = self.autoscaler.make_scaling_decision()
-            self.assertEqual(decision3, ScalingDecision.SCALE_UP)
+
 if __name__ == '__main__':
     unittest.main()

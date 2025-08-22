@@ -17,6 +17,7 @@ import sys
 
 from .mcp_server import mcp_server
 from .autoscaler import AutoScaler, ScalingDecision
+from ...plugins.plugin_manager import PluginManager
 
 logger = logging.getLogger(__name__)
 
@@ -480,10 +481,16 @@ async def main():
     
     # Initialize orchestrator
     orchestrator = MCPServerOrchestrator()
+
+    # Initialize and load plugins
+    plugins_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../plugins"))
+    plugin_manager = PluginManager(plugin_folder=plugins_path)
+    plugin_manager.discover_and_load_plugins()
     
     # Setup signal handlers for graceful shutdown
     def signal_handler(signum, frame):
         logger.info(f"Received signal {signum}, shutting down gracefully...")
+        plugin_manager.shutdown()
         asyncio.create_task(orchestrator.stop_all_servers())
         sys.exit(0)
     
@@ -520,6 +527,7 @@ async def main():
         print(f"❌ Error: {e}")
     finally:
         await orchestrator.stop_all_servers()
+        plugin_manager.shutdown()
         print("👋 MCP Server Orchestrator shutdown complete")
 
 
