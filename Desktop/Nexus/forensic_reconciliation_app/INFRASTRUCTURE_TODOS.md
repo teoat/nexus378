@@ -61,3 +61,17 @@
 9. Reconciliation Agent Confidence Scoring (Simple Task)
 
 Total Estimated Time: 18-26 hours
+
+---
+
+## 📋 Detailed Breakdown Available
+
+For a comprehensive breakdown of each complex task into manageable subtasks, see:
+**[INFRASTRUCTURE_TODOS_DETAILED.md](INFRASTRUCTURE_TODOS_DETAILED.md)**
+
+This detailed breakdown includes:
+- **89 granular subtasks** with individual time estimates
+- **Phase-by-phase implementation** plans
+- **Dependencies and prerequisites** for each task
+- **Success criteria** and testing strategies
+- **3-week implementation roadmap** with daily breakdowns
