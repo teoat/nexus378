@@ -483,7 +483,8 @@ async def main():
     orchestrator = MCPServerOrchestrator()
 
     # Initialize and load plugins
-    plugin_manager = PluginManager(plugin_folder="../../plugins")
+    plugins_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../plugins"))
+    plugin_manager = PluginManager(plugin_folder=plugins_path)
     plugin_manager.discover_and_load_plugins()
     
     # Setup signal handlers for graceful shutdown
