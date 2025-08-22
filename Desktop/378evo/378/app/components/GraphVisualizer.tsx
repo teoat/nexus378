@@ -1,24 +1,32 @@
-import React from 'react';
-import ReactFlow, { Background, Controls, MiniMap } from 'reactflow';
+"use client";
+
+import React, { useState } from 'react';
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
+  Node,
+  Edge,
+  useNodesState,
+  useEdgesState,
+  OnNodesChange,
+  OnEdgesChange
+} from 'reactflow';
 import 'reactflow/dist/style.css';
 
-const initialNodes = [
-  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Account 1' } },
-  { id: '2', position: { x: 0, y: 100 }, data: { label: 'Transaction' } },
-  { id: '3', position: { x: 200, y: 100 }, data: { label: 'Account 2' } },
-];
-
-const initialEdges = [
-  { id: 'e1-2', source: '1', target: '2' },
-  { id: 'e2-3', source: '2', target: '3' },
-];
+import { initialNodes, initialEdges } from '@/lib/mock-graph-data';
 
 export function GraphVisualizer() {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
   return (
     <div style={{ height: '100%', width: '100%' }}>
       <ReactFlow
-        nodes={initialNodes}
-        edges={initialEdges}
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
         fitView
       >
         <Background />
