@@ -590,7 +590,7 @@ class WorkflowOrchestrator:
         """Create a job for step execution."""
         job = Job(
             id=str(uuid.uuid4()),
-            job_type=JobType(step.step_type),
+            type=JobType(step.step_type),
             priority=JobPriority.MEDIUM,
             data={'workflow_execution_id': execution_id, 'step_id': step.id, 'inputs': step.inputs},
             resource_requirements=step.resource_requirements,
