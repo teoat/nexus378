@@ -20,3 +20,13 @@
 - # DONE: [evidence] Analyze email communications for keywords in Case #012.
 - # DONE: [litigation] Prepare a summary of findings for the legal team for Case #002.
 - # DONE: [help] Document the procedure for requesting a new type of fraud analysis.
+- # DONE: [reconciliation] Validate expense claims against company policy for Case #013.
+- # DONE: [reconciliation] Reconcile inventory records with sales data for Case #014.
+- # DONE: [fraud] Investigate suspicious wire transfers to offshore accounts in Case #015. [urgent]
+- # DONE: [fraud] Check for duplicate invoices in the accounts payable system for Case #016.
+- # DONE: [risk] Review and update the company's anti-fraud policies.
+- # DONE: [risk] Conduct a risk assessment of third-party vendors.
+- # DONE: [evidence] Perform a forensic analysis of a compromised hard drive for Case #017.
+- # DONE: [evidence] Transcribe and analyze audio recordings for Case #018.
+- # DONE: [litigation] Draft a report on the findings for Case #003 for external counsel.
+- # DONE: [help] Create a tutorial on using the new risk dashboard.
