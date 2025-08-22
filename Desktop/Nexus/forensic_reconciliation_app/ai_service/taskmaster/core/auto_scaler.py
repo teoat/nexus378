@@ -572,7 +572,7 @@ class AutoScaler:
         if self.taskmaster:
             # This is a simplified implementation. A real implementation would
             # involve a more complex agent lifecycle management.
-            agent = Agent(id=agent_id, agent_type=AgentType.GENERAL, status=AgentStatus.AVAILABLE)
+            agent = Agent(id=agent_id, agent_type=AgentType.RECONCILIATION, status=AgentStatus.AVAILABLE)
             self.taskmaster.active_agents[agent.id] = agent
             self.logger.info(f"Creating agent: {agent_id}")
         await asyncio.sleep(1)  # Simulate creation time
