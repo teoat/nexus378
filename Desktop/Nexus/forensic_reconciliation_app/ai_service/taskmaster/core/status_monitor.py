@@ -370,7 +370,6 @@ class StatusMonitor:
             # or use a client library to get queue stats.
             # For now, we'll simulate some metrics.
             import random
-
             queues = ["task_queue_high", "task_queue_medium", "task_queue_low", "dead_letter_queue"]
 
             queue_data = {}
