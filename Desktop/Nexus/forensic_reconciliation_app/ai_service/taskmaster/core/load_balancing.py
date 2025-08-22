@@ -60,7 +60,7 @@ class LeastConnectionsBalancer(BaseLoadBalancer):
         # Find agent with the minimum load
         best_agent = min(self.agents, key=lambda agent: agent.get('load', 0))
 
-        print(f"LeastConnections: Selected agent {best_agent['id']} with load {best_agent.get('load', 0)} for task {task.get('id', 'N/A')}")
+        logging.info(f"LeastConnections: Selected agent {best_agent['id']} with load {best_agent.get('load', 0)} for task {task.get('id', 'N/A')}")
         return best_agent
 
 class WeightedRoundRobinBalancer(BaseLoadBalancer):
