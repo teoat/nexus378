@@ -100,7 +100,7 @@ class PatternDetector:
         # This would be the main method that orchestrates the detection of
         # various fraud patterns like structuring, smurfing, etc.
 
-        print("Placeholder: Simulating detection of multiple fraud patterns.")
+        logger.info("Placeholder: Simulating detection of multiple fraud patterns.")
         patterns = [
             {'pattern_type': 'Structuring', 'involved_accounts': ['Acc1', 'Acc2', 'Acc3'], 'risk_score': 0.85},
             {'pattern_type': 'Anomalous_Transaction_Size', 'involved_accounts': ['Acc7'], 'risk_score': 0.72},
