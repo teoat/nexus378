@@ -23,6 +23,7 @@ class StatusMonitor:
         self.status_history: List[Dict[str, Any]] = []
         self.overlap_alerts: List[Dict[str, Any]] = []
         self.performance_metrics: Dict[str, Any] = {}
+        self.queue_metrics: Dict[str, Any] = {}
         
     async def start_monitoring(self):
         """Start the status monitoring system"""
@@ -53,6 +54,9 @@ class StatusMonitor:
                 
                 # Update performance metrics
                 await self._update_performance_metrics()
+
+                # Collect queue metrics
+                await self._collect_queue_metrics()
                 
                 # Generate status report
                 await self._generate_status_report()
@@ -91,7 +95,8 @@ class StatusMonitor:
                 "task_registry": registry_summary,
                 "agents": agent_statuses,
                 "overlap_alerts": len(self.overlap_alerts),
-                "performance_metrics": self.performance_metrics
+                "performance_metrics": self.performance_metrics,
+                "queue_metrics": self.queue_metrics
             }
             
             # Store in history
@@ -357,6 +362,35 @@ class StatusMonitor:
         except Exception as e:
             logger.error(f"Failed to export status report: {e}")
             return ""
+
+    async def _collect_queue_metrics(self):
+        """Placeholder for collecting queue metrics from RabbitMQ or other message brokers."""
+        try:
+            # In a real implementation, this would connect to RabbitMQ's management API
+            # or use a client library to get queue stats.
+            # For now, we'll simulate some metrics.
+            import random
+            queues = ["task_queue_high", "task_queue_medium", "task_queue_low", "dead_letter_queue"]
+
+            queue_data = {}
+            for queue_name in queues:
+                queue_data[queue_name] = {
+                    "messages_ready": random.randint(0, 1000),
+                    "messages_unacknowledged": random.randint(0, 50),
+                    "consumers": random.randint(1, 10),
+                    "publish_rate": round(random.uniform(10, 100), 2),
+                    "deliver_rate": round(random.uniform(10, 100), 2),
+                }
+
+            self.queue_metrics = {
+                "provider": "RabbitMQ (simulated)",
+                "queues": queue_data,
+                "last_updated": datetime.now().isoformat()
+            }
+            logger.debug("Queue metrics collected.")
+
+        except Exception as e:
+            logger.error(f"Error collecting queue metrics: {e}")
 
 
 # Global status monitor instance
