@@ -192,11 +192,11 @@ class APIGateway:
         # Initialize gateway components
         self._initialize_gateway_components()
 
-        # Initialize AI agents
-        self.reconciliation_agent = ReconciliationAgentFuzzyMatching()
-        self.fraud_agent = FraudAgentPatternDetection()
-        self.nlp_processor = NLPProcessor(config={})
-        self.ocr_processor = OCRProcessor(config={})
+        # Initialize AI agents (moved to async start)
+        self.reconciliation_agent = None
+        self.fraud_agent = None
+        self.nlp_processor = None
+        self.ocr_processor = None
 
         self.logger.info("APIGateway initialized successfully")
 
