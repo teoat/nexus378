@@ -9,7 +9,7 @@ import json
 import logging
 import uuid
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
@@ -23,6 +23,10 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 from ..ai_service.taskmaster.models.job import Job, JobPriority, JobStatus, JobType
+from ..ai_service.agents.reconciliation_agent_fuzzy_matching import ReconciliationAgentFuzzyMatching
+from ..ai_service.agents.fraud_agent_pattern_detection import FraudAgentPatternDetection
+from ..ai_service.agents.nlp_processor import NLPProcessor
+from ..ai_service.agents.ocr_processor import OCRProcessor
 
 
 class HTTPMethod(Enum):
@@ -157,6 +161,7 @@ class APIGateway:
 
         # Web application
         self.app = web.Application()
+        self.app['gateway'] = self
         self.runner = None
 
         # Event loop
@@ -164,6 +169,12 @@ class APIGateway:
 
         # Initialize gateway components
         self._initialize_gateway_components()
+
+        # Initialize AI agents
+        self.reconciliation_agent = ReconciliationAgentFuzzyMatching()
+        self.fraud_agent = FraudAgentPatternDetection()
+        self.nlp_processor = NLPProcessor(config={})
+        self.ocr_processor = OCRProcessor(config={})
 
         self.logger.info("APIGateway initialized successfully")
 
@@ -266,6 +277,55 @@ class APIGateway:
                     "authentication": AuthenticationType.JWT,
                     "rate_limiting": True,
                     "cors_enabled": True,
+                },
+                {
+                    "base_path": "/api/v1/ai",
+                    "service_name": "ai_service",
+                    "endpoints": [
+                        {
+                            "path": "/reconciliation/process",
+                            "method": HTTPMethod.POST,
+                            "endpoint_type": EndpointType.REST_API,
+                            "authentication": AuthenticationType.JWT,
+                            "rate_limit": 100,
+                            "timeout": 300,
+                            "handler_function": "reconciliation_process",
+                            "middleware": ["auth", "rate_limit"],
+                        },
+                        {
+                            "path": "/fraud/analyze",
+                            "method": HTTPMethod.POST,
+                            "endpoint_type": EndpointType.REST_API,
+                            "authentication": AuthenticationType.JWT,
+                            "rate_limit": 100,
+                            "timeout": 300,
+                            "handler_function": "fraud_analyze",
+                            "middleware": ["auth", "rate_limit"],
+                        },
+                        {
+                            "path": "/nlp/process",
+                            "method": HTTPMethod.POST,
+                            "endpoint_type": EndpointType.REST_API,
+                            "authentication": AuthenticationType.JWT,
+                            "rate_limit": 100,
+                            "timeout": 300,
+                            "handler_function": "nlp_process",
+                            "middleware": ["auth", "rate_limit"],
+                        },
+                        {
+                            "path": "/ocr/process",
+                            "method": HTTPMethod.POST,
+                            "endpoint_type": EndpointType.REST_API,
+                            "authentication": AuthenticationType.JWT,
+                            "rate_limit": 100,
+                            "timeout": 300,
+                            "handler_function": "ocr_process",
+                            "middleware": ["auth", "rate_limit"],
+                        },
+                    ],
+                    "authentication": AuthenticationType.JWT,
+                    "rate_limiting": True,
+                    "cors_enabled": True,
                 }
             ]
 
@@ -347,6 +407,11 @@ class APIGateway:
             # Setup default handlers
             self.app.router.add_get("/api/v1/health", self._health_check_handler)
             self.app.router.add_get("/api/v1/status", self._system_status_handler)
+            self.app.router.add_post("/api/v1/ai/reconciliation/process", self._reconciliation_process_handler)
+            self.app.router.add_post("/api/v1/ai/fraud/analyze", self._fraud_analyze_handler)
+            self.app.router.add_post("/api/v1/ai/nlp/process", self._nlp_process_handler)
+            self.app.router.add_post("/api/v1/ai/ocr/process", self._ocr_process_handler)
+
 
             # Setup dynamic routes
             for route in self.routes.values():
@@ -423,6 +488,14 @@ class APIGateway:
                     response_data = await self._health_check_handler(request)
                 elif endpoint.handler_function == "system_status":
                     response_data = await self._system_status_handler(request)
+                elif endpoint.handler_function == "reconciliation_process":
+                    response_data = await self._reconciliation_process_handler(request)
+                elif endpoint.handler_function == "fraud_analyze":
+                    response_data = await self._fraud_analyze_handler(request)
+                elif endpoint.handler_function == "nlp_process":
+                    response_data = await self._nlp_process_handler(request)
+                elif endpoint.handler_function == "ocr_process":
+                    response_data = await self._ocr_process_handler(request)
                 else:
                     response_data = {
                         "message": "Handler not implemented",
@@ -473,6 +546,51 @@ class APIGateway:
         except Exception as e:
             self.logger.error(f"Error in system status handler: {e}")
             return {"status": "error", "error": str(e)}
+
+    async def _reconciliation_process_handler(self, request):
+        """Handle reconciliation process requests."""
+        try:
+            data = await request.json()
+            records = data.get("records", [])
+            result = await self.reconciliation_agent.process_reconciliation_batch(records)
+            return web.json_response(asdict(result))
+        except Exception as e:
+            self.logger.error(f"Error in reconciliation process handler: {e}")
+            return web.json_response({"status": "error", "error": str(e)}, status=500)
+
+    async def _fraud_analyze_handler(self, request):
+        """Handle fraud analysis requests."""
+        try:
+            data = await request.json()
+            transactions = data.get("transactions", [])
+            result = await self.fraud_agent.analyze_transaction_patterns(transactions)
+            return web.json_response(asdict(result))
+        except Exception as e:
+            self.logger.error(f"Error in fraud analysis handler: {e}")
+            return web.json_response({"status": "error", "error": str(e)}, status=500)
+
+    async def _nlp_process_handler(self, request):
+        """Handle NLP processing requests."""
+        try:
+            data = await request.json()
+            content = data.get("content", "")
+            document_id = await self.nlp_processor.process_document(content)
+            result = await self.nlp_processor.get_document_analysis(document_id)
+            return web.json_response(asdict(result))
+        except Exception as e:
+            self.logger.error(f"Error in NLP process handler: {e}")
+            return web.json_response({"status": "error", "error": str(e)}, status=500)
+
+    async def _ocr_process_handler(self, request):
+        """Handle OCR processing requests."""
+        try:
+            data = await request.json()
+            document_path = data.get("document_path", "")
+            result = await self.ocr_processor.process_document(document_path)
+            return web.json_response(asdict(result))
+        except Exception as e:
+            self.logger.error(f"Error in OCR process handler: {e}")
+            return web.json_response({"status": "error", "error": str(e)}, status=500)
 
     async def _create_api_request(
         self, request: web.Request, endpoint: APIEndpoint

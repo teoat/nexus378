@@ -10,30 +10,6 @@ This package contains specialized AI agents for various tasks including:
 - Help and guidance
 """
 
-<<<<<<< Updated upstream
-# from .todo_automation import (
-#     TodoAutomationSystem,
-#     TodoAgent,
-#     TodoItem,
-#     TodoStatus,
-#     AgentResult,
-#     CodeReviewAgent,
-#     DocumentationAgent,
-#     TestingAgent,
-#     InfrastructureAgent,
-#     GeneralAgent
-# )
-
-from .todo_config import (
-    AgentConfig,
-    SystemConfig,
-    get_agents_config,
-    get_config,
-    load_config_from_file,
-    save_config_to_file,
-)
-
-=======
 from .automated_escalation import AutomatedEscalationSystem
 from .compliance_rule_engine import ComplianceRuleEngine
 from .entity_network_analyzer import EntityNetworkAnalyzer
@@ -52,7 +28,6 @@ from .reconciliation_agent import ReconciliationAgent
 from .risk_scorer import RiskScorer
 from .risk_trend_analyzer import RiskTrendAnalyzer
 
->>>>>>> Stashed changes
 
 __version__ = "1.0.0"
 __author__ = "Forensic Reconciliation Platform Team"

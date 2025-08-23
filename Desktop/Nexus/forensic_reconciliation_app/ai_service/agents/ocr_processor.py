@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import asyncio
+from PIL import Image
 
 # OCR Libraries
 try:
@@ -27,7 +28,7 @@ try:
     import pdf2image
     import PyPDF2
     import pytesseract
-    from PIL import Image, ImageEnhance, ImageFilter
+    from PIL import ImageEnhance, ImageFilter
     TESSERACT_AVAILABLE = True
 except ImportError:
     TESSERACT_AVAILABLE = False
@@ -39,7 +40,7 @@ try:
 except ImportError:
     PDFPLUMBER_AVAILABLE = False
 
-from ...taskmaster.models.job import Job, JobPriority, JobStatus, JobType
+from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class DocumentType(Enum):
@@ -778,16 +779,16 @@ class OCRProcessor:
     async def _process_ocr_queue(self):
         """Process documents in the OCR queue."""
         while True:
-                            try:
-                    if self.processing_queue and len(self.active_processing) < 3:  # Max 3 concurrent
-                        document_path = self.processing_queue.pop(0)
-                        
-                        # Start processing
-                        task = asyncio.create_task(self._process_document_async(document_path))
-                        self.active_processing[document_path] = task
-                
+            try:
+                if self.processing_queue and len(self.active_processing) < 3:  # Max 3 concurrent
+                    document_path = self.processing_queue.pop(0)
+
+                    # Start processing
+                    task = asyncio.create_task(self._process_document_async(document_path))
+                    self.active_processing[document_path] = task
+
                 await asyncio.sleep(1)  # Check queue every second
-                
+
             except Exception as e:
                 self.logger.error(f"Error processing OCR queue: {e}")
                 await asyncio.sleep(5)
