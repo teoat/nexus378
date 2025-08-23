@@ -122,6 +122,8 @@
 31. **✅ API_002: Authentication Middleware** - COMPLETED
 32. **✅ API_003: Rate Limiting and Throttling** - COMPLETED
 33. **✅ API_004: Security Headers and CORS** - COMPLETED
+34. **✅ API_005: Request Validation** - COMPLETED
+35. **✅ API_006: Service Routing** - COMPLETED
 
 ---
 
