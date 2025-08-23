@@ -287,9 +287,13 @@ services:
       start_period: 40s
     restart: unless-stopped
 
-  # API Gateway (Multi-stage build)
-  api_gateway:
+  # API Gateway (Python)
+  gateway:
     build:
+      context: ./gateway
+      dockerfile: Dockerfile.python
+    image: forensic_reconciliation_app-gateway:latest
+    container_name: forensic_gateway
       context: ./api_gateway
       dockerfile: Dockerfile
       target: development
@@ -310,6 +314,14 @@ services:
           memory: 256M
           cpus: '0.25'
     ports:
+      - "8080:8080"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgresql://postgres:forensic_secure_2024@postgres:5432/forensic_reconciliation
+      - RABBITMQ_URL=amqp://forensic_user:secure_password_123@rabbitmq:5672/forensic_vhost
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - NEO4J_URL=bolt://neo4j:7687
+      - MINIO_URL=http://minio:9000
       - "3000:3000"
     env_file: .env
     volumes:
@@ -327,7 +339,7 @@ services:
       minio:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
