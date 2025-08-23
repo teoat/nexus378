@@ -10,7 +10,6 @@ __version__ = "1.0.0"
 __author__ = "Forensic Reconciliation Platform Team"
 __description__ = "Intelligent job assignment and workflow orchestration system"
 
-<<<<<<< Updated upstream
 # NOTE: The following imports are commented out because they refer to modules
 # that do not exist in the current codebase (e.g., 'taskmaster.py', 'job_scheduler.py').
 # Their functionality is implemented in other files like 'mcp_server.py'.
@@ -30,18 +29,3 @@ __description__ = "Intelligent job assignment and workflow orchestration system"
 #     "WorkflowOrchestrator",
 #     "ResourceMonitor"
 # ]
-=======
-from .core.job_scheduler import JobScheduler
-from .core.resource_monitor import ResourceMonitor
-from .core.task_router import TaskRouter
-from .core.taskmaster import Taskmaster
-from .core.workflow_orchestrator import WorkflowOrchestrator
-
-__all__ = [
-    "Taskmaster",
-    "JobScheduler",
-    "TaskRouter",
-    "WorkflowOrchestrator",
-    "ResourceMonitor",
-]
->>>>>>> Stashed changes

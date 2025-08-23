@@ -453,8 +453,8 @@ class FraudAgentPatternDetection:
             for account, daily_txs in daily_transactions.items():
                 for date, txs in daily_txs.items():
                     daily_amount = sum(
-    tx.amount for tx in txs if tx.from_account == account,
-)
+                        tx.amount for tx in txs if tx.from_account == account
+                    )
                     
                     # Check for structuring pattern
                     if (len(txs) > 3 and  # Multiple transactions
@@ -708,12 +708,7 @@ class FraudAgentPatternDetection:
         """Generate comprehensive risk summary"""
         return {
             "total_patterns_detected": len(self.circular_patterns) + len(self.suspicious_patterns),
-            "high_risk_patterns": len(
-    [p for p in self.circular_patterns if p.risk_level == "HIGH"],
-)
-                                len(
-    [p for p in self.suspicious_patterns if p.risk_score > 0.8],
-)
+            "high_risk_patterns": len([p for p in self.circular_patterns if p.risk_level == "HIGH"]) + len([p for p in self.suspicious_patterns if p.risk_score > 0.8]),
             "total_alerts": len(self.alerts),
             "critical_alerts": len([a for a in self.alerts if a.severity == "HIGH"]),
             "investigation_required": len([a for a in self.alerts if a.requires_investigation]),

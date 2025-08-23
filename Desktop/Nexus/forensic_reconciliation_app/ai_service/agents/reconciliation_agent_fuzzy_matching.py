@@ -161,9 +161,9 @@ class ReconciliationAgentFuzzyMatching:
             return {"success": False, "error": str(e)}
     
     async def _perform_fuzzy_matching(
-    self,
-    records: List[ReconciliationRecord]
-)
+        self,
+        records: List[ReconciliationRecord]
+    ):
         """Perform AI-powered fuzzy matching between records"""
         try:
             logger.info("Performing fuzzy matching analysis...")
@@ -342,7 +342,6 @@ class ReconciliationAgentFuzzyMatching:
             cleaned = re.sub(r'\s+', ' ', cleaned)
             
             # Remove common transaction words that don't add value
-            stop_words = (
             stop_words = {'transaction', 'payment', 'transfer', 'debit', 'credit', 'fee', 'charge'}
             words = cleaned.split()
             words = [word for word in words if word not in stop_words]
@@ -416,9 +415,9 @@ class ReconciliationAgentFuzzyMatching:
             return "Match found based on similarity analysis"
     
     async def _detect_outliers(
-    self,
-    records: List[ReconciliationRecord]
-)
+        self,
+        records: List[ReconciliationRecord]
+    ):
         """Detect outlier records that may require special attention"""
         try:
             logger.info("Detecting outliers in reconciliation data...")
@@ -548,12 +547,8 @@ class ReconciliationAgentFuzzyMatching:
             "high_confidence_matches": len([m for m in self.matches if m.confidence_level == "HIGH"]),
             "medium_confidence_matches": len([m for m in self.matches if m.confidence_level == "MEDIUM"]),
             "low_confidence_matches": len([m for m in self.matches if m.confidence_level == "LOW"]),
-            "high_risk_outliers": len(
-    [o for o in self.outliers if o.risk_level == "HIGH"],
-)
-            "medium_risk_outliers": len(
-    [o for o in self.outliers if o.risk_level == "MEDIUM"],
-)
+            "high_risk_outliers": len([o for o in self.outliers if o.risk_level == "HIGH"]),
+            "medium_risk_outliers": len([o for o in self.outliers if o.risk_level == "MEDIUM"]),
             "processing_status": "completed",
             "last_updated": datetime.now().isoformat()
         }
