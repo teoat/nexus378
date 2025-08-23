@@ -31,7 +31,8 @@ router.get('/metrics', async (req, res) => {
     res.set('Content-Type', register.contentType);
     res.end(await register.metrics());
   } catch (ex) {
-    res.status(500).end(ex);
+    console.error("Error serving /metrics endpoint:", ex);
+    res.status(500).end("Internal Server Error");
   }
 });
 
