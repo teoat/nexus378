@@ -45,15 +45,19 @@ spec:
           ports:
             - containerPort: {{ .Values.rabbitmq.amqpPort }}
             - containerPort: {{ .Values.rabbitmq.managementPort }}
+          {{- if .Values.rabbitmq.persistence.enabled }}
           volumeMounts:
             - name: rabbitmq-data
               mountPath: /var/lib/rabbitmq
+          {{- end }}
           resources:
             {{- toYaml .Values.rabbitmq.resources | nindent 12 }}
+      {{- if .Values.rabbitmq.persistence.enabled }}
       volumes:
         - name: rabbitmq-data
           persistentVolumeClaim:
             claimName: {{ include "forensic-platform.fullname" . }}-rabbitmq-pvc
+      {{- end }}
 ---
 {{- if .Values.rabbitmq.persistence.enabled }}
 apiVersion: v1
