@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+  namespace: forensic-app
+data:
+  init.sql: |
+    -- Forensic Reconciliation + Fraud Platform - PostgreSQL Schema
+    -- Database setup for metadata, audit logging, and forensic data
+
+    -- Enable extensions
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+    -- Create schemas
+    CREATE SCHEMA IF NOT EXISTS auth;
+    CREATE SCHEMA IF NOT EXISTS audit;
+    CREATE SCHEMA IF NOT EXISTS forensic;
+    CREATE SCHEMA IF NOT EXISTS reconciliation;
+
+    -- Users table
+    CREATE TABLE auth.users (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        username VARCHAR(50) UNIQUE NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Roles table
+    CREATE TABLE auth.roles (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        name VARCHAR(50) UNIQUE NOT NULL,
+        permissions JSONB DEFAULT '{}'
+    );
+
+    -- Audit logs
+    CREATE TABLE audit.audit_logs (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        user_id UUID REFERENCES auth.users(id),
+        action VARCHAR(100) NOT NULL,
+        table_name VARCHAR(100),
+        record_id UUID,
+        ip_address INET,
+        timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Cases table
+    CREATE TABLE forensic.cases (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        case_number VARCHAR(50) UNIQUE NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        status VARCHAR(20) DEFAULT 'open',
+        priority VARCHAR(20) DEFAULT 'medium',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Data sources
+    CREATE TABLE reconciliation.data_sources (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        name VARCHAR(255) NOT NULL,
+        source_type VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Insert default roles
+    ('admin', '{"cases": {"read": true, "write": true, "delete": true}, "data_sources": {"read": true, "write": true, "delete": true}, "users": {"read": true, "write": true, "delete": true}, "roles": {"read": true, "write": true, "delete": true}}'),
+    ('investigator', '{"cases": {"read": true, "write": true}}'),
+    ('executive', '{"cases": {"read": true}}')
+    ON CONFLICT (name) DO NOTHING;

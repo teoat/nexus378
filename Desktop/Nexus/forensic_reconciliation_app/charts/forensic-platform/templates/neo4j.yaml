@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-neo4j
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: neo4j
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  ports:
+    - name: http
+      port: {{ .Values.neo4j.httpPort }}
+      targetPort: {{ .Values.neo4j.httpPort }}
+    - name: bolt
+      port: {{ .Values.neo4j.boltPort }}
+      targetPort: {{ .Values.neo4j.boltPort }}
+  selector:
+    app: neo4j
+    {{- include "forensic-platform.selectorLabels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-neo4j
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.neo4j.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: neo4j
+      {{- include "forensic-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: neo4j
+        {{- include "forensic-platform.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: neo4j
+          image: "{{ .Values.neo4j.image }}"
+          imagePullPolicy: {{ .Values.neo4j.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: NEO4J_AUTH
+              value: "none"
+          ports:
+            - containerPort: {{ .Values.neo4j.httpPort }}
+            - containerPort: {{ .Values.neo4j.boltPort }}
+          volumeMounts:
+            - name: neo4j-data
+              mountPath: /data
+            - name: neo4j-logs
+              mountPath: /logs
+            - name: neo4j-import
+              mountPath: /var/lib/neo4j/import
+          resources:
+            {{- toYaml .Values.neo4j.resources | nindent 12 }}
+      volumes:
+        - name: neo4j-data
+          persistentVolumeClaim:
+            claimName: {{ include "forensic-platform.fullname" . }}-neo4j-data-pvc
+        - name: neo4j-logs
+          persistentVolumeClaim:
+            claimName: {{ include "forensic-platform.fullname" . }}-neo4j-logs-pvc
+        - name: neo4j-import
+          persistentVolumeClaim:
+            claimName: {{ include "forensic-platform.fullname" . }}-neo4j-import-pvc
+---
+{{- if .Values.neo4j.persistence.data.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-neo4j-data-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.neo4j.persistence.data.size }}
+  {{- if .Values.neo4j.persistence.data.storageClass }}
+  storageClassName: {{ .Values.neo4j.persistence.data.storageClass }}
+  {{- end }}
+{{- end }}
+---
+{{- if .Values.neo4j.persistence.logs.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-neo4j-logs-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.neo4j.persistence.logs.size }}
+  {{- if .Values.neo4j.persistence.logs.storageClass }}
+  storageClassName: {{ .Values.neo4j.persistence.logs.storageClass }}
+  {{- end }}
+{{- end }}
+---
+{{- if .Values.neo4j.persistence.import.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-neo4j-import-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.neo4j.persistence.import.size }}
+  {{- if .Values.neo4j.persistence.import.storageClass }}
+  storageClassName: {{ .Values.neo4j.persistence.import.storageClass }}
+  {{- end }}
+{{- end }}

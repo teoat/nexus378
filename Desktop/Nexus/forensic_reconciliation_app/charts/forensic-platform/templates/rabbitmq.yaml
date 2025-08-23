@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-rabbitmq
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: rabbitmq
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  ports:
+    - name: amqp
+      port: {{ .Values.rabbitmq.amqpPort }}
+      targetPort: {{ .Values.rabbitmq.amqpPort }}
+    - name: management
+      port: {{ .Values.rabbitmq.managementPort }}
+      targetPort: {{ .Values.rabbitmq.managementPort }}
+  selector:
+    app: rabbitmq
+    {{- include "forensic-platform.selectorLabels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-rabbitmq
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.rabbitmq.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: rabbitmq
+      {{- include "forensic-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+        {{- include "forensic-platform.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: rabbitmq
+          image: "{{ .Values.rabbitmq.image }}"
+          imagePullPolicy: {{ .Values.rabbitmq.pullPolicy | default "IfNotPresent" }}
+          envFrom:
+            - secretRef:
+                name: {{ include "forensic-platform.fullname" . }}-secret
+          ports:
+            - containerPort: {{ .Values.rabbitmq.amqpPort }}
+            - containerPort: {{ .Values.rabbitmq.managementPort }}
+          {{- if .Values.rabbitmq.persistence.enabled }}
+          volumeMounts:
+            - name: rabbitmq-data
+              mountPath: /var/lib/rabbitmq
+          {{- end }}
+          resources:
+            {{- toYaml .Values.rabbitmq.resources | nindent 12 }}
+      {{- if .Values.rabbitmq.persistence.enabled }}
+      volumes:
+        - name: rabbitmq-data
+          persistentVolumeClaim:
+            claimName: {{ include "forensic-platform.fullname" . }}-rabbitmq-pvc
+      {{- end }}
+---
+{{- if .Values.rabbitmq.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-rabbitmq-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.rabbitmq.persistence.size }}
+  {{- if .Values.rabbitmq.persistence.storageClass }}
+  storageClassName: {{ .Values.rabbitmq.persistence.storageClass }}
+  {{- end }}
+{{- end }}
