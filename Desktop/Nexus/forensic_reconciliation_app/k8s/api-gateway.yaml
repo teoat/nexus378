@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: forensic-app
+  labels:
+    app: api-gateway
+spec:
+  ports:
+    - port: 3000
+      targetPort: 3000
+  selector:
+    app: api-gateway
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: forensic-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: forensic_reconciliation_app-api_gateway:dev
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: forensic-config
+            - secretRef:
+                name: forensic-secret
+          ports:
+            - containerPort: 3000

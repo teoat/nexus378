@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+data:
+  POSTGRES_HOST: "{{ include "forensic-platform.fullname" . }}-postgres"
+  POSTGRES_PORT: "{{ .Values.postgres.port }}"
+  POSTGRES_DB: "nexus_forensics"
+  POSTGRES_USER: "nexus_user"
+  NEO4J_URI: "bolt://{{ include "forensic-platform.fullname" . }}-neo4j:{{ .Values.neo4j.boltPort }}"
+  NEO4J_DATABASE: "neo4j"
+  NEO4J_USER: "neo4j"
+  REDIS_HOST: "{{ include "forensic-platform.fullname" . }}-redis"
+  REDIS_PORT: "{{ .Values.redis.port }}"
+  REDIS_DB: "0"
+  RABBITMQ_HOST: "{{ include "forensic-platform.fullname" . }}-rabbitmq"
+  RABBITMQ_PORT: "{{ .Values.rabbitmq.amqpPort }}"
+  RABBITMQ_VHOST: "nexus_forensics"
+  MINIO_ENDPOINT: "{{ include "forensic-platform.fullname" . }}-minio:{{ .Values.minio.apiPort }}"
+  MINIO_BUCKET: "evidence-storage"
+  AI_SERVICE_HOST: "{{ include "forensic-platform.fullname" . }}-ai-service"
+  AI_SERVICE_PORT: "{{ .Values.aiService.port }}"
+  GATEWAY_HOST: "{{ include "forensic-platform.fullname" . }}-api-gateway"
+  GATEWAY_PORT: "{{ .Values.apiGateway.port }}"
+  NODE_ENV: "development"
+  JWT_EXPIRES_IN: "24h"
+  JWT_REFRESH_EXPIRES_IN: "7d"
+  LOG_LEVEL: "info"
+  DEBUG_MODE: "true"
+  HOT_RELOAD: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-secret
+  namespace: {{ .Release.Namespace }}
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: "secure_password_change_in_prod"
+  NEO4J_PASSWORD: "secure_password_change_in_prod"
+  REDIS_PASSWORD: "secure_password_change_in_prod"
+  RABBITMQ_USER: "nexus_user"
+  RABBITMQ_PASSWORD: "secure_password_change_in_prod"
+  MINIO_ROOT_USER: "nexus_admin"
+  MINIO_ROOT_PASSWORD: "secure_password_change_in_prod"
+  MINIO_ACCESS_KEY: "nexus_admin"
+  MINIO_SECRET_KEY: "secure_password_change_in_prod"
+  OPENAI_API_KEY: "your_openai_api_key_here"
+  ANTHROPIC_API_KEY: "your_anthropic_api_key_here"
+  JWT_SECRET: "your_jwt_secret_key_here_change_in_prod"
+  ENCRYPTION_KEY: "your_32_character_encryption_key_here"
+  HASH_SALT: "your_hash_salt_here"
+  BANKING_API_KEY: "your_banking_api_key_here"
+  CRM_API_KEY: "your_crm_api_key_here"
+  COMPLIANCE_API_KEY: "your_compliance_api_key_here"
+  WEBHOOK_SECRET: "your_webhook_secret_here"
+  GRAFANA_ADMIN_USER: "admin"
+  GRAFANA_ADMIN_PASSWORD: "secure_password_change_in_prod"

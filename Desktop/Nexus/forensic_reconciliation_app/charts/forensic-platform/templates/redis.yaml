@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-redis
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: redis
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: {{ .Values.redis.port }}
+      targetPort: {{ .Values.redis.port }}
+      name: redis
+  selector:
+    app: redis
+    {{- include "forensic-platform.selectorLabels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-redis
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.redis.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: redis
+      {{- include "forensic-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: redis
+        {{- include "forensic-platform.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.image }}"
+          imagePullPolicy: {{ .Values.redis.pullPolicy }}
+          args:
+            - "--requirepass"
+            - "$(REDIS_PASSWORD)"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "forensic-platform.fullname" . }}-secret
+                  key: REDIS_PASSWORD
+          ports:
+            - containerPort: {{ .Values.redis.port }}
+          {{- if .Values.redis.persistence.enabled }}
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          {{- end }}
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+      {{- if .Values.redis.persistence.enabled }}
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: {{ include "forensic-platform.fullname" . }}-redis-pvc
+      {{- end }}
+---
+{{- if .Values.redis.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-redis-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.redis.persistence.size }}
+  {{- if .Values.redis.persistence.storageClass }}
+  storageClassName: {{ .Values.redis.persistence.storageClass }}
+  {{- end }}
+{{- end }}

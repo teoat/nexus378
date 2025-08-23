@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-ai-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: ai-service
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: {{ .Values.aiService.port }}
+      targetPort: {{ .Values.aiService.port }}
+  selector:
+    app: ai-service
+    {{- include "forensic-platform.selectorLabels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-ai-service
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.aiService.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: ai-service
+      {{- include "forensic-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: ai-service
+        {{- include "forensic-platform.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: ai-service
+          image: "{{ .Values.aiService.image }}"
+          imagePullPolicy: {{ .Values.aiService.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "forensic-platform.fullname" . }}-config
+            - secretRef:
+                name: {{ include "forensic-platform.fullname" . }}-secret
+          ports:
+            - containerPort: {{ .Values.aiService.port }}
+          resources:
+            {{- toYaml .Values.aiService.resources | nindent 12 }}

@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-grafana
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: grafana
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: {{ .Values.grafana.port }}
+      targetPort: {{ .Values.grafana.port }}
+  selector:
+    app: grafana
+    {{- include "forensic-platform.selectorLabels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-grafana
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.grafana.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: grafana
+      {{- include "forensic-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: grafana
+        {{- include "forensic-platform.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: grafana
+          image: "{{ .Values.grafana.image }}"
+          imagePullPolicy: {{ .Values.grafana.pullPolicy | default "IfNotPresent" }}
+          envFrom:
+            - secretRef:
+                name: {{ include "forensic-platform.fullname" . }}-secret
+          ports:
+            - containerPort: {{ .Values.grafana.port }}
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
+          resources:
+            {{- toYaml .Values.grafana.resources | nindent 12 }}
+      volumes:
+        - name: grafana-storage
+          persistentVolumeClaim:
+            claimName: {{ include "forensic-platform.fullname" . }}-grafana-pvc
+---
+{{- if .Values.grafana.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-grafana-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.grafana.persistence.size }}
+  {{- if .Values.grafana.persistence.storageClass }}
+  storageClassName: {{ .Values.grafana.persistence.storageClass }}
+  {{- end }}
+{{- end }}
