@@ -23,8 +23,23 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 from ..ai_service.taskmaster.models.job import Job, JobPriority, JobStatus, JobType
-from .auth.jwt_auth import JWTAuthManager
-from .rate_limiter import RateLimiter
+# from .auth.jwt_auth import JWTAuthManager  # Removed: not present
+# from .rate_limiter import RateLimiter      # Removed: not present
+
+# Placeholder RateLimiter implementation
+class RateLimiter:
+    def __init__(self, rate: int):
+        self.rate = rate
+        self.requests = defaultdict(list)
+
+    def is_allowed(self, user_id: str) -> bool:
+        now = datetime.utcnow()
+        window_start = now - timedelta(minutes=1)
+        self.requests[user_id] = [t for t in self.requests[user_id] if t > window_start]
+        if len(self.requests[user_id]) < self.rate:
+            self.requests[user_id].append(now)
+            return True
+        return False
 from . import config as gw_config
 
 
