@@ -42,15 +42,15 @@ jobs:
 
       - name: Lint with Pylint
         run: |
-          pylint --rcfile=../pyproject.toml ai_service/
+          pylint --rcfile=pyproject.toml ai_service/
 
       - name: Check formatting with Black
         run: |
-          black --check --config=../pyproject.toml .
+          black --check --config=pyproject.toml .
 
       - name: Check import order with isort
         run: |
-          isort --check-only --settings-path=../pyproject.toml .
+          isort --check-only --settings-path=pyproject.toml .
 
       - name: Run tests with Pytest
         run: |
