@@ -13,8 +13,12 @@ const proxy = async (req, res, next) => {
       method: req.method,
       url: `${serviceUrl}${req.originalUrl.replace(/\/api/, '')}`,
       data: req.body,
-      headers: {
-        ...req.headers,
+        // Only forward necessary headers, excluding sensitive ones
+        ...Object.fromEntries(
+          Object.entries(req.headers).filter(
+            ([key]) => !['host', 'authorization', 'cookie'].includes(key.toLowerCase())
+          )
+        ),
         'X-Forwarded-For': req.ip,
       },
     });
