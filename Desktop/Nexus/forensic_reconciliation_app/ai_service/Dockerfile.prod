@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy requirements file
-COPY requirements.txt .
+COPY requirements-simple.txt requirements.txt
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -44,11 +44,11 @@ ENV PYTHONPATH=/app
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     libpq5 \
-    libffi7 \
+    libffi8 \
     libssl3 \
     libjpeg62-turbo \
     libpng16-16 \
-    libtiff5 \
+    libtiff6 \
     libwebp7 \
     libopenjp2-7 \
     libtesseract5 \

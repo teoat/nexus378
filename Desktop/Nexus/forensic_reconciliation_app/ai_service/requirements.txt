@@ -61,7 +61,7 @@ yfinance==0.2.28
 pandas-ta==0.3.14b0
 
 # Cryptography and Security
-cryptography==41.0.8
+cryptography>=42.0.0
 pycryptodome==3.19.0
 hashlib-compat==1.0.0
 
