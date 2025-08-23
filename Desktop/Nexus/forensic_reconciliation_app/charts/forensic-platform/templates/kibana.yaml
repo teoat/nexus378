@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-kibana
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: kibana
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: {{ .Values.kibana.port }}
+      targetPort: {{ .Values.kibana.port }}
+  selector:
+    app: kibana
+    {{- include "forensic-platform.selectorLabels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-kibana
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.kibana.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: kibana
+      {{- include "forensic-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: kibana
+        {{- include "forensic-platform.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: kibana
+          image: "{{ .Values.kibana.image }}"
+          imagePullPolicy: {{ .Values.kibana.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: "http://{{ include "forensic-platform.fullname" . }}-elasticsearch:{{ .Values.elasticsearch.port }}"
+          ports:
+            - containerPort: {{ .Values.kibana.port }}
+          resources:
+            {{- toYaml .Values.kibana.resources | nindent 12 }}

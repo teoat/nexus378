@@ -4,7 +4,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
-const morgan = require('morgan');
+const winston = require('winston');
+const { ElasticsearchTransport } = require('winston-elasticsearch');
 const rateLimit = require('express-rate-limit');
 const { createServer } = require('http');
 const { WebSocketServer } = require('ws');
@@ -14,6 +15,8 @@ const authMiddleware = require('./middleware/auth');
 const errorHandler = require('./middleware/errorHandler');
 const apiRoutes = require('./routes/api');
 const graphqlRoutes = require('./routes/graphql');
+const { metricsRouter, recordRequest } = require('./monitoring/metrics');
+
 
 // Import configuration
 const config = require('./config');
@@ -64,7 +67,35 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(compression());
 
 // Logging middleware
-app.use(morgan('combined'));
+const logger = winston.createLogger({
+  level: config.logging.level,
+  format: winston.format.json(),
+  transports: [
+    new winston.transports.Console(),
+    new ElasticsearchTransport(config.logging.elasticsearch),
+  ],
+});
+
+app.use((req, res, next) => {
+    res.on('finish', () => {
+        logger.info({
+            message: 'request',
+            method: req.method,
+            url: req.originalUrl,
+            status: res.statusCode,
+            ip: req.ip,
+            userAgent: req.get('user-agent'),
+        });
+    });
+    next();
+});
+
+
+// Metrics endpoint
+app.use(metricsRouter);
+
+// Record request metrics
+app.use(recordRequest);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

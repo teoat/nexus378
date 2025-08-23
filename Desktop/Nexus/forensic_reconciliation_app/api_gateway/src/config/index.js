@@ -41,7 +41,14 @@ const config = {
   logging: {
     level: process.env.LOG_LEVEL || 'info',
     format: process.env.LOG_FORMAT || 'combined',
-    file: process.env.LOG_FILE || 'logs/api-gateway.log'
+    file: process.env.LOG_FILE || 'logs/api-gateway.log',
+    elasticsearch: {
+      level: process.env.ELASTICSEARCH_LOG_LEVEL || 'info',
+      indexPrefix: process.env.ELASTICSEARCH_INDEX_PREFIX || 'forensic-api-gateway',
+      clientOpts: {
+        node: process.env.ELASTICSEARCH_URL || 'http://elasticsearch:9200',
+      },
+    },
   },
   
   // Rate limiting configuration
