@@ -1,8 +1,6 @@
 # Forensic Reconciliation + Fraud Platform - Docker Environment
 # Comprehensive infrastructure setup for all services
 
-version: '3.8'
-
 services:
   # MinIO Object Storage
   minio:

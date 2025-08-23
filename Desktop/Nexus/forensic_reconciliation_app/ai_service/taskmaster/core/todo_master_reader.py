@@ -111,6 +111,8 @@ class TodoMasterReader:
             r"^\s*[-*]\s*\[x\]\s*",  # - [x] Completed
             r"^\s*[-*]\s*DONE\s*",  # - DONE
             r"^\s*[-*]\s*COMPLETED\s*",  # - COMPLETED
+            r"^\s*\d+\.\s*\*\*🔄\s*",  # 1. **🔄 DEPLOY_001: ...
+            r"^\s*\d+\.\s*\*\*.*DEPLOY_\d+",  # 1. **... DEPLOY_001: ...
         ]
 
         for pattern in todo_patterns:
@@ -133,6 +135,9 @@ class TodoMasterReader:
                 clean_line,
                 flags=re.IGNORECASE,
             )
+            # Remove numbered list formatting
+            clean_line = re.sub(r"^\s*\d+\.\s*\*\*🔄\s*", "", clean_line)
+            clean_line = re.sub(r"^\s*\d+\.\s*\*\*.*?:\s*", "", clean_line)
 
             # Generate unique ID
             todo_id = f"todo_{int(time.time())}_{todo_counter:03d}"
