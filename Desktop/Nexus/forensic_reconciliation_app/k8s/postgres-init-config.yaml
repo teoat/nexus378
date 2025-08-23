@@ -65,8 +65,7 @@ data:
     );
 
     -- Insert default roles
-    INSERT INTO auth.roles (name, permissions) VALUES
-    ('admin', '{"all": true}'),
+    ('admin', '{"cases": {"read": true, "write": true, "delete": true}, "data_sources": {"read": true, "write": true, "delete": true}, "users": {"read": true, "write": true, "delete": true}, "roles": {"read": true, "write": true, "delete": true}}'),
     ('investigator', '{"cases": {"read": true, "write": true}}'),
     ('executive', '{"cases": {"read": true}}')
     ON CONFLICT (name) DO NOTHING;
