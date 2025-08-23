@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: prometheus
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: {{ .Values.prometheus.port }}
+      targetPort: {{ .Values.prometheus.port }}
+  selector:
+    app: prometheus
+    {{- include "forensic-platform.selectorLabels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-prometheus
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.prometheus.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: prometheus
+      {{- include "forensic-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        {{- include "forensic-platform.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: prometheus
+          image: "{{ .Values.prometheus.image }}"
+          imagePullPolicy: {{ .Values.prometheus.pullPolicy | default "IfNotPresent" }}
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"
+          ports:
+            - containerPort: {{ .Values.prometheus.port }}
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus
+            - name: prometheus-storage
+              mountPath: /prometheus
+          resources:
+            {{- toYaml .Values.prometheus.resources | nindent 12 }}
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: {{ include "forensic-platform.fullname" . }}-prometheus-config
+        - name: prometheus-storage
+          persistentVolumeClaim:
+            claimName: {{ include "forensic-platform.fullname" . }}-prometheus-pvc
+---
+{{- if .Values.prometheus.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-prometheus-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.prometheus.persistence.size }}
+  {{- if .Values.prometheus.persistence.storageClass }}
+  storageClassName: {{ .Values.prometheus.persistence.storageClass }}
+  {{- end }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-prometheus-config
+  namespace: {{ .Release.Namespace }}
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:{{ .Values.prometheus.port }}']
+      - job_name: 'ai-service'
+        static_configs:
+          - targets: ['{{ include "forensic-platform.fullname" . }}-ai-service:{{ .Values.aiService.port }}']
+      - job_name: 'api-gateway'
+        static_configs:
+          - targets: ['{{ include "forensic-platform.fullname" . }}-api-gateway:{{ .Values.apiGateway.port }}']
+      - job_name: 'rabbitmq'
+        static_configs:
+          - targets: ['{{ include "forensic-platform.fullname" . }}-rabbitmq:{{ .Values.rabbitmq.managementPort }}']

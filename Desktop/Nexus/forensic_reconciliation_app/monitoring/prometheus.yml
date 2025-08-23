@@ -10,7 +10,7 @@ global:
 
 # Alerting rules
 rule_files:
-  - "alerts/*.yml"
+  - "alert.rules.yml"
 
 # Alert manager configuration
 alerting:

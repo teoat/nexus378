@@ -1,0 +1,6 @@
+aiohttp
+PyJWT
+cryptography
+bcrypt
+pyotp
+gunicorn

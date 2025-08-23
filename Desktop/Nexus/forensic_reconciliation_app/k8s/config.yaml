@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forensic-config
+  namespace: forensic-app
+data:
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "nexus_forensics"
+  POSTGRES_USER: "nexus_user"
+  NEO4J_URI: "bolt://neo4j:7687"
+  NEO4J_DATABASE: "neo4j"
+  NEO4J_USER: "neo4j"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  RABBITMQ_HOST: "rabbitmq"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_VHOST: "nexus_forensics"
+  MINIO_ENDPOINT: "minio:9000"
+  MINIO_BUCKET: "evidence-storage"
+  AI_SERVICE_HOST: "ai-service"
+  AI_SERVICE_PORT: "8000"
+  GATEWAY_HOST: "api-gateway"
+  GATEWAY_PORT: "3000"
+  NODE_ENV: "development"
+  JWT_EXPIRES_IN: "24h"
+  JWT_REFRESH_EXPIRES_IN: "7d"
+  LOG_LEVEL: "info"
+  DEBUG_MODE: "true"
+  HOT_RELOAD: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: forensic-secret
+  namespace: forensic-app
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: ""
+  NEO4J_PASSWORD: ""
+  REDIS_PASSWORD: ""
+  RABBITMQ_USER: "nexus_user"
+  RABBITMQ_PASSWORD: ""
+  MINIO_ROOT_USER: "nexus_admin"
+  MINIO_ROOT_PASSWORD: ""
+  MINIO_ACCESS_KEY: "nexus_admin"
+  MINIO_SECRET_KEY: ""
+  OPENAI_API_KEY: ""
+  ANTHROPIC_API_KEY: ""
+  JWT_SECRET: ""
+  ENCRYPTION_KEY: ""
+  HASH_SALT: ""
+  BANKING_API_KEY: ""
+  CRM_API_KEY: ""
+  COMPLIANCE_API_KEY: ""
+  WEBHOOK_SECRET: ""
+  GRAFANA_ADMIN_USER: "admin"
+  GRAFANA_ADMIN_PASSWORD: ""
