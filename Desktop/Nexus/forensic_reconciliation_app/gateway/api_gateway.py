@@ -23,6 +23,9 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 from ..ai_service.taskmaster.models.job import Job, JobPriority, JobStatus, JobType
+from .auth.jwt_auth import JWTAuthManager
+from .rate_limiter import RateLimiter
+from . import config as gw_config
 
 
 class HTTPMethod(Enum):
@@ -139,6 +142,10 @@ class APIGateway:
         self.port = config.get("port", 8080)
         self.debug = config.get("debug", False)
         self.max_request_size = config.get("max_request_size", 10 * 1024 * 1024)  # 10MB
+
+        # Auth and Rate Limiting
+        self.jwt_auth_manager = JWTAuthManager(gw_config.get_jwt_config())
+        self.rate_limiter = RateLimiter(gw_config.get_rate_limiter_config())
 
         # API management
         self.routes: Dict[str, APIRoute] = {}
@@ -569,8 +576,11 @@ class APIGateway:
         """Authentication middleware."""
 
         async def middleware(request):
+            # Find the endpoint being accessed
+            endpoint = self._get_endpoint_for_request(request)
+
             # Skip auth for public endpoints
-            if request.path in ["/api/v1/health"]:
+            if endpoint and endpoint.authentication == AuthenticationType.NONE:
                 return await handler(request)
 
             # Extract and validate JWT token
@@ -579,13 +589,32 @@ class APIGateway:
                 return web.json_response({"error": "Unauthorized"}, status=401)
 
             token = auth_header.split(" ")[1]
-            try:
-                # Validate JWT token (simplified)
-                payload = jwt.decode(token, "secret", algorithms=["HS256"])
-                request["user_id"] = payload.get("user_id")
-                return await handler(request)
-            except jwt.InvalidTokenError:
-                return web.json_response({"error": "Invalid token"}, status=401)
+            auth_result = self.jwt_auth_manager.validate_token(token)
+
+            if auth_result.status != "success":
+                return web.json_response({"error": auth_result.message}, status=401)
+
+            # Attach user to request
+            request["user"] = auth_result.user
+            request["user_id"] = auth_result.user.id
+
+            # RBAC check
+            if endpoint:
+                # A simple way to map endpoint path to a resource name
+                resource_name = endpoint.path.strip("/").split("/")[0]
+                action_map = {
+                    "GET": "read",
+                    "POST": "write",
+                    "PUT": "write",
+                    "DELETE": "delete",
+                    "PATCH": "write"
+                }
+                action = action_map.get(request.method.upper())
+
+                if action and not self.jwt_auth_manager.has_permission(auth_result.user, resource_name, action):
+                    return web.json_response({"error": "Forbidden"}, status=403)
+
+            return await handler(request)
 
         return middleware
 
@@ -593,13 +622,21 @@ class APIGateway:
         """Rate limiting middleware."""
 
         async def middleware(request):
-            # Simple rate limiting (in production, use Redis or similar)
-            client_ip = request.remote
-            current_time = datetime.utcnow()
+            endpoint = self._get_endpoint_for_request(request)
+            if not endpoint or not endpoint.middleware or "rate_limit" not in endpoint.middleware:
+                return await handler(request)
 
-            # Check rate limit
-            if not self._check_rate_limit(client_ip, current_time):
-                return web.json_response({"error": "Rate limit exceeded"}, status=429)
+            user_id = request.get("user_id")
+            entity_id = f"user_{user_id}" if user_id else f"ip_{request.remote}"
+
+            rate_limit_result = await self.rate_limiter.check_rate_limit(entity_id)
+
+            if not rate_limit_result.allowed:
+                return web.json_response(
+                    {"error": "Rate limit exceeded"},
+                    status=429,
+                    headers={"Retry-After": str(rate_limit_result.delay_seconds or 10)},
+                )
 
             return await handler(request)
 
@@ -625,15 +662,15 @@ class APIGateway:
 
         return middleware
 
-    def _check_rate_limit(self, client_ip: str, current_time: datetime) -> bool:
-        """Check if client has exceeded rate limit."""
-        try:
-            # Simple rate limiting (in production, use Redis)
-            # For now, allow all requests
-            return True
-        except Exception as e:
-            self.logger.error(f"Error checking rate limit: {e}")
-            return True
+    def _get_endpoint_for_request(self, request: web.Request) -> Optional[APIEndpoint]:
+        """Find the APIEndpoint that matches the request."""
+        for route in self.routes.values():
+            if request.path.startswith(route.base_path):
+                for endpoint in route.endpoints:
+                    full_path = f"{route.base_path}{endpoint.path}"
+                    if full_path == request.path and endpoint.method.value == request.method:
+                        return endpoint
+        return None
 
     async def _cleanup_old_requests(self):
         """Clean up old API requests and responses."""
@@ -694,14 +731,15 @@ class APIGateway:
 # Example usage and testing
 if __name__ == "__main__":
     # Configuration
-    config = {
-        "host": "0.0.0.0",
-        "port": 8080,
-        "debug": False,
-        "max_request_size": 10 * 1024 * 1024,
-    }
+    config = gw_config.get_api_gateway_config()
 
     # Initialize API gateway
     gateway = APIGateway(config)
+
+    # Start the gateway
+    try:
+        asyncio.run(gateway.start())
+    except KeyboardInterrupt:
+        asyncio.run(gateway.stop())
 
     print("APIGateway system initialized successfully!")
