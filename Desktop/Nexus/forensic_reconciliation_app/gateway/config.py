@@ -3,9 +3,19 @@ Configuration for the API Gateway
 """
 
 import os
+import secrets
 
 # JWT Configuration
-JWT_SECRET = os.environ.get("JWT_SECRET", "your_super_secret_jwt_key_change_this")
+# Securely handle JWT_SECRET: require in production, generate random in development
+_jwt_secret_env = os.environ.get("JWT_SECRET")
+_is_debug = os.environ.get("GATEWAY_DEBUG", "false").lower() == "true"
+if _jwt_secret_env:
+    JWT_SECRET = _jwt_secret_env
+elif _is_debug:
+    # Generate a random secret for development if not set
+    JWT_SECRET = secrets.token_urlsafe(32)
+else:
+    raise RuntimeError("JWT_SECRET environment variable must be set in production for security reasons.")
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 JWT_EXPIRES_IN_HOURS = int(os.environ.get("JWT_EXPIRES_IN_HOURS", 24))
 JWT_REFRESH_EXPIRES_IN_DAYS = int(os.environ.get("JWT_REFRESH_EXPIRES_IN_DAYS", 7))
