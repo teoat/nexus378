@@ -1,7 +1,8 @@
-import json
 import datetime
+import json
 
 LOG_FILE = "chain_of_custody.log"
+
 
 def log_event(item_id: str, event_description: str, user_id: str):
     """Logs a chain-of-custody event."""
@@ -13,6 +14,7 @@ def log_event(item_id: str, event_description: str, user_id: str):
     }
     with open(LOG_FILE, "a") as f:
         f.write(json.dumps(event) + "\n")
+
 
 def get_history(item_id: str) -> list:
     """Retrieves the history of events for an item."""

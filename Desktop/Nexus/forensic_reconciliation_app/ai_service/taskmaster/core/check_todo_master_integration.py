@@ -62,10 +62,14 @@ def check_integration_status():
                 status = todo.get('status', 'unknown')
                 progress = todo.get('progress', 0)
                 micro_tasks = todo.get('micro_tasks_count', 'N/A')
-                created = todo.get('created_at', 'Unknown')[:19] if todo.get('created_at') else 'Unknown'
+                created = (
+    todo.get('created_at', 'Unknown')[:19] if todo.get('created_at') else 'Unknown'
+)
                 
                 print(f"   📌 {todo.get('id', 'N/A')}: {todo.get('name', 'Unnamed')[:40]}")
-                print(f"      Status: {status} | Progress: {progress}% | Micro-tasks: {micro_tasks}")
+                print(
+    f"      Status: {status} | Progress: {progress}% | Micro-tasks: {micro_tasks}",
+)
                 print(f"      Created: {created}")
                 print()
         
@@ -86,7 +90,9 @@ def check_integration_status():
     except ImportError:
         print("❌ TODO Master Registry: NOT AVAILABLE")
         print("💡 Reason: simple_registry module not found")
-        print("   This means the batch processor will work but won't update the main TODO system")
+        print(
+    "   This means the batch processor will work but won't update the main TODO system",
+)
         print()
         return False
     
@@ -153,7 +159,10 @@ def main():
         
         print("🎯 RECOMMENDATION:")
         print("   The system will still work perfectly for processing TODOs.")
-        print("   However, completion status won't be reflected in the main TODO system.")
+        print(
+    "   However,
+    completion status won't be reflected in the main TODO system."
+)
         print("   Consider setting up the simple_registry module for full integration.")
     
     print()

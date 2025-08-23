@@ -138,11 +138,9 @@ scrape_configs:
 # Storage configuration
 storage:
   tsdb:
+    path: /prometheus
     retention.time: 30d
     retention.size: 10GB
-    path: /prometheus
-    wal:
-      retention.period: 2h
 
 # Remote write configuration (optional - for long-term storage)
 remote_write:

@@ -6,20 +6,21 @@ Priority: HIGH | Duration: 18-24 hours
 Required Capabilities: ai_development, network_analysis, graph_algorithms
 """
 
-import asyncio
-import logging
 import json
+import logging
+from collections import Counter, defaultdict
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+import asyncio
+import community as community_louvain
+import networkx as nx
 import numpy as np
 import pandas as pd
-import networkx as nx
-from typing import Dict, List, Any, Optional, Tuple, Set
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
-from collections import defaultdict, Counter
 from sklearn.cluster import DBSCAN, KMeans
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
-import community as community_louvain
+from sklearn.preprocessing import StandardScaler
 
 logger = logging.getLogger(__name__)
 
@@ -203,7 +204,9 @@ class FraudAgentEntityNetwork:
                 from_entity = tx.get('from_entity', '')
                 to_entity = tx.get('to_entity', '')
                 amount = float(tx.get('amount', 0))
-                timestamp = datetime.fromisoformat(tx.get('timestamp', datetime.now().isoformat()))
+                timestamp = (
+    datetime.fromisoformat(tx.get('timestamp', datetime.now().isoformat()))
+)
                 
                 if from_entity and to_entity and from_entity != to_entity:
                     key = tuple(sorted([from_entity, to_entity]))
@@ -211,16 +214,21 @@ class FraudAgentEntityNetwork:
                     relationship_weights[key]['count'] += 1
                     relationship_weights[key]['total_amount'] += amount
                     
-                    if relationship_weights[key]['first_time'] is None or timestamp < relationship_weights[key]['first_time']:
+                        if relationship_weights[key]['first_time'] is None or
+    timestamp < relationship_weights[key]['first_time']:
                         relationship_weights[key]['first_time'] = timestamp
                     
-                    if relationship_weights[key]['last_time'] is None or timestamp > relationship_weights[key]['last_time']:
+                        if relationship_weights[key]['last_time'] is None or
+    timestamp > relationship_weights[key]['last_time']:
                         relationship_weights[key]['last_time'] = timestamp
             
             # Create edges in graph
             for (entity1, entity2), weight_data in relationship_weights.items():
                 if weight_data['count'] >= self.config["minimum_transaction_count"]:
-                    strength = min(1.0, weight_data['total_amount'] / 100000)  # Normalize strength
+                    strength = min(
+    1.0,
+    weight_data['total_amount'] / 100000
+)
                     
                     self.entity_graph.add_edge(
                         entity1, 
@@ -388,7 +396,9 @@ class FraudAgentEntityNetwork:
             )
             
         except Exception as e:
-            logger.error(f"Failed to analyze shell indicators for {entity.entity_id}: {e}")
+            logger.error(
+    f"Failed to analyze shell indicators for {entity.entity_id}: {e}",
+)
             return ShellCompanyIndicators(
                 entity_id=entity.entity_id,
                 entity_name=entity.name,
@@ -482,7 +492,9 @@ class FraudAgentEntityNetwork:
             
             # Use Louvain community detection
             try:
-                partition = community_louvain.best_partition(self.entity_graph, resolution=self.config["community_detection_resolution"])
+                partition = (
+    community_louvain.best_partition(self.entity_graph, resolution=self.config["community_detection_resolution"])
+)
             except:
                 # Fallback to simple connected components
                 partition = {}
@@ -513,7 +525,11 @@ class FraudAgentEntityNetwork:
             logger.error(f"Failed to detect network communities: {e}")
             return []
     
-    async def _analyze_community(self, entity_list: List[str], community_id: int) -> NetworkCommunity:
+    async def _analyze_community(
+    self,
+    entity_list: List[str],
+    community_id: int
+)
         """Analyze a specific community"""
         try:
             # Calculate community metrics
@@ -528,12 +544,15 @@ class FraudAgentEntityNetwork:
                 transaction_volume += edge[2].get('total_amount', 0.0)
             
             # Determine community type based on entity types
-            entity_types = [self.entities[entity_id].entity_type for entity_id in entity_list if entity_id in self.entities]
+            entity_types = (
+    [self.entities[entity_id].entity_type for entity_id in entity_list if entity_id in self.entities]
+)
             type_counter = Counter(entity_types)
             
             if 'bank' in type_counter:
                 community_type = "Financial Institution Cluster"
-            elif 'company' in type_counter and type_counter['company'] > len(entity_list) * 0.7:
+                elif 'company' in type_counter and
+    type_counter['company'] > len(entity_list) * 0.7:
                 community_type = "Business Network"
             elif len(set(entity_types)) == 1:
                 community_type = f"{entity_types[0].title()} Cluster"
@@ -554,7 +573,9 @@ class FraudAgentEntityNetwork:
                 risk_level = "LOW"
             
             # Generate description
-            description = f"{community_type} with {len(entity_list)} entities, cohesion score: {cohesion_score:.2f}"
+            description = (
+    f"{community_type} with {len(entity_list)} entities, cohesion score: {cohesion_score:.2f}"
+)
             
             return NetworkCommunity(
                 community_id=str(community_id),

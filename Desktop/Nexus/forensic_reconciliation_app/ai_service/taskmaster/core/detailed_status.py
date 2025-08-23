@@ -3,9 +3,10 @@
 
 from simple_registry import task_registry
 
+
 def main():
     print("=== DETAILED TODO STATUS ===")
-    
+
     for i, todo in enumerate(task_registry.priority_todos, 1):
         print(f"{i}. {todo['id']}: {todo['name']}")
         print(f"   Priority: {todo['priority']}")
@@ -15,6 +16,7 @@ def main():
         print(f"   Agent: {todo.get('assigned_agent', 'Unassigned')}")
         print(f"   Duration: {todo['estimated_duration']}")
         print()
+
 
 if __name__ == "__main__":
     main()

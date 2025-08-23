@@ -6,21 +6,22 @@ Priority: HIGH | Duration: 16-20 hours
 Required Capabilities: ai_development, fuzzy_matching, algorithm_implementation
 """
 
-import asyncio
-import logging
 import json
-import numpy as np
-import pandas as pd
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+import logging
+import re
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from difflib import SequenceMatcher
+from typing import Any, Dict, List, Optional, Tuple
+
+import asyncio
+import jellyfish
+import numpy as np
+import pandas as pd
+from sklearn.cluster import DBSCAN
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import StandardScaler
-import jellyfish
-import re
 
 logger = logging.getLogger(__name__)
 
@@ -159,7 +160,10 @@ class ReconciliationAgentFuzzyMatching:
             logger.error(f"Failed to process reconciliation batch: {e}")
             return {"success": False, "error": str(e)}
     
-    async def _perform_fuzzy_matching(self, records: List[ReconciliationRecord]) -> List[MatchResult]:
+    async def _perform_fuzzy_matching(
+    self,
+    records: List[ReconciliationRecord]
+)
         """Perform AI-powered fuzzy matching between records"""
         try:
             logger.info("Performing fuzzy matching analysis...")
@@ -252,7 +256,9 @@ class ReconciliationAgentFuzzyMatching:
             
             # Date similarity
             date_diff = abs((record1.date - record2.date).days)
-            date_similarity = max(0, 1 - (date_diff / self.config["date_tolerance_days"]))
+            date_similarity = (
+    max(0, 1 - (date_diff / self.config["date_tolerance_days"]))
+)
             match_factors["date_similarity"] = date_similarity
             
             # Reference similarity
@@ -289,7 +295,9 @@ class ReconciliationAgentFuzzyMatching:
             seq_similarity = SequenceMatcher(None, desc1_clean, desc2_clean).ratio()
             
             # Jaro-Winkler similarity
-            jaro_similarity = jellyfish.jaro_winkler_similarity(desc1_clean, desc2_clean)
+            jaro_similarity = (
+    jellyfish.jaro_winkler_similarity(desc1_clean, desc2_clean)
+)
             
             # Levenshtein distance-based similarity
             max_len = max(len(desc1_clean), len(desc2_clean))
@@ -334,6 +342,7 @@ class ReconciliationAgentFuzzyMatching:
             cleaned = re.sub(r'\s+', ' ', cleaned)
             
             # Remove common transaction words that don't add value
+            stop_words = (
             stop_words = {'transaction', 'payment', 'transfer', 'debit', 'credit', 'fee', 'charge'}
             words = cleaned.split()
             words = [word for word in words if word not in stop_words]
@@ -406,7 +415,10 @@ class ReconciliationAgentFuzzyMatching:
             logger.error(f"Failed to generate match explanation: {e}")
             return "Match found based on similarity analysis"
     
-    async def _detect_outliers(self, records: List[ReconciliationRecord]) -> List[OutlierAnalysis]:
+    async def _detect_outliers(
+    self,
+    records: List[ReconciliationRecord]
+)
         """Detect outlier records that may require special attention"""
         try:
             logger.info("Detecting outliers in reconciliation data...")
@@ -536,8 +548,12 @@ class ReconciliationAgentFuzzyMatching:
             "high_confidence_matches": len([m for m in self.matches if m.confidence_level == "HIGH"]),
             "medium_confidence_matches": len([m for m in self.matches if m.confidence_level == "MEDIUM"]),
             "low_confidence_matches": len([m for m in self.matches if m.confidence_level == "LOW"]),
-            "high_risk_outliers": len([o for o in self.outliers if o.risk_level == "HIGH"]),
-            "medium_risk_outliers": len([o for o in self.outliers if o.risk_level == "MEDIUM"]),
+            "high_risk_outliers": len(
+    [o for o in self.outliers if o.risk_level == "HIGH"],
+)
+            "medium_risk_outliers": len(
+    [o for o in self.outliers if o.risk_level == "MEDIUM"],
+)
             "processing_status": "completed",
             "last_updated": datetime.now().isoformat()
         }

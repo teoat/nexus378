@@ -3,15 +3,16 @@ Hardware Token Authentication Service
 Supports YubiKey and other hardware security tokens
 """
 
-import logging
-import asyncio
+import base64
 import hashlib
 import hmac
-import base64
-from datetime import datetime, timedelta
-from typing import Dict, Optional, Tuple, List
+import logging
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +115,9 @@ class HardwareTokenService:
             # Store token
             self.registered_tokens[token.id] = token
             
-            logger.info(f"Registered {token_type.value} token {serial_number} for user {user_id}")
+            logger.info(
+    f"Registered {token_type.value} token {serial_number} for user {user_id}",
+)
             return token.id
             
         except Exception as e:
@@ -127,7 +130,9 @@ class HardwareTokenService:
             # Get token
             token = self.registered_tokens.get(token_id)
             if not token or token.user_id != user_id:
-                logger.warning(f"Token {token_id} not found or not owned by user {user_id}")
+                logger.warning(
+    f"Token {token_id} not found or not owned by user {user_id}",
+)
                 return None
             
             # Check if token is active
@@ -164,13 +169,20 @@ class HardwareTokenService:
             logger.error(f"Failed to generate hardware token challenge: {e}")
             return None
     
-    async def verify_response(self, user_id: str, challenge_id: str, response: str) -> bool:
+    async def verify_response(
+    self,
+    user_id: str,
+    challenge_id: str,
+    response: str
+)
         """Verify hardware token challenge response"""
         try:
             # Get challenge
             challenge = self.active_challenges.get(challenge_id)
             if not challenge or challenge.user_id != user_id:
-                logger.warning(f"Challenge {challenge_id} not found or not owned by user {user_id}")
+                logger.warning(
+    f"Challenge {challenge_id} not found or not owned by user {user_id}",
+)
                 return False
             
             # Check if expired
@@ -182,7 +194,9 @@ class HardwareTokenService:
             # Check attempts
             if challenge.attempts >= challenge.max_attempts:
                 challenge.status = HardwareTokenStatus.FAILED
-                logger.warning(f"Maximum attempts exceeded for hardware token challenge")
+                logger.warning(
+    f"Maximum attempts exceeded for hardware token challenge",
+)
                 return False
             
             # Increment attempts
@@ -312,7 +326,9 @@ class MockYubiKeyProvider:
         import secrets
         challenge = secrets.token_hex(16)
         
-        logger.info(f"[MOCK YubiKey] Generated challenge for token {token.serial_number}")
+        logger.info(
+    f"[MOCK YubiKey] Generated challenge for token {token.serial_number}",
+)
         return challenge
     
     async def verify_response(self, token: HardwareToken, challenge: HardwareChallenge, 
@@ -325,7 +341,9 @@ class MockYubiKeyProvider:
         # For now, accept any response that's not empty
         is_valid = bool(response and len(response) > 0)
         
-        logger.info(f"[MOCK YubiKey] Verification {'successful' if is_valid else 'failed'} for token {token.serial_number}")
+        logger.info(
+    f"[MOCK YubiKey] Verification {'successful' if is_valid else 'failed'} for token {token.serial_number}",
+)
         return is_valid
 
 
@@ -349,7 +367,9 @@ class MockFIDO2Provider:
         
         is_valid = bool(response and len(response) > 0)
         
-        logger.info(f"[MOCK FIDO2] Verification {'successful' if is_valid else 'failed'} for token {token.serial_number}")
+        logger.info(
+    f"[MOCK FIDO2] Verification {'successful' if is_valid else 'failed'} for token {token.serial_number}",
+)
         return is_valid
 
 
@@ -363,7 +383,9 @@ class MockTOTPHardwareProvider:
         import secrets
         challenge = secrets.token_hex(16)
         
-        logger.info(f"[MOCK TOTP Hardware] Generated challenge for token {token.serial_number}")
+        logger.info(
+    f"[MOCK TOTP Hardware] Generated challenge for token {token.serial_number}",
+)
         return challenge
     
     async def verify_response(self, token: HardwareToken, challenge: HardwareChallenge, 
@@ -373,7 +395,9 @@ class MockTOTPHardwareProvider:
         
         is_valid = bool(response and len(response) > 0)
         
-        logger.info(f"[MOCK TOTP Hardware] Verification {'successful' if is_valid else 'failed'} for token {token.serial_number}")
+        logger.info(
+    f"[MOCK TOTP Hardware] Verification {'successful' if is_valid else 'failed'} for token {token.serial_number}",
+)
         return is_valid
 
 

@@ -5,20 +5,24 @@ Provides logic for automatically scaling the number of agents based on workload.
 
 import logging
 import time
-from typing import Dict, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
+
 class ScalingDecision:
     """Enum-like class for scaling decisions."""
+
     SCALE_UP = "SCALE_UP"
     SCALE_DOWN = "SCALE_DOWN"
     HOLD = "HOLD"
+
 
 class AutoScaler:
     """
     AutoScaler class to manage the scaling of AI agents.
     """
+
     def __init__(self, mcp_server, config: Dict[str, Any]):
         """
         Initializes the AutoScaler.
@@ -37,8 +41,10 @@ class AutoScaler:
         self.min_agents = config.get("MIN_AGENTS", 1)
         self.max_agents = config.get("MAX_AGENTS", 10)
         self.tasks_per_agent_threshold = config.get("TASKS_PER_AGENT_THRESHOLD", 10)
-        self.idle_agent_percent_threshold = config.get("IDLE_AGENT_PERCENT_THRESHOLD", 0.5) # 50%
-        self.cooldown_period_s = config.get("COOLDOWN_PERIOD_S", 60) # 60 seconds
+        self.idle_agent_percent_threshold = config.get(
+            "IDLE_AGENT_PERCENT_THRESHOLD", 0.5
+        )  # 50%
+        self.cooldown_period_s = config.get("COOLDOWN_PERIOD_S", 60)  # 60 seconds
 
         self.last_scaling_time = 0
         logger.info(f"AutoScaler initialized with config: {config}")
@@ -66,12 +72,17 @@ class AutoScaler:
         busy_agents = in_progress_tasks
         idle_agents = total_agents - busy_agents
 
-        logger.debug(f"AutoScaler metrics: Pending Tasks={pending_tasks}, Total Agents={total_agents}, Busy Agents={busy_agents}")
+        logger.debug(
+            f"AutoScaler metrics: Pending Tasks={pending_tasks}, Total Agents={total_agents}, Busy Agents={busy_agents}"
+        )
 
         # --- Scale Up Logic ---
         # If there are pending tasks and the number of tasks per agent exceeds the threshold
         # and we are below the max agent limit.
-        if total_agents > 0 and (pending_tasks / total_agents) > self.tasks_per_agent_threshold:
+        if (
+            total_agents > 0
+            and (pending_tasks / total_agents) > self.tasks_per_agent_threshold
+        ):
             if total_agents < self.max_agents:
                 logger.info("Decision: SCALE_UP. High task load per agent.")
                 self.last_scaling_time = time.time()

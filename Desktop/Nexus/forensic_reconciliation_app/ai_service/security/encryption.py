@@ -3,15 +3,16 @@ End-to-End Encryption Service for AI Service
 Implements AES-256 encryption with secure key management
 """
 
-import os
 import base64
 import hashlib
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from typing import Optional, Tuple, Dict, Any
 import logging
+import os
+from typing import Any, Dict, Optional, Tuple
+
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 logger = logging.getLogger(__name__)
 
@@ -19,12 +20,18 @@ class EncryptionService:
     """AES-256 encryption service for sensitive data"""
     
     def __init__(self, master_key: Optional[str] = None):
-        self.master_key = master_key or os.environ.get('ENCRYPTION_MASTER_KEY', 'default-key-change-in-production')
+        self.master_key = (
+    master_key or os.environ.get('ENCRYPTION_MASTER_KEY', 'default-key-change-in-production')
+)
         self.key_size = 32  # 256 bits
         self.iv_size = 16   # 128 bits
         self.salt_size = 32 # 256 bits
         
-    def generate_key(self, password: str, salt: Optional[bytes] = None) -> Tuple[bytes, bytes]:
+    def generate_key(
+    self,
+    password: str,
+    salt: Optional[bytes] = None
+)
         """Generate encryption key from password using PBKDF2"""
         if salt is None:
             salt = os.urandom(self.salt_size)
@@ -66,7 +73,13 @@ class EncryptionService:
             'salt': base64.b64encode(salt).decode('utf-8')
         }
     
-    def decrypt_data(self, encrypted_data: str, iv: str, salt: str, key: Optional[bytes] = None) -> bytes:
+    def decrypt_data(
+    self,
+    encrypted_data: str,
+    iv: str,
+    salt: str,
+    key: Optional[bytes] = None
+)
         """Decrypt data using AES-256-CBC"""
         try:
             # Decode base64 strings
@@ -92,7 +105,12 @@ class EncryptionService:
             logger.error(f"Decryption failed: {e}")
             raise ValueError("Failed to decrypt data")
     
-    def encrypt_file(self, file_path: str, output_path: str, key: Optional[bytes] = None) -> Dict[str, str]:
+    def encrypt_file(
+    self,
+    file_path: str,
+    output_path: str,
+    key: Optional[bytes] = None
+)
         """Encrypt a file and save encrypted version"""
         try:
             with open(file_path, 'rb') as f:
@@ -110,7 +128,14 @@ class EncryptionService:
             logger.error(f"File encryption failed: {e}")
             raise
     
-    def decrypt_file(self, encrypted_file_path: str, output_path: str, iv: str, salt: str, key: Optional[bytes] = None) -> bool:
+    def decrypt_file(
+    self,
+    encrypted_file_path: str,
+    output_path: str,
+    iv: str,
+    salt: str,
+    key: Optional[bytes] = None
+)
         """Decrypt a file and save decrypted version"""
         try:
             with open(encrypted_file_path, 'r') as f:
@@ -138,7 +163,12 @@ class EncryptionService:
         
         return hash_obj.hexdigest()
     
-    def verify_hash(self, data: bytes, expected_hash: str, algorithm: str = 'sha256') -> bool:
+    def verify_hash(
+    self,
+    data: bytes,
+    expected_hash: str,
+    algorithm: str = 'sha256'
+)
         """Verify data integrity using hash"""
         actual_hash = self.hash_data(data, algorithm)
         return actual_hash == expected_hash
@@ -159,7 +189,12 @@ class EncryptionService:
         """Generate cryptographically secure random bytes"""
         return os.urandom(length)
     
-    def encrypt_metadata(self, metadata: Dict[str, Any], key: Optional[bytes] = None) -> Dict[str, str]:
+    def encrypt_metadata(
+    self,
+    metadata: Dict[str,
+    Any],
+    key: Optional[bytes] = None
+)
         """Encrypt metadata dictionary"""
         import json
         metadata_json = json.dumps(metadata, sort_keys=True)
@@ -167,7 +202,12 @@ class EncryptionService:
         
         return self.encrypt_data(metadata_bytes, key)
     
-    def decrypt_metadata(self, encrypted_info: Dict[str, str], key: Optional[bytes] = None) -> Dict[str, Any]:
+    def decrypt_metadata(
+    self,
+    encrypted_info: Dict[str,
+    str],
+    key: Optional[bytes] = None
+)
         """Decrypt metadata dictionary"""
         import json
         

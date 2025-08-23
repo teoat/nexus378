@@ -4,13 +4,13 @@ Collective Worker Monitoring Dashboard
 Real-time monitoring and control for the 8-terminal collective worker system
 """
 
-import time
 import json
-import threading
-from datetime import datetime, timedelta
-from typing import Dict, List, Any
 import os
 import sys
+import threading
+import time
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
 
 # Import the collective worker processor
 try:
@@ -100,9 +100,13 @@ class CollectiveMonitoringDashboard:
             self.dashboard_data['collective_stats'] = {
                 'total_complex_todos': total_complex_todos,
                 'total_completed_todos': total_completed_todos,
-                'completion_rate': (total_completed_todos / total_complex_todos * 100) if total_complex_todos > 0 else 0,
+                'completion_rate': (
+    total_completed_todos / total_complex_todos * 100,
+)
                 'total_active_workers': total_active_workers,
-                'worker_utilization': (total_active_workers / self.dashboard_data['total_workers'] * 100) if self.dashboard_data['total_workers'] > 0 else 0
+                'worker_utilization': (
+    total_active_workers / self.dashboard_data['total_workers'] * 100,
+)
             }
             
             self.dashboard_data['cache_performance'] = {
@@ -261,14 +265,19 @@ def demo_monitoring_dashboard():
     # Create monitoring dashboard
     dashboard = CollectiveMonitoringDashboard()
     
-    # Add some demo processors (in real usage, these would be your actual running instances)
+    # Add some demo processors (
+    in real usage,
+    these would be your actual running instances
+)
     print("📊 Creating demo monitoring dashboard...")
     print("💡 In production, this would monitor your actual 8 terminal instances")
     print()
     
     # Add demo processors
     for i in range(8):
-        processor = CollectiveWorkerProcessor(max_workers=8-i, min_batch_size=3, max_batch_size=50)
+        processor = (
+    CollectiveWorkerProcessor(max_workers=8-i, min_batch_size=3, max_batch_size=50)
+)
         dashboard.add_processor(processor)
     
     print(f"✅ Added {len(dashboard.processors)} demo processors")
@@ -310,13 +319,18 @@ def main():
     # Create and start monitoring
     dashboard = CollectiveMonitoringDashboard()
     
-    # Try to detect running processors (in production, these would be your actual instances)
+    # Try to detect running processors (
+    in production,
+    these would be your actual instances
+)
     print("🔍 Detecting running collective worker instances...")
     
     # For demo purposes, create some processors
     # In production, you would detect actual running instances
     for i in range(8):
-        processor = CollectiveWorkerProcessor(max_workers=8-i, min_batch_size=3, max_batch_size=50)
+        processor = (
+    CollectiveWorkerProcessor(max_workers=8-i, min_batch_size=3, max_batch_size=50)
+)
         dashboard.add_processor(processor)
     
     print(f"✅ Monitoring {len(dashboard.processors)} collective worker instances")

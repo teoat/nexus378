@@ -6,22 +6,23 @@ Priority: CRITICAL | Estimated Duration: 8-12 hours
 Required Capabilities: security, authentication, mfa_implementation
 """
 
-import asyncio
-import logging
-import json
-import time
-import secrets
-import hashlib
 import base64
-import qrcode
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
-import pyotp
+import hashlib
+import json
+import logging
+import secrets
 import smtplib
-from email.mime.text import MIMEText
+import time
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import asyncio
+import pyotp
+import qrcode
 
 logger = logging.getLogger(__name__)
 
@@ -352,7 +353,11 @@ class MFASystem:
             
             logger.info(f"Updated progress for {subtask}: {progress}% (Overall: {overall_progress:.1f}%)")
     
-    async def setup_mfa_for_user(self, user_id: str, methods: List[MFAMethod]) -> Dict[str, Any]:
+    async def setup_mfa_for_user(
+    self,
+    user_id: str,
+    methods: List[MFAMethod]
+)
         """Setup MFA for a user with specified methods"""
         try:
             logger.info(f"Setting up MFA for user {user_id} with methods: {methods}")
@@ -372,7 +377,11 @@ class MFASystem:
                     results["email"] = await self._setup_email(user_id)
             
             # Log the setup
-            self._log_audit_event("mfa_setup", user_id, {"methods": [m.value for m in methods]})
+            self._log_audit_event(
+    "mfa_setup",
+    user_id,
+    {"methods": [m.value for m in methods]}
+)
             
             return {
                 "success": True,
@@ -417,6 +426,7 @@ class MFASystem:
             self.mfa_secrets[f"{user_id}_totp"] = mfa_secret
             
             # Generate QR code URL
+            qr_url = (
             qr_url = f"otpauth://totp/{user_id}?secret={secret_key}&issuer=ForensicReconciliation"
             
             return {
@@ -565,7 +575,9 @@ class MFASystem:
                                  challenge_data: Dict[str, Any]) -> Dict[str, Any]:
         """Verify MFA challenge for a user"""
         try:
-            logger.info(f"Verifying MFA challenge for user {user_id} with method {method}")
+            logger.info(
+    f"Verifying MFA challenge for user {user_id} with method {method}",
+)
             
             # Check if user is locked out
             if await self._is_user_locked_out(user_id, method):
@@ -601,7 +613,12 @@ class MFASystem:
             logger.error(f"Failed to verify MFA challenge for user {user_id}: {e}")
             return {"success": False, "error": str(e)}
     
-    async def _verify_totp(self, user_id: str, challenge_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _verify_totp(
+    self,
+    user_id: str,
+    challenge_data: Dict[str,
+    Any]
+)
         """Verify TOTP challenge"""
         try:
             totp_code = challenge_data.get("totp_code")
@@ -629,7 +646,12 @@ class MFASystem:
             logger.error(f"Failed to verify TOTP for user {user_id}: {e}")
             return {"success": False, "error": str(e)}
     
-    async def _verify_sms(self, user_id: str, challenge_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _verify_sms(
+    self,
+    user_id: str,
+    challenge_data: Dict[str,
+    Any]
+)
         """Verify SMS challenge"""
         try:
             sms_code = challenge_data.get("sms_code")
@@ -656,7 +678,12 @@ class MFASystem:
             logger.error(f"Failed to verify SMS for user {user_id}: {e}")
             return {"success": False, "error": str(e)}
     
-    async def _verify_hardware_token(self, user_id: str, challenge_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _verify_hardware_token(
+    self,
+    user_id: str,
+    challenge_data: Dict[str,
+    Any]
+)
         """Verify hardware token challenge"""
         try:
             token_response = challenge_data.get("token_response")
@@ -683,7 +710,12 @@ class MFASystem:
             logger.error(f"Failed to verify hardware token for user {user_id}: {e}")
             return {"success": False, "error": str(e)}
     
-    async def _verify_backup_code(self, user_id: str, challenge_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _verify_backup_code(
+    self,
+    user_id: str,
+    challenge_data: Dict[str,
+    Any]
+)
         """Verify backup code challenge"""
         try:
             backup_code = challenge_data.get("backup_code")
@@ -711,7 +743,12 @@ class MFASystem:
             logger.error(f"Failed to verify backup code for user {user_id}: {e}")
             return {"success": False, "error": str(e)}
     
-    async def _verify_email(self, user_id: str, challenge_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _verify_email(
+    self,
+    user_id: str,
+    challenge_data: Dict[str,
+    Any]
+)
         """Verify email challenge"""
         try:
             email_code = challenge_data.get("email_code")
@@ -819,7 +856,9 @@ async def main():
             test_methods = [MFAMethod.TOTP, MFAMethod.SMS, MFAMethod.BACKUP_CODES]
             
             print(f"\n🧪 Setting up MFA for test user: {test_user_id}")
-            setup_result = await mfa_system.setup_mfa_for_user(test_user_id, test_methods)
+            setup_result = (
+    await mfa_system.setup_mfa_for_user(test_user_id, test_methods)
+)
             
             if setup_result["success"]:
                 print("✅ Test user MFA setup completed successfully!")

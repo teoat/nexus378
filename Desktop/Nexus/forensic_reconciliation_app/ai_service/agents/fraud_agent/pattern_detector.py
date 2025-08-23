@@ -6,9 +6,10 @@ detecting fraudulent patterns in transaction data using graph algorithms.
 """
 
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
+
 
 class PatternDetector:
     """
@@ -28,7 +29,9 @@ class PatternDetector:
         self.db_connection = graph_db_connection
         logger.info("PatternDetector initialized.")
 
-    def detect_circular_transactions(self, max_path_length: int = 5) -> List[Dict[str, Any]]:
+    def detect_circular_transactions(
+        self, max_path_length: int = 5
+    ) -> List[Dict[str, Any]]:
         """
         Detects circular transactions, which can be an indicator of money laundering.
 
@@ -41,17 +44,24 @@ class PatternDetector:
         Returns:
             A list of dictionaries, where each dictionary represents a circular path found.
         """
-        logger.info(f"Detecting circular transactions with max path length {max_path_length}...")
+        logger.info(
+            f"Detecting circular transactions with max path length {max_path_length}..."
+        )
 
         # Placeholder implementation
         # In a real implementation, this would run a Cypher query like:
         # MATCH path = (a:Account)-[:TRANSACTION*1..5]->(a)
         # RETURN path
 
-        logger.info("Placeholder: Simulating detection of 2 circular transaction patterns.")
+        logger.info(
+            "Placeholder: Simulating detection of 2 circular transaction patterns."
+        )
         return [
-            {'path': ['AccountA', 'AccountB', 'AccountC', 'AccountA'], 'total_amount': 50000},
-            {'path': ['AccountX', 'AccountY', 'AccountX'], 'total_amount': 120000},
+            {
+                "path": ["AccountA", "AccountB", "AccountC", "AccountA"],
+                "total_amount": 50000,
+            },
+            {"path": ["AccountX", "AccountY", "AccountX"], "total_amount": 120000},
         ]
 
     def analyze_transaction_flow(self, account_id: str) -> Dict[str, Any]:
@@ -73,15 +83,17 @@ class PatternDetector:
         # This would query the graph for incoming and outgoing transactions,
         # aggregating amounts, sources, and destinations.
 
-        logger.info(f"Placeholder: Simulating transaction flow analysis for account {account_id}.")
+        logger.info(
+            f"Placeholder: Simulating transaction flow analysis for account {account_id}."
+        )
         return {
-            'account_id': account_id,
-            'incoming_transactions': 15,
-            'outgoing_transactions': 12,
-            'total_inflow': 75000,
-            'total_outflow': 72000,
-            'top_sources': ['AccountP', 'AccountQ'],
-            'top_destinations': ['AccountR', 'AccountS'],
+            "account_id": account_id,
+            "incoming_transactions": 15,
+            "outgoing_transactions": 12,
+            "total_inflow": 75000,
+            "total_outflow": 72000,
+            "top_sources": ["AccountP", "AccountQ"],
+            "top_destinations": ["AccountR", "AccountS"],
         }
 
     def run_pattern_recognition_engine(self) -> List[Dict[str, Any]]:
@@ -102,8 +114,16 @@ class PatternDetector:
 
         logger.info("Placeholder: Simulating detection of multiple fraud patterns.")
         patterns = [
-            {'pattern_type': 'Structuring', 'involved_accounts': ['Acc1', 'Acc2', 'Acc3'], 'risk_score': 0.85},
-            {'pattern_type': 'Anomalous_Transaction_Size', 'involved_accounts': ['Acc7'], 'risk_score': 0.72},
+            {
+                "pattern_type": "Structuring",
+                "involved_accounts": ["Acc1", "Acc2", "Acc3"],
+                "risk_score": 0.85,
+            },
+            {
+                "pattern_type": "Anomalous_Transaction_Size",
+                "involved_accounts": ["Acc7"],
+                "risk_score": 0.72,
+            },
         ]
         return patterns
 
@@ -117,19 +137,24 @@ class PatternDetector:
         Returns:
             The number of alerts generated.
         """
-        logger.info(f"Generating alerts for {len(detected_patterns)} detected patterns...")
+        logger.info(
+            f"Generating alerts for {len(detected_patterns)} detected patterns..."
+        )
 
         alerts_generated = 0
         for pattern in detected_patterns:
-            if pattern.get('risk_score', 0) > 0.7:
-                print(f"ALERT: High-risk pattern '{pattern['pattern_type']}' detected. Risk score: {pattern['risk_score']}")
+            if pattern.get("risk_score", 0) > 0.7:
+                print(
+                    f"ALERT: High-risk pattern '{pattern['pattern_type']}' detected. Risk score: {pattern['risk_score']}"
+                )
                 alerts_generated += 1
 
         logger.info(f"{alerts_generated} high-risk alerts generated.")
         return alerts_generated
 
+
 # Example usage:
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Mock database connection
     mock_db_connection = "mock_neo4j_connection"
 
@@ -143,7 +168,7 @@ if __name__ == '__main__':
     print(f"Found {len(circular_txs)} circular transaction patterns.")
 
     # Analyze transaction flow
-    flow_analysis = pattern_detector.analyze_transaction_flow('Account123')
+    flow_analysis = pattern_detector.analyze_transaction_flow("Account123")
     print(f"Transaction flow analysis for {flow_analysis['account_id']} complete.")
 
     # Run full engine

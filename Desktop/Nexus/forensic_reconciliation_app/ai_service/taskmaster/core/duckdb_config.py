@@ -4,7 +4,7 @@ MCP Tracked Task: DuckDB OLAP Engine Setup
 """
 
 import os
-from typing import Dict, Any
+from typing import Any, Dict
 
 # Database Configuration
 DATABASE_CONFIG = {
@@ -169,14 +169,32 @@ INDEX_CONFIG = {
         ("raw_data.file_metadata", "file_hash_sha256", "idx_file_metadata_hash"),
         ("raw_data.file_metadata", "file_extension", "idx_file_metadata_extension"),
         ("processed.reconciliation_results", "case_id", "idx_reconciliation_case"),
-        ("processed.reconciliation_results", "reconciliation_type", "idx_reconciliation_type"),
+        (
+    "processed.reconciliation_results",
+    "reconciliation_type",
+    "idx_reconciliation_type"
+)
         ("analytics.performance_metrics", "metric_name", "idx_metrics_name"),
-        ("analytics.performance_metrics", "collection_timestamp", "idx_metrics_timestamp")
+        (
+    "analytics.performance_metrics",
+    "collection_timestamp",
+    "idx_metrics_timestamp"
+)
     ],
     "composite_indexes": [
         ("raw_data.evidence", "case_id, evidence_type", "idx_evidence_case_type"),
-        ("raw_data.file_metadata", "evidence_id, file_extension", "idx_file_evidence_ext"),
-        ("processed.reconciliation_results", "case_id, reconciliation_type", "idx_recon_case_type")
+        (
+    "raw_data.file_metadata",
+    "evidence_id,
+    file_extension",
+    "idx_file_evidence_ext"
+)
+        (
+    "processed.reconciliation_results",
+    "case_id,
+    reconciliation_type",
+    "idx_recon_case_type"
+)
     ]
 }
 
@@ -220,7 +238,9 @@ VIEW_CONFIG = {
                 DATE_TRUNC('day', processing_timestamp) as processing_date,
                 COUNT(*) as records_processed,
                 AVG(CAST(processing_time AS DECIMAL)) as avg_processing_time,
-                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as successful_processing,
+                SUM(
+    CASE WHEN status = 'completed' THEN 1 ELSE 0 END,
+)
                 SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_processing
             FROM staging.evidence_staging
             GROUP BY DATE_TRUNC('day', processing_timestamp)

@@ -4,14 +4,15 @@ Command Line Interface for TODO Automation System
 """
 
 import argparse
-import asyncio
 import json
 import sys
 from pathlib import Path
 from typing import Optional
 
+import asyncio
 from todo_automation import TodoAutomationSystem
-from todo_config import get_config, get_agents_config, load_config_from_file
+from todo_config import get_agents_config, get_config, load_config_from_file
+
 
 class TodoCLI:
     """Command Line Interface for TODO Automation"""
@@ -83,7 +84,9 @@ Examples:
                                help='Filter by status')
         
         # Config command
-        config_parser = subparsers.add_parser('config', help='Show or modify configuration')
+        config_parser = (
+    subparsers.add_parser('config', help='Show or modify configuration')
+)
         config_parser.add_argument('--show', action='store_true',
                                  help='Show current configuration')
         config_parser.add_argument('--save', 
@@ -309,6 +312,7 @@ Examples:
         print("=" * 60)
         
         for i, todo in enumerate(todos, 1):
+            priority_emoji = (
             priority_emoji = "🔴" if todo.priority >= 4 else "🟡" if todo.priority >= 3 else "🟢"
             print(f"{i:2d}. {priority_emoji} Priority {todo.priority}: {todo.content}")
             print(f"    📁 {todo.file_path}:{todo.line_number}")

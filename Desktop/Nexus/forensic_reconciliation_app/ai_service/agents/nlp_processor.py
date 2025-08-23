@@ -1,95 +1,87 @@
 """
-NLP Processing System - Natural Language Processing for Chat Logs and Text Analysis
+NLP Processing System - Evidence Agent Component
 
 This module implements the NLPProcessor class that provides
-comprehensive natural language processing capabilities for the
-Evidence Agent in the forensic platform.
+comprehensive natural language processing capabilities for evidence analysis.
 """
 
-import asyncio
-import logging
+import hashlib
 import json
-from typing import Dict, List, Optional, Any, Tuple, Union
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-from collections import defaultdict, Counter
-import uuid
+import logging
 import re
-import numpy as np
-import pandas as pd
-from textblob import TextBlob
-import nltk
-from nltk.tokenize import word_tokenize, sent_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer, PorterStemmer
-from nltk.tag import pos_tag
-from nltk.chunk import ne_chunk
-from nltk.sentiment import SentimentIntensityAnalyzer
-import spacy
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.decomposition import LatentDirichletAllocation
-from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-import seaborn as sns
+import time
+import uuid
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ...taskmaster.models.job import Job, JobStatus, JobPriority, JobType
+import asyncio
+
+from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
-class ProcessingType(Enum):
-    """Types of NLP processing."""
-    TOKENIZATION = "tokenization"                         # Text tokenization
-    ENTITY_RECOGNITION = "entity_recognition"             # Named entity recognition
-    SENTIMENT_ANALYSIS = "sentiment_analysis"             # Sentiment analysis
-    TOPIC_MODELING = "topic_modeling"                     # Topic modeling
-    LANGUAGE_DETECTION = "language_detection"             # Language detection
-    TEXT_CLASSIFICATION = "text_classification"           # Text classification
-    CHAT_PATTERN_ANALYSIS = "chat_pattern_analysis"       # Chat pattern analysis
-    ANOMALY_DETECTION = "anomaly_detection"               # Anomaly detection
+class NLPModelType(Enum):
+    """Types of NLP models."""
+
+    SENTIMENT_ANALYSIS = "sentiment_analysis"  # Sentiment analysis
+    NAMED_ENTITY_RECOGNITION = "ner"  # Named entity recognition
+    TOPIC_MODELING = "topic_modeling"  # Topic extraction
+    TEXT_CLASSIFICATION = "text_classification"  # Text categorization
+    KEYWORD_EXTRACTION = "keyword_extraction"  # Keyword extraction
+    SUMMARIZATION = "summarization"  # Text summarization
+    TRANSLATION = "translation"  # Language translation
+    CUSTOM = "custom"  # Custom NLP model
 
 
-class EntityType(Enum):
-    """Types of named entities."""
-    PERSON = "PERSON"                                     # Person names
-    ORGANIZATION = "ORGANIZATION"                         # Organization names
-    LOCATION = "LOCATION"                                 # Location names
-    DATE = "DATE"                                         # Date/time
-    MONEY = "MONEY"                                       # Monetary amounts
-    PERCENT = "PERCENT"                                   # Percentages
-    EMAIL = "EMAIL"                                       # Email addresses
-    PHONE = "PHONE"                                       # Phone numbers
-    URL = "URL"                                           # URLs
-    CUSTOM = "CUSTOM"                                     # Custom entities
+class ProcessingLevel(Enum):
+    """Levels of NLP processing."""
+
+    BASIC = "basic"  # Basic text processing
+    INTERMEDIATE = "intermediate"  # Intermediate analysis
+    ADVANCED = "advanced"  # Advanced NLP features
+    EXPERT = "expert"  # Expert-level analysis
 
 
-class SentimentLabel(Enum):
-    """Sentiment labels."""
-    POSITIVE = "positive"                                 # Positive sentiment
-    NEGATIVE = "negative"                                 # Negative sentiment
-    NEUTRAL = "neutral"                                   # Neutral sentiment
-    MIXED = "mixed"                                       # Mixed sentiment
+class TextType(Enum):
+    """Types of text content."""
+
+    CHAT_LOG = "chat_log"  # Chat/messaging logs
+    EMAIL = "email"  # Email content
+    DOCUMENT = "document"  # Document text
+    SOCIAL_MEDIA = "social_media"  # Social media posts
+    TRANSCRIPT = "transcript"  # Audio/video transcripts
+    CODE = "code"  # Source code
+    LOG_FILE = "log_file"  # System logs
+    UNKNOWN = "unknown"  # Unknown text type
 
 
 @dataclass
 class TextDocument:
-    """A text document for processing."""
-    
+    """A text document for NLP processing."""
+
     document_id: str
     content: str
-    source_type: str
+    text_type: TextType
+    source: str
     timestamp: datetime
     metadata: Dict[str, Any] = field(default_factory=dict)
+    language: str = "en"
+    encoding: str = "utf-8"
 
 
 @dataclass
-class ProcessingResult:
+class NLPResult:
     """Result of NLP processing."""
-    
+
     result_id: str
     document_id: str
-    processing_type: ProcessingType
-    result_data: Dict[str, Any]
-    confidence_score: float
+    model_type: NLPModelType
+    processing_level: ProcessingLevel
+    results: Dict[str, Any]
+    confidence: float
     processing_time: float
     timestamp: datetime
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -98,774 +90,940 @@ class ProcessingResult:
 @dataclass
 class NamedEntity:
     """A named entity found in text."""
-    
+
     entity_id: str
     text: str
-    entity_type: EntityType
-    start_pos: int
-    end_pos: int
+    entity_type: str
     confidence: float
+    start_position: int
+    end_position: int
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class SentimentResult:
-    """Sentiment analysis result."""
-    
-    sentiment_label: SentimentLabel
+    """Result of sentiment analysis."""
+
+    sentiment_id: str
+    overall_sentiment: str
+    sentiment_score: float
     positive_score: float
     negative_score: float
     neutral_score: float
-    compound_score: float
     confidence: float
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class TopicResult:
-    """Topic modeling result."""
-    
+    """Result of topic modeling."""
+
     topic_id: str
-    topic_keywords: List[str]
-    topic_weight: float
-    topic_documents: List[str]
-    coherence_score: float
+    topic_name: str
+    topic_score: float
+    keywords: List[str]
+    confidence: float
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
-class ChatPattern:
-    """Chat pattern analysis result."""
-    
-    pattern_id: str
-    pattern_type: str
-    pattern_description: str
-    frequency: int
-    participants: List[str]
-    time_distribution: Dict[str, int]
+class NLPProcessorMetrics:
+    """Metrics for NLP processing performance."""
+
+    total_documents_processed: int
+    total_processing_time: float
+    average_processing_time: float
+    success_rate: float
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class NLPProcessor:
     """
     Comprehensive NLP processing system.
-    
+
     The NLPProcessor is responsible for:
-    - Processing text documents and chat logs
-    - Extracting named entities and relationships
-    - Analyzing sentiment and emotions
-    - Identifying topics and themes
-    - Detecting patterns and anomalies
-    - Supporting multiple languages
+    - Processing various types of text content
+    - Applying multiple NLP models and techniques
+    - Extracting insights and patterns from text
+    - Supporting multiple languages and text formats
+    - Providing confidence scores and metadata
     """
-    
+
     def __init__(self, config: Dict[str, Any]):
         """Initialize the NLPProcessor."""
         self.config = config
         self.logger = logging.getLogger(__name__)
-        
+
         # Configuration
-        self.supported_languages = config.get('supported_languages', ['en', 'es', 'fr', 'de', 'zh', 'ja'])
-        self.min_confidence_threshold = config.get('min_confidence_threshold', 0.7)
-        self.max_topics = config.get('max_topics', 10)
-        self.batch_size = config.get('batch_size', 100)
-        
-        # NLP models and tools
-        self.nlp_models: Dict[str, Any] = {}
-        self.vectorizers: Dict[str, Any] = {}
-        self.topic_models: Dict[str, Any] = {}
-        
-        # Data management
+        self.enable_sentiment_analysis = config.get("enable_sentiment_analysis", True)
+        self.enable_ner = config.get("enable_ner", True)
+        self.enable_topic_modeling = config.get("enable_topic_modeling", True)
+        self.enable_keyword_extraction = config.get("enable_keyword_extraction", True)
+        self.max_text_length = config.get("max_text_length", 10000)
+        self.supported_languages = config.get(
+            "supported_languages", ["en", "es", "fr", "de"]
+        )
+
+        # Document storage
         self.documents: Dict[str, TextDocument] = {}
-        self.processing_results: Dict[str, ProcessingResult] = {}
-        self.entity_database: Dict[str, NamedEntity] = {}
-        
+        self.nlp_results: Dict[str, NLPResult] = {}
+        self.entity_index: Dict[str, List[NamedEntity]] = defaultdict(list)
+
         # Performance tracking
         self.total_documents_processed = 0
-        self.total_entities_extracted = 0
-        self.average_processing_time = 0.0
-        
+        self.total_processing_time = 0.0
+        self.successful_processing = 0
+        self.failed_processing = 0
+
         # Event loop
         self.loop = asyncio.get_event_loop()
-        
-        # Initialize NLTK
-        self._initialize_nltk()
-        
+
+        # Initialize NLP processing components
+        self._initialize_nlp_processing_components()
+
         self.logger.info("NLPProcessor initialized successfully")
-    
+
     async def start(self):
         """Start the NLPProcessor."""
         self.logger.info("Starting NLPProcessor...")
-        
-        # Initialize NLP components
-        await self._initialize_nlp_components()
-        
-        # Start background tasks
-        asyncio.create_task(self._update_nlp_models())
-        asyncio.create_task(self._cleanup_old_data())
-        
+
+        # Initialize NLP processing components
+        await self._initialize_nlp_processing_components()
+
         self.logger.info("NLPProcessor started successfully")
-    
+
     async def stop(self):
         """Stop the NLPProcessor."""
         self.logger.info("Stopping NLPProcessor...")
         self.logger.info("NLPProcessor stopped")
-    
-    def _initialize_nltk(self):
-        """Initialize NLTK components."""
+
+    def _initialize_nlp_processing_components(self):
+        """Initialize NLP processing components."""
         try:
-            # Download required NLTK data
-            nltk.download('punkt', quiet=True)
-            nltk.download('stopwords', quiet=True)
-            nltk.download('wordnet', quiet=True)
-            nltk.download('averaged_perceptron_tagger', quiet=True)
-            nltk.download('maxent_ne_chunker', quiet=True)
-            nltk.download('words', quiet=True)
-            nltk.download('vader_lexicon', quiet=True)
-            
-            self.logger.info("NLTK components initialized successfully")
-            
+            # Initialize text preprocessing
+            self._initialize_text_preprocessing()
+
+            # Initialize NLP models
+            self._initialize_nlp_models()
+
+            # Initialize language detection
+            self._initialize_language_detection()
+
+            self.logger.info("NLP processing components initialized successfully")
+
         except Exception as e:
-            self.logger.error(f"Error initializing NLTK: {e}")
-    
-    async def add_document(self, content: str, source_type: str, metadata: Dict[str, Any] = None) -> TextDocument:
-        """Add a new text document for processing."""
+            self.logger.error(f"Error initializing NLP processing components: {e}")
+
+    def _initialize_text_preprocessing(self):
+        """Initialize text preprocessing components."""
         try:
+            # Common stop words
+            self.stop_words = {
+                "en": {
+                    "the",
+                    "a",
+                    "an",
+                    "and",
+                    "or",
+                    "but",
+                    "in",
+                    "on",
+                    "at",
+                    "to",
+                    "for",
+                    "of",
+                    "with",
+                    "by",
+                },
+                "es": {
+                    "el",
+                    "la",
+                    "los",
+                    "las",
+                    "un",
+                    "una",
+                    "unos",
+                    "unas",
+                    "y",
+                    "o",
+                    "pero",
+                    "en",
+                    "con",
+                    "por",
+                },
+                "fr": {
+                    "le",
+                    "la",
+                    "les",
+                    "un",
+                    "une",
+                    "des",
+                    "et",
+                    "ou",
+                    "mais",
+                    "dans",
+                    "avec",
+                    "par",
+                },
+                "de": {
+                    "der",
+                    "die",
+                    "das",
+                    "ein",
+                    "eine",
+                    "eines",
+                    "und",
+                    "oder",
+                    "aber",
+                    "in",
+                    "mit",
+                    "von",
+                },
+            }
+
+            # Text cleaning patterns
+            self.cleaning_patterns = {
+                "urls": r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
+                "emails": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+                "phone_numbers": r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b",
+                "special_chars": r"[^\w\s]",
+                "extra_whitespace": r"\s+",
+            }
+
+            self.logger.info("Text preprocessing components initialized successfully")
+
+        except Exception as e:
+            self.logger.error(f"Error initializing text preprocessing: {e}")
+
+    def _initialize_nlp_models(self):
+        """Initialize NLP models."""
+        try:
+            # Sentiment analysis models
+            self.sentiment_models = {
+                "en": self._create_sentiment_model("en"),
+                "es": self._create_sentiment_model("es"),
+                "fr": self._create_sentiment_model("fr"),
+                "de": self._create_sentiment_model("de"),
+            }
+
+            # Named entity recognition models
+            self.ner_models = {
+                "en": self._create_ner_model("en"),
+                "es": self._create_ner_model("es"),
+                "fr": self._create_ner_model("fr"),
+                "de": self._create_ner_model("de"),
+            }
+
+            # Topic modeling models
+            self.topic_models = {
+                "en": self._create_topic_model("en"),
+                "es": self._create_topic_model("es"),
+                "fr": self._create_topic_model("fr"),
+                "de": self._create_topic_model("de"),
+            }
+
+            self.logger.info("NLP models initialized successfully")
+
+        except Exception as e:
+            self.logger.error(f"Error initializing NLP models: {e}")
+
+    def _initialize_language_detection(self):
+        """Initialize language detection."""
+        try:
+            # Language detection patterns
+            self.language_patterns = {
+                "en": r"\b(the|and|or|but|in|on|at|to|for|of|with|by)\b",
+                "es": r"\b(el|la|los|las|un|una|unos|unas|y|o|pero|en|con|por)\b",
+                "fr": r"\b(le|la|les|un|une|des|et|ou|mais|dans|avec|par)\b",
+                "de": r"\b(der|die|das|ein|eine|eines|und|oder|aber|in|mit|von)\b",
+            }
+
+            self.logger.info("Language detection initialized successfully")
+
+        except Exception as e:
+            self.logger.error(f"Error initializing language detection: {e}")
+
+    def _create_sentiment_model(self, language: str) -> Dict[str, Any]:
+        """Create a sentiment analysis model for a language."""
+        try:
+            # Simple rule-based sentiment model
+            positive_words = {
+                "en": {
+                    "good",
+                    "great",
+                    "excellent",
+                    "amazing",
+                    "wonderful",
+                    "fantastic",
+                    "positive",
+                    "happy",
+                },
+                "es": {
+                    "bueno",
+                    "excelente",
+                    "maravilloso",
+                    "fantástico",
+                    "positivo",
+                    "feliz",
+                },
+                "fr": {
+                    "bon",
+                    "excellent",
+                    "merveilleux",
+                    "fantastique",
+                    "positif",
+                    "heureux",
+                },
+                "de": {
+                    "gut",
+                    "ausgezeichnet",
+                    "wunderbar",
+                    "fantastisch",
+                    "positiv",
+                    "glücklich",
+                },
+            }
+
+            negative_words = {
+                "en": {
+                    "bad",
+                    "terrible",
+                    "awful",
+                    "horrible",
+                    "negative",
+                    "sad",
+                    "angry",
+                    "disappointed",
+                },
+                "es": {
+                    "malo",
+                    "terrible",
+                    "horrible",
+                    "negativo",
+                    "triste",
+                    "enojado",
+                    "decepcionado",
+                },
+                "fr": {
+                    "mauvais",
+                    "terrible",
+                    "horrible",
+                    "négatif",
+                    "triste",
+                    "fâché",
+                    "déçu",
+                },
+                "de": {
+                    "schlecht",
+                    "schrecklich",
+                    "schrecklich",
+                    "negativ",
+                    "traurig",
+                    "wütend",
+                    "enttäuscht",
+                },
+            }
+
+            return {
+                "positive_words": positive_words.get(language, positive_words["en"]),
+                "negative_words": negative_words.get(language, negative_words["en"]),
+                "language": language,
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error creating sentiment model for {language}: {e}")
+            return {}
+
+    def _create_ner_model(self, language: str) -> Dict[str, Any]:
+        """Create a named entity recognition model for a language."""
+        try:
+            # Simple pattern-based NER model
+            entity_patterns = {
+                "en": {
+                    "PERSON": r"\b[A-Z][a-z]+ [A-Z][a-z]+\b",
+                    "ORGANIZATION": r"\b[A-Z][a-z]+ (Inc|Corp|LLC|Ltd|Company|Organization)\b",
+                    "LOCATION": r"\b[A-Z][a-z]+ (Street|Avenue|Road|City|State|Country)\b",
+                    "EMAIL": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+                    "PHONE": r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b",
+                },
+                "es": {
+                    "PERSON": r"\b[A-Z][a-z]+ [A-Z][a-z]+\b",
+                    "ORGANIZATION": r"\b[A-Z][a-z]+ (Inc|Corp|Sociedad|Organización)\b",
+                    "LOCATION": r"\b[A-Z][a-z]+ (Calle|Avenida|Ciudad|Estado|País)\b",
+                },
+                "fr": {
+                    "PERSON": r"\b[A-Z][a-z]+ [A-Z][a-z]+\b",
+                    "ORGANIZATION": r"\b[A-Z][a-z]+ (Inc|Corp|Société|Organisation)\b",
+                    "LOCATION": r"\b[A-Z][a-z]+ (Rue|Avenue|Ville|État|Pays)\b",
+                },
+                "de": {
+                    "PERSON": r"\b[A-Z][a-z]+ [A-Z][a-z]+\b",
+                    "ORGANIZATION": r"\b[A-Z][a-z]+ (Inc|Corp|Gesellschaft|Organisation)\b",
+                    "LOCATION": r"\b[A-Z][a-z]+ (Straße|Allee|Stadt|Staat|Land)\b",
+                },
+            }
+
+            return {
+                "patterns": entity_patterns.get(language, entity_patterns["en"]),
+                "language": language,
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error creating NER model for {language}: {e}")
+            return {}
+
+    def _create_topic_model(self, language: str) -> Dict[str, Any]:
+        """Create a topic modeling model for a language."""
+        try:
+            # Simple keyword-based topic model
+            topic_keywords = {
+                "en": {
+                    "technology": [
+                        "computer",
+                        "software",
+                        "hardware",
+                        "internet",
+                        "digital",
+                        "system",
+                    ],
+                    "finance": [
+                        "money",
+                        "bank",
+                        "investment",
+                        "financial",
+                        "economy",
+                        "market",
+                    ],
+                    "health": [
+                        "medical",
+                        "health",
+                        "doctor",
+                        "hospital",
+                        "treatment",
+                        "medicine",
+                    ],
+                    "education": [
+                        "school",
+                        "university",
+                        "student",
+                        "teacher",
+                        "learning",
+                        "education",
+                    ],
+                },
+                "es": {
+                    "tecnología": [
+                        "computadora",
+                        "software",
+                        "hardware",
+                        "internet",
+                        "digital",
+                        "sistema",
+                    ],
+                    "finanzas": [
+                        "dinero",
+                        "banco",
+                        "inversión",
+                        "financiero",
+                        "economía",
+                        "mercado",
+                    ],
+                    "salud": [
+                        "médico",
+                        "salud",
+                        "doctor",
+                        "hospital",
+                        "tratamiento",
+                        "medicina",
+                    ],
+                    "educación": [
+                        "escuela",
+                        "universidad",
+                        "estudiante",
+                        "maestro",
+                        "aprendizaje",
+                        "educación",
+                    ],
+                },
+            }
+
+            return {
+                "keywords": topic_keywords.get(language, topic_keywords["en"]),
+                "language": language,
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error creating topic model for {language}: {e}")
+            return {}
+
+    async def process_document(
+        self,
+        content: str,
+        text_type: TextType = TextType.UNKNOWN,
+        source: str = "unknown",
+        language: str = "en",
+    ) -> str:
+        """Process a text document with NLP analysis."""
+        try:
+            start_time = time.time()
+
+            # Create document
             document = TextDocument(
                 document_id=str(uuid.uuid4()),
                 content=content,
-                source_type=source_type,
+                text_type=text_type,
+                source=source,
                 timestamp=datetime.utcnow(),
-                metadata=metadata or {}
+                language=language,
             )
-            
+
             # Store document
             self.documents[document.document_id] = document
-            
-            self.logger.info(f"Added document: {document.document_id} - Type: {source_type}")
-            
-            return document
-            
-        except Exception as e:
-            self.logger.error(f"Error adding document: {e}")
-            raise
-    
-    async def process_document(self, document_id: str, processing_types: List[ProcessingType] = None) -> List[ProcessingResult]:
-        """Process a document with specified NLP techniques."""
-        try:
-            if document_id not in self.documents:
-                raise ValueError(f"Document {document_id} not found")
-            
-            document = self.documents[document_id]
-            
-            if not processing_types:
-                processing_types = [ProcessingType.TOKENIZATION, ProcessingType.ENTITY_RECOGNITION,
-                                  ProcessingType.SENTIMENT_ANALYSIS, ProcessingType.TOPIC_MODELING]
-            
-            self.logger.info(f"Processing document: {document_id} with {len(processing_types)} techniques")
-            
-            results = []
-            start_time = datetime.utcnow()
-            
-            for processing_type in processing_types:
-                try:
-                    if processing_type == ProcessingType.TOKENIZATION:
-                        result = await self._process_tokenization(document)
-                    elif processing_type == ProcessingType.ENTITY_RECOGNITION:
-                        result = await self._process_entity_recognition(document)
-                    elif processing_type == ProcessingType.SENTIMENT_ANALYSIS:
-                        result = await self._process_sentiment_analysis(document)
-                    elif processing_type == ProcessingType.TOPIC_MODELING:
-                        result = await self._process_topic_modeling(document)
-                    elif processing_type == ProcessingType.LANGUAGE_DETECTION:
-                        result = await self._process_language_detection(document)
-                    elif processing_type == ProcessingType.TEXT_CLASSIFICATION:
-                        result = await self._process_text_classification(document)
-                    elif processing_type == ProcessingType.CHAT_PATTERN_ANALYSIS:
-                        result = await self._process_chat_pattern_analysis(document)
-                    elif processing_type == ProcessingType.ANOMALY_DETECTION:
-                        result = await self._process_anomaly_detection(document)
-                    else:
-                        self.logger.warning(f"Unsupported processing type: {processing_type.value}")
-                        continue
-                    
-                    if result:
-                        results.append(result)
-                        
-                except Exception as e:
-                    self.logger.error(f"Error processing {processing_type.value}: {e}")
-                    continue
-            
-            # Update statistics
+
+            # Preprocess text
+            processed_content = await self._preprocess_text(content, language)
+
+            # Perform NLP analysis
+            nlp_results = await self._perform_nlp_analysis(document, processed_content)
+
+            # Calculate processing time
+            processing_time = time.time() - start_time
+
+            # Update metrics
             self.total_documents_processed += 1
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
-            self.average_processing_time = (self.average_processing_time + processing_time) / 2
-            
-            self.logger.info(f"Document processing completed: {document_id} - {len(results)} results")
-            
-            return results
-            
+            self.total_processing_time += processing_time
+            self.successful_processing += 1
+
+            self.logger.info(
+                f"Processed document {document.document_id} in {processing_time:.2f}s"
+            )
+
+            return document.document_id
+
         except Exception as e:
             self.logger.error(f"Error processing document: {e}")
+            self.failed_processing += 1
             raise
-    
-    async def _process_tokenization(self, document: TextDocument) -> ProcessingResult:
-        """Process document tokenization."""
+
+    async def _preprocess_text(self, content: str, language: str) -> str:
+        """Preprocess text content."""
         try:
-            start_time = datetime.utcnow()
-            
-            # Tokenize text
-            sentences = sent_tokenize(document.content)
-            words = word_tokenize(document.content)
-            
-            # Remove stopwords and lemmatize
-            stop_words = set(stopwords.words('english'))
-            lemmatizer = WordNetLemmatizer()
-            
-            filtered_words = [lemmatizer.lemmatize(word.lower()) for word in words 
-                            if word.lower() not in stop_words and word.isalnum()]
-            
-            # Calculate statistics
-            word_count = len(words)
-            sentence_count = len(sentences)
-            unique_words = len(set(filtered_words))
-            
-            # Calculate confidence based on text quality
-            confidence_score = min(1.0, (word_count / 100) + 0.5)
-            
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
-            
-            result = ProcessingResult(
-                result_id=str(uuid.uuid4()),
-                document_id=document.document_id,
-                processing_type=ProcessingType.TOKENIZATION,
-                result_data={
-                    'word_count': word_count,
-                    'sentence_count': sentence_count,
-                    'unique_words': unique_words,
-                    'sentences': sentences[:10],  # Limit for storage
-                    'filtered_words': filtered_words[:100]  # Limit for storage
-                },
-                confidence_score=confidence_score,
-                processing_time=processing_time,
-                timestamp=datetime.utcnow()
+            # Convert to lowercase
+            processed_content = content.lower()
+
+            # Remove URLs
+            processed_content = re.sub(
+                self.cleaning_patterns["urls"], "", processed_content
             )
-            
-            return result
-            
+
+            # Remove emails
+            processed_content = re.sub(
+                self.cleaning_patterns["emails"], "", processed_content
+            )
+
+            # Remove phone numbers
+            processed_content = re.sub(
+                self.cleaning_patterns["phone_numbers"], "", processed_content
+            )
+
+            # Remove special characters
+            processed_content = re.sub(
+                self.cleaning_patterns["special_chars"], " ", processed_content
+            )
+
+            # Remove extra whitespace
+            processed_content = re.sub(
+                self.cleaning_patterns["extra_whitespace"], " ", processed_content
+            )
+
+            # Remove stop words
+            stop_words = self.stop_words.get(language, self.stop_words["en"])
+            words = processed_content.split()
+            filtered_words = [word for word in words if word not in stop_words]
+            processed_content = " ".join(filtered_words)
+
+            return processed_content.strip()
+
         except Exception as e:
-            self.logger.error(f"Error in tokenization processing: {e}")
-            raise
-    
-    async def _process_entity_recognition(self, document: TextDocument) -> ProcessingResult:
-        """Process named entity recognition."""
+            self.logger.error(f"Error preprocessing text: {e}")
+            return content
+
+    async def _perform_nlp_analysis(
+        self, document: TextDocument, processed_content: str
+    ) -> Dict[str, Any]:
+        """Perform comprehensive NLP analysis."""
         try:
-            start_time = datetime.utcnow()
-            
-            # Use NLTK for entity recognition
-            tokens = word_tokenize(document.content)
-            pos_tags = pos_tag(tokens)
-            named_entities = ne_chunk(pos_tags)
-            
-            # Extract entities
+            results = {}
+
+            # Sentiment analysis
+            if self.enable_sentiment_analysis:
+                sentiment_result = await self._analyze_sentiment(
+                    processed_content, document.language
+                )
+                results["sentiment"] = sentiment_result
+
+                # Store sentiment result
+                sentiment_nlp_result = NLPResult(
+                    result_id=str(uuid.uuid4()),
+                    document_id=document.document_id,
+                    model_type=NLPModelType.SENTIMENT_ANALYSIS,
+                    processing_level=ProcessingLevel.INTERMEDIATE,
+                    results=sentiment_result,
+                    confidence=sentiment_result.confidence,
+                    processing_time=0.1,
+                    timestamp=datetime.utcnow(),
+                )
+                self.nlp_results[sentiment_nlp_result.result_id] = sentiment_nlp_result
+
+            # Named entity recognition
+            if self.enable_ner:
+                ner_result = await self._extract_named_entities(
+                    processed_content, document.language
+                )
+                results["named_entities"] = ner_result
+
+                # Store NER result
+                ner_nlp_result = NLPResult(
+                    result_id=str(uuid.uuid4()),
+                    document_id=document.document_id,
+                    model_type=NLPModelType.NAMED_ENTITY_RECOGNITION,
+                    processing_level=ProcessingLevel.INTERMEDIATE,
+                    results=ner_result,
+                    confidence=0.8,
+                    processing_time=0.1,
+                    timestamp=datetime.utcnow(),
+                )
+                self.nlp_results[ner_nlp_result.result_id] = ner_nlp_result
+
+                # Index entities
+                for entity in ner_result:
+                    self.entity_index[entity.entity_type].append(entity)
+
+            # Topic modeling
+            if self.enable_topic_modeling:
+                topic_result = await self._extract_topics(
+                    processed_content, document.language
+                )
+                results["topics"] = topic_result
+
+                # Store topic result
+                topic_nlp_result = NLPResult(
+                    result_id=str(uuid.uuid4()),
+                    document_id=document.document_id,
+                    model_type=NLPModelType.TOPIC_MODELING,
+                    processing_level=ProcessingLevel.ADVANCED,
+                    results=topic_result,
+                    confidence=0.7,
+                    processing_time=0.1,
+                    timestamp=datetime.utcnow(),
+                )
+                self.nlp_results[topic_nlp_result.result_id] = topic_nlp_result
+
+            # Keyword extraction
+            if self.enable_keyword_extraction:
+                keywords_result = await self._extract_keywords(
+                    processed_content, document.language
+                )
+                results["keywords"] = keywords_result
+
+                # Store keyword result
+                keyword_nlp_result = NLPResult(
+                    result_id=str(uuid.uuid4()),
+                    document_id=document.document_id,
+                    model_type=NLPModelType.KEYWORD_EXTRACTION,
+                    processing_level=ProcessingLevel.BASIC,
+                    results=keywords_result,
+                    confidence=0.9,
+                    processing_time=0.1,
+                    timestamp=datetime.utcnow(),
+                )
+                self.nlp_results[keyword_nlp_result.result_id] = keyword_nlp_result
+
+            return results
+
+        except Exception as e:
+            self.logger.error(f"Error performing NLP analysis: {e}")
+            return {}
+
+    async def _analyze_sentiment(self, text: str, language: str) -> SentimentResult:
+        """Analyze sentiment of text."""
+        try:
+            model = self.sentiment_models.get(language, self.sentiment_models["en"])
+
+            if not model:
+                return SentimentResult(
+                    sentiment_id=str(uuid.uuid4()),
+                    overall_sentiment="neutral",
+                    sentiment_score=0.0,
+                    positive_score=0.0,
+                    negative_score=0.0,
+                    neutral_score=1.0,
+                    confidence=0.5,
+                )
+
+            words = text.split()
+            positive_count = sum(1 for word in words if word in model["positive_words"])
+            negative_count = sum(1 for word in words if word in model["negative_words"])
+            total_words = len(words)
+
+            if total_words == 0:
+                positive_score = 0.0
+                negative_score = 0.0
+                neutral_score = 1.0
+            else:
+                positive_score = positive_count / total_words
+                negative_score = negative_count / total_words
+                neutral_score = 1.0 - positive_score - negative_score
+
+            # Calculate overall sentiment
+            if positive_score > negative_score:
+                overall_sentiment = "positive"
+                sentiment_score = positive_score
+            elif negative_score > positive_score:
+                overall_sentiment = "negative"
+                sentiment_score = -negative_score
+            else:
+                overall_sentiment = "neutral"
+                sentiment_score = 0.0
+
+            # Calculate confidence
+            confidence = max(positive_score, negative_score, neutral_score)
+
+            return SentimentResult(
+                sentiment_id=str(uuid.uuid4()),
+                overall_sentiment=overall_sentiment,
+                sentiment_score=sentiment_score,
+                positive_score=positive_score,
+                negative_score=negative_score,
+                neutral_score=neutral_score,
+                confidence=confidence,
+            )
+
+        except Exception as e:
+            self.logger.error(f"Error analyzing sentiment: {e}")
+            return SentimentResult(
+                sentiment_id=str(uuid.uuid4()),
+                overall_sentiment="neutral",
+                sentiment_score=0.0,
+                positive_score=0.0,
+                negative_score=0.0,
+                neutral_score=1.0,
+                confidence=0.5,
+            )
+
+    async def _extract_named_entities(
+        self, text: str, language: str
+    ) -> List[NamedEntity]:
+        """Extract named entities from text."""
+        try:
+            model = self.ner_models.get(language, self.ner_models["en"])
+
+            if not model:
+                return []
+
             entities = []
-            for chunk in named_entities:
-                if hasattr(chunk, 'label'):
-                    entity_text = ' '.join(c[0] for c in chunk.leaves())
-                    entity_type = chunk.label()
-                    
-                    # Map NLTK labels to our enum
-                    if entity_type == 'PERSON':
-                        entity_enum = EntityType.PERSON
-                    elif entity_type == 'ORGANIZATION':
-                        entity_enum = EntityType.ORGANIZATION
-                    elif entity_type == 'GPE':  # Geo-Political Entity
-                        entity_enum = EntityType.LOCATION
-                    elif entity_type == 'DATE':
-                        entity_enum = EntityType.DATE
-                    elif entity_type == 'MONEY':
-                        entity_enum = EntityType.MONEY
-                    else:
-                        entity_type = EntityType.CUSTOM
-                    
-                    # Find position in original text
-                    start_pos = document.content.find(entity_text)
-                    end_pos = start_pos + len(entity_text) if start_pos != -1 else 0
-                    
+
+            for entity_type, pattern in model["patterns"].items():
+                matches = re.finditer(pattern, text, re.IGNORECASE)
+
+                for match in matches:
                     entity = NamedEntity(
                         entity_id=str(uuid.uuid4()),
-                        text=entity_text,
-                        entity_type=entity_enum,
-                        start_pos=start_pos,
-                        end_pos=end_pos,
-                        confidence=0.8  # Placeholder confidence
+                        text=match.group(),
+                        entity_type=entity_type,
+                        confidence=0.8,
+                        start_position=match.start(),
+                        end_position=match.end(),
                     )
-                    
                     entities.append(entity)
-                    
-                    # Store in entity database
-                    self.entity_database[entity.entity_id] = entity
-                    self.total_entities_extracted += 1
-            
-            # Calculate confidence
-            confidence_score = min(1.0, len(entities) / 10 + 0.5)
-            
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
-            
-            result = ProcessingResult(
-                result_id=str(uuid.uuid4()),
-                document_id=document.document_id,
-                processing_type=ProcessingType.ENTITY_RECOGNITION,
-                result_data={
-                    'entities': [{'text': e.text, 'type': e.entity_type.value, 'confidence': e.confidence} 
-                               for e in entities],
-                    'entity_count': len(entities),
-                    'entity_types': list(set(e.entity_type.value for e in entities))
-                },
-                confidence_score=confidence_score,
-                processing_time=processing_time,
-                timestamp=datetime.utcnow()
-            )
-            
-            return result
-            
+
+            return entities
+
         except Exception as e:
-            self.logger.error(f"Error in entity recognition processing: {e}")
-            raise
-    
-    async def _process_sentiment_analysis(self, document: TextDocument) -> ProcessingResult:
-        """Process sentiment analysis."""
+            self.logger.error(f"Error extracting named entities: {e}")
+            return []
+
+    async def _extract_topics(self, text: str, language: str) -> List[TopicResult]:
+        """Extract topics from text."""
         try:
-            start_time = datetime.utcnow()
-            
-            # Use TextBlob for sentiment analysis
-            blob = TextBlob(document.content)
-            
-            # Get polarity and subjectivity
-            polarity = blob.sentiment.polarity
-            subjectivity = blob.sentiment.subjectivity
-            
-            # Use VADER for more detailed sentiment
-            sia = SentimentIntensityAnalyzer()
-            vader_scores = sia.polarity_scores(document.content)
-            
-            # Determine sentiment label
-            if vader_scores['compound'] >= 0.05:
-                sentiment_label = SentimentLabel.POSITIVE
-            elif vader_scores['compound'] <= -0.05:
-                sentiment_label = SentimentLabel.NEGATIVE
-            else:
-                sentiment_label = SentimentLabel.NEUTRAL
-            
-            # Create sentiment result
-            sentiment_result = SentimentResult(
-                sentiment_label=sentiment_label,
-                positive_score=vader_scores['pos'],
-                negative_score=vader_scores['neg'],
-                neutral_score=vader_scores['neu'],
-                compound_score=vader_scores['compound'],
-                confidence=abs(vader_scores['compound']),
-                metadata={'polarity': polarity, 'subjectivity': subjectivity}
-            )
-            
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
-            
-            result = ProcessingResult(
-                result_id=str(uuid.uuid4()),
-                document_id=document.document_id,
-                processing_type=ProcessingType.SENTIMENT_ANALYSIS,
-                result_data={
-                    'sentiment_label': sentiment_result.sentiment_label.value,
-                    'positive_score': sentiment_result.positive_score,
-                    'negative_score': sentiment_result.negative_score,
-                    'neutral_score': sentiment_result.neutral_score,
-                    'compound_score': sentiment_result.compound_score,
-                    'confidence': sentiment_result.confidence,
-                    'polarity': polarity,
-                    'subjectivity': subjectivity
-                },
-                confidence_score=sentiment_result.confidence,
-                processing_time=processing_time,
-                timestamp=datetime.utcnow()
-            )
-            
-            return result
-            
+            model = self.topic_models.get(language, self.topic_models["en"])
+
+            if not model:
+                return []
+
+            topics = []
+            words = text.split()
+
+            for topic_name, keywords in model["keywords"].items():
+                # Count keyword matches
+                matches = sum(1 for word in words if word in keywords)
+
+                if matches > 0:
+                    # Calculate topic score
+                    topic_score = matches / len(keywords)
+
+                    if topic_score > 0.1:  # Minimum threshold
+                        topic = TopicResult(
+                            topic_id=str(uuid.uuid4()),
+                            topic_name=topic_name,
+                            topic_score=topic_score,
+                            keywords=keywords,
+                            confidence=topic_score,
+                        )
+                        topics.append(topic)
+
+            # Sort by score
+            topics.sort(key=lambda x: x.topic_score, reverse=True)
+
+            return topics
+
         except Exception as e:
-            self.logger.error(f"Error in sentiment analysis processing: {e}")
-            raise
-    
-    async def _process_topic_modeling(self, document: TextDocument) -> ProcessingResult:
-        """Process topic modeling."""
+            self.logger.error(f"Error extracting topics: {e}")
+            return []
+
+    async def _extract_keywords(self, text: str, language: str) -> List[str]:
+        """Extract keywords from text."""
         try:
-            start_time = datetime.utcnow()
-            
-            # Simple topic modeling using TF-IDF and clustering
-            # In production, this would use more sophisticated models
-            
-            # Preprocess text
-            sentences = sent_tokenize(document.content)
-            if len(sentences) < 2:
-                # Not enough content for topic modeling
-                return None
-            
-            # Create TF-IDF vectors
-            vectorizer = TfidfVectorizer(
-                max_features=100,
-                stop_words='english',
-                ngram_range=(1, 2)
-            )
-            
-            tfidf_matrix = vectorizer.fit_transform(sentences)
-            feature_names = vectorizer.get_feature_names_out()
-            
-            # Simple clustering for topics
-            if tfidf_matrix.shape[0] > 1:
-                n_clusters = min(self.max_topics, tfidf_matrix.shape[0] - 1)
-                kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-                cluster_labels = kmeans.fit_predict(tfidf_matrix)
-                
-                # Extract topics
-                topics = []
-                for i in range(n_clusters):
-                    cluster_docs = [j for j, label in enumerate(cluster_labels) if label == i]
-                    cluster_vectors = tfidf_matrix[cluster_docs]
-                    
-                    # Get top features for this cluster
-                    cluster_center = cluster_vectors.mean(axis=0).A1
-                    top_indices = cluster_center.argsort()[-5:][::-1]
-                    top_features = [feature_names[idx] for idx in top_indices]
-                    
-                    topic = TopicResult(
-                        topic_id=f"topic_{i}",
-                        topic_keywords=top_features,
-                        topic_weight=len(cluster_docs) / len(sentences),
-                        topic_documents=[f"doc_{j}" for j in cluster_docs],
-                        coherence_score=0.7,  # Placeholder
-                        metadata={'cluster_size': len(cluster_docs)}
-                    )
-                    
-                    topics.append(topic)
-                
-                confidence_score = min(1.0, len(topics) / 5 + 0.3)
-            else:
-                topics = []
-                confidence_score = 0.5
-            
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
-            
-            result = ProcessingResult(
-                result_id=str(uuid.uuid4()),
-                document_id=document.document_id,
-                processing_type=ProcessingType.TOPIC_MODELING,
-                result_data={
-                    'topics': [{'id': t.topic_id, 'keywords': t.topic_keywords, 'weight': t.topic_weight} 
-                              for t in topics],
-                    'topic_count': len(topics),
-                    'feature_names': feature_names[:20].tolist()  # Limit for storage
-                },
-                confidence_score=confidence_score,
-                processing_time=processing_time,
-                timestamp=datetime.utcnow()
-            )
-            
-            return result
-            
+            words = text.split()
+
+            # Simple frequency-based keyword extraction
+            word_freq = {}
+            for word in words:
+                if len(word) > 3:  # Minimum word length
+                    word_freq[word] = word_freq.get(word, 0) + 1
+
+            # Get top keywords
+            sorted_words = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)
+            keywords = [word for word, freq in sorted_words[:10]]  # Top 10 keywords
+
+            return keywords
+
         except Exception as e:
-            self.logger.error(f"Error in topic modeling processing: {e}")
-            raise
-    
-    async def _process_language_detection(self, document: TextDocument) -> ProcessingResult:
-        """Process language detection."""
+            self.logger.error(f"Error extracting keywords: {e}")
+            return []
+
+    async def get_document(self, document_id: str) -> Optional[TextDocument]:
+        """Get a document by ID."""
+        return self.documents.get(document_id)
+
+    async def get_nlp_result(self, result_id: str) -> Optional[NLPResult]:
+        """Get an NLP result by ID."""
+        return self.nlp_results.get(result_id)
+
+    async def get_document_analysis(self, document_id: str) -> Dict[str, Any]:
+        """Get comprehensive analysis for a document."""
         try:
-            start_time = datetime.utcnow()
-            
-            # Use TextBlob for language detection
-            blob = TextBlob(document.content)
-            detected_language = blob.detect_language()
-            
-            # Calculate confidence based on language support
-            confidence_score = 0.9 if detected_language in self.supported_languages else 0.7
-            
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
-            
-            result = ProcessingResult(
-                result_id=str(uuid.uuid4()),
-                document_id=document.document_id,
-                processing_type=ProcessingType.LANGUAGE_DETECTION,
-                result_data={
-                    'detected_language': detected_language,
-                    'supported_language': detected_language in self.supported_languages,
-                    'language_code': detected_language
-                },
-                confidence_score=confidence_score,
-                processing_time=processing_time,
-                timestamp=datetime.utcnow()
-            )
-            
-            return result
-            
-        except Exception as e:
-            self.logger.error(f"Error in language detection processing: {e}")
-            raise
-    
-    async def _process_text_classification(self, document: TextDocument) -> ProcessingResult:
-        """Process text classification."""
-        try:
-            start_time = datetime.utcnow()
-            
-            # Simple rule-based classification
-            content_lower = document.content.lower()
-            
-            # Define classification rules
-            categories = {
-                'business': ['business', 'company', 'corporate', 'finance', 'investment'],
-                'technical': ['technical', 'technology', 'software', 'hardware', 'system'],
-                'legal': ['legal', 'law', 'court', 'case', 'litigation', 'contract'],
-                'personal': ['personal', 'family', 'friend', 'relationship', 'private']
+            document = self.documents.get(document_id)
+            if not document:
+                return {}
+
+            # Get all NLP results for this document
+            analysis = {
+                "document": document,
+                "sentiment": None,
+                "named_entities": [],
+                "topics": [],
+                "keywords": [],
             }
-            
-            scores = {}
-            for category, keywords in categories.items():
-                score = sum(1 for keyword in keywords if keyword in content_lower)
-                scores[category] = score / len(keywords)
-            
-            # Get top category
-            top_category = max(scores.items(), key=lambda x: x[1])
-            confidence_score = top_category[1]
-            
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
-            
-            result = ProcessingResult(
-                result_id=str(uuid.uuid4()),
-                document_id=document.document_id,
-                processing_type=ProcessingType.TEXT_CLASSIFICATION,
-                result_data={
-                    'classified_category': top_category[0],
-                    'category_scores': scores,
-                    'confidence': confidence_score
+
+            for result in self.nlp_results.values():
+                if result.document_id == document_id:
+                    if result.model_type == NLPModelType.SENTIMENT_ANALYSIS:
+                        analysis["sentiment"] = result.results
+                    elif result.model_type == NLPModelType.NAMED_ENTITY_RECOGNITION:
+                        analysis["named_entities"] = result.results
+                    elif result.model_type == NLPModelType.TOPIC_MODELING:
+                        analysis["topics"] = result.results
+                    elif result.model_type == NLPModelType.KEYWORD_EXTRACTION:
+                        analysis["keywords"] = result.results
+
+            return analysis
+
+        except Exception as e:
+            self.logger.error(f"Error getting document analysis: {e}")
+            return {}
+
+    async def search_entities(
+        self, entity_type: str, query: str = None
+    ) -> List[NamedEntity]:
+        """Search for entities by type and optional query."""
+        try:
+            entities = self.entity_index.get(entity_type, [])
+
+            if query:
+                # Filter by query
+                filtered_entities = []
+                query_lower = query.lower()
+
+                for entity in entities:
+                    if query_lower in entity.text.lower():
+                        filtered_entities.append(entity)
+
+                return filtered_entities
+
+            return entities
+
+        except Exception as e:
+            self.logger.error(f"Error searching entities: {e}")
+            return []
+
+    def get_nlp_processor_metrics(self) -> NLPProcessorMetrics:
+        """Get NLP processing performance metrics."""
+        try:
+            if self.total_documents_processed > 0:
+                average_processing_time = (
+                    self.total_processing_time / self.total_documents_processed
+                )
+                success_rate = (
+                    self.successful_processing / self.total_documents_processed
+                )
+            else:
+                average_processing_time = 0.0
+                success_rate = 0.0
+
+            return NLPProcessorMetrics(
+                total_documents_processed=self.total_documents_processed,
+                total_processing_time=self.total_processing_time,
+                average_processing_time=average_processing_time,
+                success_rate=success_rate,
+                metadata={
+                    "successful_processing": self.successful_processing,
+                    "failed_processing": self.failed_processing,
+                    "enable_sentiment_analysis": self.enable_sentiment_analysis,
+                    "enable_ner": self.enable_ner,
+                    "enable_topic_modeling": self.enable_topic_modeling,
+                    "enable_keyword_extraction": self.enable_keyword_extraction,
+                    "supported_languages": self.supported_languages,
+                    "max_text_length": self.max_text_length,
+                    "nlp_model_types_supported": [mt.value for mt in NLPModelType],
+                    "processing_levels_supported": [pl.value for pl in ProcessingLevel],
+                    "text_types_supported": [tt.value for tt in TextType],
                 },
-                confidence_score=confidence_score,
-                processing_time=processing_time,
-                timestamp=datetime.utcnow()
             )
-            
-            return result
-            
+
         except Exception as e:
-            self.logger.error(f"Error in text classification processing: {e}")
-            raise
-    
-    async def _process_chat_pattern_analysis(self, document: TextDocument) -> ProcessingResult:
-        """Process chat pattern analysis."""
-        try:
-            start_time = datetime.utcnow()
-            
-            # Simple chat pattern analysis
-            # In production, this would analyze actual chat logs with timestamps and participants
-            
-            # Extract potential chat patterns
-            patterns = []
-            
-            # Look for common chat indicators
-            if ':' in document.content and len(document.content.split('\n')) > 5:
-                # Potential chat log
-                lines = document.content.split('\n')
-                participants = set()
-                
-                for line in lines:
-                    if ':' in line:
-                        participant = line.split(':')[0].strip()
-                        if len(participant) < 50:  # Reasonable participant name length
-                            participants.add(participant)
-                
-                if len(participants) > 1:
-                    pattern = ChatPattern(
-                        pattern_id=str(uuid.uuid4()),
-                        pattern_type='multi_participant_chat',
-                        pattern_description=f'Chat with {len(participants)} participants',
-                        frequency=len(lines),
-                        participants=list(participants),
-                        time_distribution={'hour': len(lines)},  # Placeholder
-                        metadata={'line_count': len(lines)}
-                    )
-                    patterns.append(pattern)
-            
-            confidence_score = min(1.0, len(patterns) + 0.3)
-            
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
-            
-            result = ProcessingResult(
-                result_id=str(uuid.uuid4()),
-                document_id=document.document_id,
-                processing_type=ProcessingType.CHAT_PATTERN_ANALYSIS,
-                result_data={
-                    'patterns': [{'type': p.pattern_type, 'description': p.pattern_description, 
-                                'participants': p.participants} for p in patterns],
-                    'pattern_count': len(patterns)
-                },
-                confidence_score=confidence_score,
-                processing_time=processing_time,
-                timestamp=datetime.utcnow()
+            self.logger.error(f"Error getting NLP processor metrics: {e}")
+            return NLPProcessorMetrics(
+                total_documents_processed=0,
+                total_processing_time=0.0,
+                average_processing_time=0.0,
+                success_rate=0.0,
             )
-            
-            return result
-            
-        except Exception as e:
-            self.logger.error(f"Error in chat pattern analysis processing: {e}")
-            raise
-    
-    async def _process_anomaly_detection(self, document: TextDocument) -> ProcessingResult:
-        """Process anomaly detection."""
-        try:
-            start_time = datetime.utcnow()
-            
-            # Simple anomaly detection based on text characteristics
-            content_length = len(document.content)
-            word_count = len(document.content.split())
-            sentence_count = len(sent_tokenize(document.content))
-            
-            # Calculate baseline statistics (simplified)
-            avg_word_length = content_length / word_count if word_count > 0 else 0
-            avg_sentence_length = word_count / sentence_count if sentence_count > 0 else 0
-            
-            # Define anomaly thresholds
-            anomalies = []
-            
-            if content_length > 10000:  # Very long document
-                anomalies.append('unusually_long_document')
-            
-            if avg_word_length > 15:  # Very long words
-                anomalies.append('unusually_long_words')
-            
-            if avg_sentence_length > 50:  # Very long sentences
-                anomalies.append('unusually_long_sentences')
-            
-            if word_count < 10:  # Very short document
-                anomalies.append('unusually_short_document')
-            
-            # Calculate confidence
-            confidence_score = min(1.0, len(anomalies) / 5 + 0.3)
-            
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
-            
-            result = ProcessingResult(
-                result_id=str(uuid.uuid4()),
-                document_id=document.document_id,
-                processing_type=ProcessingType.ANOMALY_DETECTION,
-                result_data={
-                    'anomalies': anomalies,
-                    'anomaly_count': len(anomalies),
-                    'text_statistics': {
-                        'content_length': content_length,
-                        'word_count': word_count,
-                        'sentence_count': sentence_count,
-                        'avg_word_length': avg_word_length,
-                        'avg_sentence_length': avg_sentence_length
-                    }
-                },
-                confidence_score=confidence_score,
-                processing_time=processing_time,
-                timestamp=datetime.utcnow()
-            )
-            
-            return result
-            
-        except Exception as e:
-            self.logger.error(f"Error in anomaly detection processing: {e}")
-            raise
-    
-    async def _update_nlp_models(self):
-        """Update NLP models."""
-        while True:
-            try:
-                # This would update models based on new data
-                # For now, just log activity
-                await asyncio.sleep(3600)  # Update every hour
-                
-            except Exception as e:
-                self.logger.error(f"Error updating NLP models: {e}")
-                await asyncio.sleep(3600)
-    
-    async def _cleanup_old_data(self):
-        """Clean up old data and results."""
-        while True:
-            try:
-                current_time = datetime.utcnow()
-                cutoff_time = current_time - timedelta(days=30)  # Keep 30 days of data
-                
-                # Clean up old documents
-                old_documents = [
-                    doc_id for doc_id, doc in self.documents.items()
-                    if doc.timestamp < cutoff_time
-                ]
-                
-                for doc_id in old_documents:
-                    del self.documents[doc_id]
-                
-                # Clean up old results
-                old_results = [
-                    result_id for result_id, result in self.processing_results.items()
-                    if result.timestamp < cutoff_time
-                ]
-                
-                for result_id in old_results:
-                    del self.processing_results[result_id]
-                
-                if old_documents or old_results:
-                    self.logger.info(f"Cleaned up {len(old_documents)} old documents and {len(old_results)} old results")
-                
-                await asyncio.sleep(3600)  # Clean up every hour
-                
-            except Exception as e:
-                self.logger.error(f"Error cleaning up old data: {e}")
-                await asyncio.sleep(3600)
-    
-    async def _initialize_nlp_components(self):
-        """Initialize NLP components."""
-        try:
-            # Initialize default models
-            await self._initialize_default_models()
-            
-            self.logger.info("NLP components initialized successfully")
-            
-        except Exception as e:
-            self.logger.error(f"Error initializing NLP components: {e}")
-    
-    async def _initialize_default_models(self):
-        """Initialize default NLP models."""
-        try:
-            # This would initialize default models
-            # For now, just log initialization
-            self.logger.info("Default NLP models initialized")
-            
-        except Exception as e:
-            self.logger.error(f"Error initializing default models: {e}")
-    
-    def get_performance_metrics(self) -> Dict[str, Any]:
-        """Get performance metrics."""
-        return {
-            'total_documents_processed': self.total_documents_processed,
-            'total_entities_extracted': self.total_entities_extracted,
-            'average_processing_time': self.average_processing_time,
-            'processing_types_supported': [t.value for t in ProcessingType],
-            'entity_types_supported': [t.value for t in EntityType],
-            'total_documents': len(self.documents),
-            'total_results': len(self.processing_results)
-        }
 
 
 # Example usage and testing
 if __name__ == "__main__":
     # Configuration
     config = {
-        'supported_languages': ['en', 'es', 'fr', 'de', 'zh', 'ja'],
-        'min_confidence_threshold': 0.7,
-        'max_topics': 10,
-        'batch_size': 100
+        "enable_sentiment_analysis": True,
+        "enable_ner": True,
+        "enable_topic_modeling": True,
+        "enable_keyword_extraction": True,
+        "max_text_length": 10000,
+        "supported_languages": ["en", "es", "fr", "de"],
     }
-    
+
     # Initialize NLP processor
-    processor = NLPProcessor(config)
-    
+    nlp_processor = NLPProcessor(config)
+
     print("NLPProcessor system initialized successfully!")

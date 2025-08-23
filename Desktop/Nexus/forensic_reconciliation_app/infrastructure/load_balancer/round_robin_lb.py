@@ -6,16 +6,17 @@ Estimated time: 2-3 hours
 MCP Status: COMPLETED - Agent: AI_Assistant
 """
 
-import time
 import json
 import logging
-import asyncio
-from typing import Dict, List, Optional, Any, Callable
-from dataclasses import dataclass, asdict
-from enum import Enum
 import statistics
-from collections import deque
+import time
 import uuid
+from collections import deque
+from dataclasses import asdict, dataclass
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +106,9 @@ class RoundRobinLoadBalancer:
             return None
         
         # Get only healthy servers
-        healthy_servers = [s for s in self.servers.values() if s.status == ServerStatus.HEALTHY]
+        healthy_servers = (
+    [s for s in self.servers.values() if s.status == ServerStatus.HEALTHY]
+)
         
         if not healthy_servers:
             logger.warning("No healthy servers available")
@@ -271,7 +274,12 @@ class RoundRobinLoadBalancer:
         
         return True
     
-    def record_request_result(self, server_id: str, success: bool, response_time: float = 0.0):
+    def record_request_result(
+    self,
+    server_id: str,
+    success: bool,
+    response_time: float = 0.0
+)
         """Record the result of a request to a server"""
         if server_id not in self.servers:
             return
@@ -313,7 +321,9 @@ class RoundRobinLoadBalancer:
         
         # Calculate success rate
         total_requests = server.total_requests
-        success_rate = (server.successful_requests / total_requests * 100) if total_requests > 0 else 0
+        success_rate = (
+    server.successful_requests / total_requests * 100,
+)
         
         return {
             "server_id": server_id,
@@ -337,7 +347,9 @@ class RoundRobinLoadBalancer:
         
         # Calculate overall success rate
         total_requests = self.total_requests
-        overall_success_rate = (self.total_healthy_requests / total_requests * 100) if total_requests > 0 else 0
+        overall_success_rate = (
+    self.total_healthy_requests / total_requests * 100,
+)
         
         # Get server status counts
         status_counts = {}

@@ -3,12 +3,12 @@ SMS Service for Multi-Factor Authentication
 Handles SMS code generation, delivery, and validation
 """
 
+import logging
 import secrets
 import time
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Tuple
-from dataclasses import dataclass
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,12 @@ class SMSCode:
 class SMSService:
     """SMS service for MFA authentication"""
     
-    def __init__(self, code_length: int = 6, expiry_minutes: int = 10, max_attempts: int = 3):
+    def __init__(
+    self,
+    code_length: int = 6,
+    expiry_minutes: int = 10,
+    max_attempts: int = 3
+)
         self.code_length = code_length
         self.expiry_minutes = expiry_minutes
         self.max_attempts = max_attempts
@@ -96,7 +101,9 @@ class SMSService:
         sms_code = self.active_codes[code_id]
         
         # Generate new code
-        new_code = str(secrets.randbelow(10 ** self.code_length)).zfill(self.code_length)
+        new_code = (
+    str(secrets.randbelow(10 ** self.code_length)).zfill(self.code_length)
+)
         
         # Update existing SMS code object
         now = datetime.utcnow()

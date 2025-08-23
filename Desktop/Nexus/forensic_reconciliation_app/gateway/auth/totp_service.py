@@ -4,19 +4,25 @@ Implements RFC 6238 TOTP algorithm for secure authentication
 """
 
 import base64
-import hmac
 import hashlib
-import time
-import secrets
-from typing import Optional
+import hmac
 import logging
+import secrets
+import time
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 class TOTPService:
     """TOTP service implementation following RFC 6238"""
     
-    def __init__(self, algorithm: str = 'sha1', digits: int = 6, period: int = 30, window: int = 2):
+    def __init__(
+    self,
+    algorithm: str = 'sha1',
+    digits: int = 6,
+    period: int = 30,
+    window: int = 2
+)
         self.algorithm = algorithm
         self.digits = digits
         self.period = period
@@ -38,7 +44,12 @@ class TOTPService:
         totp = self._generate_totp_from_hmac(hmac_obj)
         return totp
     
-    def verify_totp(self, secret: str, token: str, timestamp: Optional[int] = None) -> bool:
+    def verify_totp(
+    self,
+    secret: str,
+    token: str,
+    timestamp: Optional[int] = None
+)
         """Verify a TOTP token within the configured window"""
         if timestamp is None:
             timestamp = int(time.time())

@@ -8,17 +8,18 @@ Smart TODO Automation System with Task Master Integration
 - Auto-loads new TODOs from Task Master
 """
 
-import asyncio
-import time
-import logging
 import json
-import uuid
-from typing import Dict, List, Optional, Any, Set
-from pathlib import Path
-from dataclasses import dataclass, asdict
-from enum import Enum
+import logging
 import subprocess
 import sys
+import time
+import uuid
+from dataclasses import asdict, dataclass
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
+
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +136,9 @@ class TaskMasterIntegration:
             r"//\s*FIXME[:\s]+(.+)"
         ]
         
-        code_extensions = ['.py', '.js', '.ts', '.java', '.cpp', '.c', '.go', '.rs', '.php']
+        code_extensions = (
+    ['.py', '.js', '.ts', '.java', '.cpp', '.c', '.go', '.rs', '.php']
+)
         
         for file_path in self.project_root.rglob("*"):
             if file_path.is_file() and file_path.suffix in code_extensions:
@@ -183,7 +186,9 @@ class TaskMasterIntegration:
                 logger.info(f"Marked TODO {todo_id} as in-progress in Task Master")
                 return True
             else:
-                logger.warning(f"Failed to mark TODO {todo_id} in Task Master: {result.stderr}")
+                logger.warning(
+    f"Failed to mark TODO {todo_id} in Task Master: {result.stderr}",
+)
                 return False
                 
         except FileNotFoundError:
@@ -205,7 +210,9 @@ class TaskMasterIntegration:
                 logger.info(f"Marked TODO {todo_id} as done in Task Master")
                 return True
             else:
-                logger.warning(f"Failed to mark TODO {todo_id} as done in Task Master: {result.stderr}")
+                logger.warning(
+    f"Failed to mark TODO {todo_id} as done in Task Master: {result.stderr}",
+)
                 return False
                 
         except FileNotFoundError:
@@ -267,7 +274,13 @@ class TodoBreakdownEngine:
         
         rules = self.breakdown_rules.get(todo.category, {})
         max_hours = rules.get("max_subtodo_hours", 4.0)
-        patterns = rules.get("breakdown_patterns", ["plan", "implement", "test", "deploy"])
+        patterns = rules.get(
+    "breakdown_patterns",
+    ["plan",
+    "implement",
+    "test",
+    "deploy"]
+)
         
         subtodos = []
         remaining_hours = todo.estimated_hours
@@ -339,10 +352,17 @@ class MCPLogger:
         }
         logger.info(f"MCP Session created: {session_id} - {description}")
     
-    def assign_todo_to_agent(self, session_id: str, todo_id: str, agent_id: str) -> bool:
+    def assign_todo_to_agent(
+    self,
+    session_id: str,
+    todo_id: str,
+    agent_id: str
+)
         """Assign a TODO to an agent for implementation"""
         if todo_id in self.implementation_locks:
-            logger.warning(f"TODO {todo_id} already assigned to {self.implementation_locks[todo_id]}")
+            logger.warning(
+    f"TODO {todo_id} already assigned to {self.implementation_locks[todo_id]}",
+)
             return False
         
         self.implementation_locks[todo_id] = agent_id
@@ -436,9 +456,14 @@ class SmartTodoAutomation:
         self.agents: Dict[str, Dict[str, Any]] = {}
         self.agent_workloads: Dict[str, int] = {}
         
-        logger.info(f"Smart TODO Automation initialized with max {max_active_todos} active TODOs")
+        logger.info(
+    f"Smart TODO Automation initialized with max {max_active_todos} active TODOs",
+)
     
-    def start_automation_session(self, description: str = "Smart TODO Automation Session") -> str:
+    def start_automation_session(
+    self,
+    description: str = "Smart TODO Automation Session"
+)
         """Start a new automation session"""
         session_id = str(uuid.uuid4())
         self.mcp_logger.create_session(session_id, description)
@@ -591,7 +616,12 @@ class SmartTodoAutomation:
         
         logger.info(f"Activated TODO: {todo.title}")
     
-    def assign_todo_to_agent(self, session_id: str, todo_id: str, agent_id: str) -> bool:
+    def assign_todo_to_agent(
+    self,
+    session_id: str,
+    todo_id: str,
+    agent_id: str
+)
         """Assign a TODO to an agent"""
         if todo_id not in self.active_todos:
             logger.warning(f"TODO {todo_id} not found in active TODOs")
@@ -646,12 +676,17 @@ class SmartTodoAutomation:
         
         if available_slots > 0:
             # Load more TODOs from Task Master
-            loaded_count = self.load_todos_from_task_master(session_id, available_slots * 2)
+            loaded_count = (
+    self.load_todos_from_task_master(session_id, available_slots * 2)
+)
             
             # Activate new TODOs
             activated_count = self.activate_todos(session_id, available_slots)
             
-            logger.info(f"Auto-loaded {loaded_count} TODOs, activated {activated_count}")
+            logger.info(
+    f"Auto-loaded {loaded_count} TODOs,
+    activated {activated_count}"
+)
             return activated_count
         
         return 0
@@ -719,7 +754,9 @@ async def test_smart_todo_automation():
     smart_automation = SmartTodoAutomation(max_active_todos=3)
     
     # Start automation session
-    session_id = smart_automation.start_automation_session("Smart TODO Automation Testing")
+    session_id = (
+    smart_automation.start_automation_session("Smart TODO Automation Testing")
+)
     print(f"📋 Automation session started: {session_id}")
     
     # Load TODOs from Task Master
@@ -735,7 +772,9 @@ async def test_smart_todo_automation():
     # Get system status
     print("\n📊 System Status:")
     status = smart_automation.get_system_status(session_id)
-    print(f"  Active TODOs: {status['active_todos_count']}/{status['max_active_todos']}")
+    print(
+    f"  Active TODOs: {status['active_todos_count']}/{status['max_active_todos']}",
+)
     print(f"  Available TODOs: {status['available_todos_count']}")
     print(f"  Completed TODOs: {status['completed_todos_count']}")
     
@@ -744,7 +783,9 @@ async def test_smart_todo_automation():
     agent_id = "test_agent_1"
     
     # Get available TODOs for agent
-    available_todos = smart_automation.get_available_todos_for_agent(session_id, agent_id)
+    available_todos = (
+    smart_automation.get_available_todos_for_agent(session_id, agent_id)
+)
     if available_todos:
         todo = available_todos[0]
         print(f"  Agent {agent_id} can work on: {todo.title}")
@@ -765,7 +806,9 @@ async def test_smart_todo_automation():
     # Final status
     print("\n📊 Final System Status:")
     final_status = smart_automation.get_system_status(session_id)
-    print(f"  Active TODOs: {final_status['active_todos_count']}/{final_status['max_active_todos']}")
+    print(
+    f"  Active TODOs: {final_status['active_todos_count']}/{final_status['max_active_todos']}",
+)
     print(f"  Available TODOs: {final_status['available_todos_count']}")
     print(f"  Completed TODOs: {final_status['completed_todos_count']}")
     

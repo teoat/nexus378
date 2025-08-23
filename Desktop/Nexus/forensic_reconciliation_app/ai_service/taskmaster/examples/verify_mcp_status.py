@@ -3,9 +3,10 @@
 Verify MCP Status - Check current MCP server status and TODO items
 """
 
-import asyncio
 import logging
 from datetime import datetime
+
+import asyncio
 
 # Import the MCP server
 from core.mcp_server import mcp_server
@@ -18,15 +19,15 @@ logger = logging.getLogger(__name__)
 async def verify_mcp_status():
     """Verify the current MCP server status and TODO items"""
     logger.info("🔍 Verifying MCP Server Status...")
-    
+
     try:
         # Get system status
         system_status = await mcp_server.get_system_status()
-        
-        print("\n" + "="*80)
+
+        print("\n" + "=" * 80)
         print("🔍 MCP SERVER STATUS VERIFICATION")
-        print("="*80)
-        
+        print("=" * 80)
+
         # System Status
         print(f"📊 SYSTEM STATUS:")
         print(f"   Total Tasks: {system_status.get('total_tasks', 0)}")
@@ -37,7 +38,7 @@ async def verify_mcp_status():
         print(f"   Available Agents: {system_status.get('available_agents', 0)}")
         print(f"   Unimplemented TODOs: {system_status.get('unimplemented_todos', 0)}")
         print(f"   Timestamp: {system_status.get('timestamp', 'Unknown')}")
-        
+
         # Task Details
         print(f"\n📋 PRIORITY TODO ITEMS:")
         todo_count = 0
@@ -53,7 +54,7 @@ async def verify_mcp_status():
                 print(f"      Subtasks: {task.metadata.get('subtask_count', 0)}")
                 print(f"      Agent: {task.agent_id or 'Unassigned'}")
                 print("")
-        
+
         # Overlap Prevention Status
         print(f"🛡️ OVERLAP PREVENTION STATUS:")
         print(f"   ✅ Single Assignment: Active")
@@ -62,7 +63,7 @@ async def verify_mcp_status():
         print(f"   ✅ Priority-Based Assignment: Active")
         print(f"   ✅ Progress Tracking: Active")
         print(f"   ✅ Duplicate Prevention: Active")
-        
+
         # Development Readiness
         print(f"\n🚀 DEVELOPMENT READINESS:")
         if todo_count == 10:
@@ -73,34 +74,36 @@ async def verify_mcp_status():
         else:
             print(f"   ⚠️ Expected 10 TODO items, found {todo_count}")
             print(f"   ⚠️ System may need additional configuration")
-        
-        print("\n" + "="*80)
-        
+
+        print("\n" + "=" * 80)
+
         return {
             "status": "success",
             "todo_count": todo_count,
             "system_status": system_status,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
-        
+
     except Exception as e:
         logger.error(f"❌ Error verifying MCP status: {e}")
         return {
             "status": "error",
             "error": str(e),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
 
 async def main():
     """Main function"""
     logger.info("🚀 Starting MCP Server Status Verification")
-    
+
     # Verify MCP status
     result = await verify_mcp_status()
-    
+
     if result["status"] == "success":
-        logger.info(f"✅ Verification completed successfully! Found {result['todo_count']} TODO items")
+        logger.info(
+            f"✅ Verification completed successfully! Found {result['todo_count']} TODO items",
+        )
     else:
         logger.error(f"❌ Verification failed: {result.get('error', 'Unknown error')}")
 

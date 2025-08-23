@@ -4,11 +4,12 @@ Coordinates TOTP, SMS, and hardware token authentication
 """
 
 import logging
-import asyncio
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +90,9 @@ class MFAManager:
         try:
             # Check if user has this MFA type enabled
             if not self._is_mfa_enabled_for_user(user_id, mfa_type):
-                logger.warning(f"MFA type {mfa_type.value} not enabled for user {user_id}")
+                logger.warning(
+    f"MFA type {mfa_type.value} not enabled for user {user_id}",
+)
                 return None
             
             # Generate challenge based on MFA type
@@ -227,13 +230,20 @@ class MFAManager:
         """Get MFA status for user"""
         return self.user_mfa_settings.get(user_id, {})
     
-    async def enable_mfa_for_user(self, user_id: str, mfa_type: MFAType, enabled: bool = True):
+    async def enable_mfa_for_user(
+    self,
+    user_id: str,
+    mfa_type: MFAType,
+    enabled: bool = True
+)
         """Enable/disable MFA type for user"""
         if user_id not in self.user_mfa_settings:
             self.user_mfa_settings[user_id] = {}
         
         self.user_mfa_settings[user_id][mfa_type.value] = enabled
-        logger.info(f"MFA {mfa_type.value} {'enabled' if enabled else 'disabled'} for user {user_id}")
+        logger.info(
+    f"MFA {mfa_type.value} {'enabled' if enabled else 'disabled'} for user {user_id}",
+)
     
     def get_system_status(self) -> Dict[str, any]:
         """Get MFA system status"""

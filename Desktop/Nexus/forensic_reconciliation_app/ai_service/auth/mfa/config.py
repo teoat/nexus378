@@ -4,14 +4,15 @@ MFA Configuration Module
 Configuration settings for Multi-Factor Authentication system
 """
 
-from dataclasses import dataclass
-from typing import Dict, Any, Optional
 import os
+from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, Optional
 
 
 class MFAMethod(Enum):
     """Supported MFA methods"""
+
     TOTP = "totp"
     SMS = "sms"
     HARDWARE = "hardware"
@@ -20,18 +21,20 @@ class MFAMethod(Enum):
 
 class MFALevel(Enum):
     """MFA security levels"""
-    BASIC = "basic"      # Single MFA method
+
+    BASIC = "basic"  # Single MFA method
     ENHANCED = "enhanced"  # Two MFA methods
-    MAXIMUM = "maximum"   # Three MFA methods
+    MAXIMUM = "maximum"  # Three MFA methods
 
 
 @dataclass
 class TOTPConfig:
     """TOTP-specific configuration"""
+
     algorithm: str = "SHA1"
     digits: int = 6
     period: int = 30  # seconds
-    window: int = 1   # time window for validation
+    window: int = 1  # time window for validation
     issuer: str = "Forensic Reconciliation Platform"
     secret_length: int = 32
 
@@ -39,6 +42,7 @@ class TOTPConfig:
 @dataclass
 class SMSConfig:
     """SMS-specific configuration"""
+
     provider: str = "twilio"  # Default SMS provider
     message_template: str = "Your verification code is: {code}"
     code_length: int = 6
@@ -50,6 +54,7 @@ class SMSConfig:
 @dataclass
 class HardwareConfig:
     """Hardware token configuration"""
+
     supported_types: list = None
     challenge_response: bool = True
     timeout_seconds: int = 30
@@ -59,116 +64,118 @@ class HardwareConfig:
 @dataclass
 class MFAConfig:
     """Main MFA configuration"""
-    
+
     # General settings
     enabled: bool = True
     required_for_all_users: bool = True
     methods: list = None
     default_level: MFALevel = MFALevel.ENHANCED
-    
+
     # TOTP configuration
     totp: TOTPConfig = None
-    
+
     # SMS configuration
     sms: SMSConfig = None
-    
+
     # Hardware token configuration
     hardware: HardwareConfig = None
-    
+
     # Security settings
     max_failed_attempts: int = 5
     lockout_duration_minutes: int = 15
     session_timeout_hours: int = 8
-    
+
     # Database settings
     db_connection_string: str = ""
     redis_connection_string: str = ""
-    
+
     # Logging
     log_level: str = "INFO"
     audit_logging: bool = True
-    
+
     def __post_init__(self):
         """Set default values after initialization"""
         if self.methods is None:
             self.methods = [MFAMethod.TOTP, MFAMethod.SMS]
-        
+
         if self.totp is None:
             self.totp = TOTPConfig()
-        
+
         if self.sms is None:
             self.sms = SMSConfig()
-        
+
         if self.hardware is None:
             self.hardware = HardwareConfig()
-    
+
     @classmethod
-    def from_environment(cls) -> 'MFAConfig':
+    def from_environment(cls) -> "MFAConfig":
         """Create configuration from environment variables"""
         config = cls()
-        
+
         # Override with environment variables
-        config.enabled = os.getenv('MFA_ENABLED', 'true').lower() == 'true'
-        config.required_for_all_users = os.getenv('MFA_REQUIRED_FOR_ALL', 'true').lower() == 'true'
-        
+        config.enabled = os.getenv("MFA_ENABLED", "true").lower() == "true"
+        config.required_for_all_users = (
+            os.getenv("MFA_REQUIRED_FOR_ALL", "true").lower() == "true"
+        )
+
         # TOTP settings
-        if os.getenv('TOTP_ALGORITHM'):
-            config.totp.algorithm = os.getenv('TOTP_ALGORITHM')
-        if os.getenv('TOTP_DIGITS'):
-            config.totp.digits = int(os.getenv('TOTP_DIGITS'))
-        if os.getenv('TOTP_PERIOD'):
-            config.totp.period = int(os.getenv('TOTP_PERIOD'))
-        
+        if os.getenv("TOTP_ALGORITHM"):
+            config.totp.algorithm = os.getenv("TOTP_ALGORITHM")
+        if os.getenv("TOTP_DIGITS"):
+            config.totp.digits = int(os.getenv("TOTP_DIGITS"))
+        if os.getenv("TOTP_PERIOD"):
+            config.totp.period = int(os.getenv("TOTP_PERIOD"))
+
         # SMS settings
-        if os.getenv('SMS_PROVIDER'):
-            config.sms.provider = os.getenv('SMS_PROVIDER')
-        if os.getenv('SMS_CODE_LENGTH'):
-            config.sms.code_length = int(os.getenv('SMS_CODE_LENGTH'))
-        
+        if os.getenv("SMS_PROVIDER"):
+            config.sms.provider = os.getenv("SMS_PROVIDER")
+        if os.getenv("SMS_CODE_LENGTH"):
+            config.sms.code_length = int(os.getenv("SMS_CODE_LENGTH"))
+
         # Database connections
-        if os.getenv('MFA_DB_CONNECTION'):
-            config.db_connection_string = os.getenv('MFA_DB_CONNECTION')
-        if os.getenv('MFA_REDIS_CONNECTION'):
-            config.redis_connection_string = os.getenv('MFA_REDIS_CONNECTION')
-        
+        if os.getenv("MFA_DB_CONNECTION"):
+            config.db_connection_string = os.getenv("MFA_DB_CONNECTION")
+        if os.getenv("MFA_REDIS_CONNECTION"):
+            config.redis_connection_string = os.getenv("MFA_REDIS_CONNECTION")
+
         return config
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary"""
         return {
-            'enabled': self.enabled,
-            'required_for_all_users': self.required_for_all_users,
-            'methods': [method.value for method in self.methods],
-            'default_level': self.default_level.value,
-            'totp': {
-                'algorithm': self.totp.algorithm,
-                'digits': self.totp.digits,
-                'period': self.totp.period,
-                'window': self.totp.window,
-                'issuer': self.totp.issuer,
-                'secret_length': self.totp.secret_length
+            "enabled": self.enabled,
+            "required_for_all_users": self.required_for_all_users,
+            "methods": [method.value for method in self.methods],
+            "default_level": self.default_level.value,
+            "totp": {
+                "algorithm": self.totp.algorithm,
+                "digits": self.totp.digits,
+                "period": self.totp.period,
+                "window": self.totp.window,
+                "issuer": self.totp.issuer,
+                "secret_length": self.totp.secret_length,
             },
-            'sms': {
-                'provider': self.sms.provider,
-                'message_template': self.sms.message_template,
-                'code_length': self.sms.code_length,
-                'expiration_minutes': self.sms.expiration_minutes,
-                'max_attempts': self.sms.max_attempts,
-                'cooldown_seconds': self.sms.cooldown_seconds
+            "sms": {
+                "provider": self.sms.provider,
+                "message_template": self.sms.message_template,
+                "code_length": self.sms.code_length,
+                "expiration_minutes": self.sms.expiration_minutes,
+                "max_attempts": self.sms.max_attempts,
+                "cooldown_seconds": self.sms.cooldown_seconds,
             },
-            'hardware': {
-                'supported_types': self.hardware.supported_types or [],
-                'challenge_response': self.hardware.challenge_response,
-                'timeout_seconds': self.hardware.timeout_seconds,
-                'max_retries': self.hardware.max_retries
+            "hardware": {
+                "supported_types": self.hardware.supported_types or [],
+                "challenge_response": self.hardware.challenge_response,
+                "timeout_seconds": self.hardware.timeout_seconds,
+                "max_retries": self.hardware.max_retries,
             },
-            'max_failed_attempts': self.max_failed_attempts,
-            'lockout_duration_minutes': self.lockout_duration_minutes,
-            'session_timeout_hours': self.session_timeout_hours,
-            'log_level': self.log_level,
-            'audit_logging': self.audit_logging
+            "max_failed_attempts": self.max_failed_attempts,
+            "lockout_duration_minutes": self.lockout_duration_minutes,
+            "session_timeout_hours": self.session_timeout_hours,
+            "log_level": self.log_level,
+            "audit_logging": self.audit_logging,
         }
-    
+
     def validate(self) -> bool:
         """Validate configuration settings"""
         try:
@@ -176,21 +183,35 @@ class MFAConfig:
             if MFAMethod.TOTP in self.methods:
                 assert self.totp.digits in [6, 8], "TOTP digits must be 6 or 8"
                 assert self.totp.period >= 15, "TOTP period must be at least 15 seconds"
-                assert self.totp.algorithm in ["SHA1", "SHA256", "SHA512"], "Invalid TOTP algorithm"
-            
+                assert self.totp.algorithm in [
+                    "SHA1",
+                    "SHA256",
+                    "SHA512",
+                ], "Invalid TOTP algorithm"
+
             # Validate SMS settings
             if MFAMethod.SMS in self.methods:
-                assert self.sms.code_length >= 4, "SMS code length must be at least 4 digits"
-                assert self.sms.expiration_minutes >= 1, "SMS expiration must be at least 1 minute"
+                assert (
+                    self.sms.code_length >= 4
+                ), "SMS code length must be at least 4 digits"
+                assert (
+                    self.sms.expiration_minutes >= 1
+                ), "SMS expiration must be at least 1 minute"
                 assert self.sms.max_attempts >= 1, "SMS max attempts must be at least 1"
-            
+
             # Validate general settings
-            assert self.max_failed_attempts >= 1, "Max failed attempts must be at least 1"
-            assert self.lockout_duration_minutes >= 1, "Lockout duration must be at least 1 minute"
-            assert self.session_timeout_hours >= 1, "Session timeout must be at least 1 hour"
-            
+            assert (
+                self.max_failed_attempts >= 1
+            ), "Max failed attempts must be at least 1"
+            assert (
+                self.lockout_duration_minutes >= 1
+            ), "Lockout duration must be at least 1 minute"
+            assert (
+                self.session_timeout_hours >= 1
+            ), "Session timeout must be at least 1 hour"
+
             return True
-            
+
         except AssertionError as e:
             print(f"Configuration validation failed: {e}")
             return False

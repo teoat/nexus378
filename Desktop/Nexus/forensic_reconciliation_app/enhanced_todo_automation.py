@@ -4,18 +4,23 @@ Enhanced TODO Automation System with Auto-Detection
 Integrates automatic TODO detection with the existing automation system.
 """
 
-import asyncio
-import time
 import logging
-from typing import Dict, List, Optional, Any
-from pathlib import Path
+import time
 import uuid
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import asyncio
+
+# Import existing automation system
+from ai_service.agents.todo_automation_enhanced import (
+    TodoAutomationSystem,
+    TodoItem,
+    TodoStatus,
+)
 
 # Import the auto-detector
 from auto_todo_detector import AutoTODODetector, ComponentType, ImplementationStatus
-
-# Import existing automation system
-from ai_service.agents.todo_automation_enhanced import TodoAutomationSystem, TodoItem, TodoStatus
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +35,14 @@ class EnhancedTodoAutomation:
         
         logger.info("Enhanced TODO Automation initialized")
     
-    def start_auto_detection_session(self, description: str = "Enhanced TODO Automation with Auto-Detection") -> str:
+    def start_auto_detection_session(
+    self,
+    description: str = "Enhanced TODO Automation with Auto-Detection"
+)
         """Start a new auto-detection session"""
-        self.mcp_session_id = self.auto_detector.start_implementation_session(description)
+        self.mcp_session_id = (
+    self.auto_detector.start_implementation_session(description)
+)
         logger.info(f"Auto-detection session started: {self.mcp_session_id}")
         return self.mcp_session_id
     
@@ -57,7 +67,9 @@ class EnhancedTodoAutomation:
         
         # Step 4: Add to automation system
         print("➕ Step 4: Adding TODOs to automation system...")
-        added_count = await self._add_todos_to_automation_system(converted_todos, max_todos)
+        added_count = (
+    await self._add_todos_to_automation_system(converted_todos, max_todos)
+)
         print(f"  Added {added_count} TODOs to automation system")
         
         # Step 5: Run automation on new TODOs
@@ -66,7 +78,9 @@ class EnhancedTodoAutomation:
         
         # Step 6: Generate comprehensive report
         print("📊 Step 6: Generating comprehensive report...")
-        report = self._generate_comprehensive_report(components, auto_todos, automation_results)
+        report = (
+    self._generate_comprehensive_report(components, auto_todos, automation_results)
+)
         
         return report
     
@@ -135,7 +149,9 @@ class EnhancedTodoAutomation:
         
         # Sort by priority (critical first)
         priority_order = ["critical", "high", "medium", "low", "lowest"]
-        sorted_todos = sorted(converted_todos, key=lambda x: priority_order.index(x["priority"]))
+        sorted_todos = (
+    sorted(converted_todos, key=lambda x: priority_order.index(x["priority"]))
+)
         
         for todo in sorted_todos[:max_todos]:
             try:
@@ -213,7 +229,13 @@ class EnhancedTodoAutomation:
         
         return report
     
-    def _generate_recommendations(self, scan_summary: Dict[str, Any], auto_todos: Dict[str, Any]) -> List[str]:
+    def _generate_recommendations(
+    self,
+    scan_summary: Dict[str,
+    Any],
+    auto_todos: Dict[str,
+    Any]
+)
         """Generate recommendations based on scan results"""
         recommendations = []
         
@@ -223,23 +245,34 @@ class EnhancedTodoAutomation:
             recommendations.append(f"Focus on {len(critical_todos)} critical priority TODOs first")
         
         # Type-based recommendations
-        infrastructure_todos = [todo for todo in auto_todos.values() if todo.component_type in [ComponentType.LOAD_BALANCER, ComponentType.DATABASE]]
+        infrastructure_todos = (
+    [todo for todo in auto_todos.values() if todo.component_type in [ComponentType.LOAD_BALANCER, ComponentType.DATABASE]]
+)
         if infrastructure_todos:
             recommendations.append(f"Prioritize {len(infrastructure_todos)} infrastructure components for system stability")
         
         # Time-based recommendations
         total_hours = scan_summary["estimated_total_hours"]
         if total_hours > 40:
-            recommendations.append(f"Total estimated work: {total_hours:.1f} hours - consider parallel development")
+            recommendations.append(
+    f"Total estimated work: {total_hours:.1f} hours - consider parallel development",
+)
         
         # Status-based recommendations
         not_implemented = scan_summary["components_by_status"].get("not_implemented", 0)
         if not_implemented > 0:
-            recommendations.append(f"Focus on {not_implemented} unimplemented components before enhancements")
+            recommendations.append(
+    f"Focus on {not_implemented} unimplemented components before enhancements",
+)
         
         return recommendations
     
-    def export_workflow_report(self, report: Dict[str, Any], format: str = "markdown") -> str:
+    def export_workflow_report(
+    self,
+    report: Dict[str,
+    Any],
+    format: str = "markdown"
+)
         """Export workflow report in specified format"""
         if format.lower() == "json":
             return self._export_json_report(report)
@@ -273,7 +306,9 @@ class EnhancedTodoAutomation:
             # Auto-detection results
             f.write("## 🔍 Auto-Detection Results\n\n")
             auto_detection = report['auto_detection_results']
-            f.write(f"- **Total Components Detected:** {auto_detection['total_components_detected']}\n")
+            f.write(
+    f"- **Total Components Detected:** {auto_detection['total_components_detected']}\n",
+)
             
             f.write("\n### Components by Status:\n")
             for status, count in auto_detection['components_by_status'].items():
@@ -286,8 +321,12 @@ class EnhancedTodoAutomation:
             # Auto-TODO generation
             f.write("\n## 📝 Auto-TODO Generation\n\n")
             auto_todo = report['auto_todo_generation']
-            f.write(f"- **Total TODOs Generated:** {auto_todo['total_todos_generated']}\n")
-            f.write(f"- **Estimated Total Hours:** {auto_todo['estimated_total_hours']:.1f}\n")
+            f.write(
+    f"- **Total TODOs Generated:** {auto_todo['total_todos_generated']}\n",
+)
+            f.write(
+    f"- **Estimated Total Hours:** {auto_todo['estimated_total_hours']:.1f}\n",
+)
             
             f.write("\n### TODOs by Priority:\n")
             for priority, count in auto_todo['todos_by_priority'].items():
@@ -296,7 +335,9 @@ class EnhancedTodoAutomation:
             # Automation integration
             f.write("\n## 🚀 Automation Integration\n\n")
             automation = report['automation_integration']
-            f.write(f"- **TODOs Added to System:** {automation['todos_added_to_system']}\n")
+            f.write(
+    f"- **TODOs Added to System:** {automation['todos_added_to_system']}\n",
+)
             
             # Recommendations
             f.write("\n## 💡 Recommendations\n\n")
@@ -316,7 +357,9 @@ async def test_enhanced_todo_automation():
     enhanced_automation = EnhancedTodoAutomation()
     
     # Start auto-detection session
-    session_id = enhanced_automation.start_auto_detection_session("Enhanced TODO Automation Testing")
+    session_id = (
+    enhanced_automation.start_auto_detection_session("Enhanced TODO Automation Testing")
+)
     print(f"📋 Auto-detection session started: {session_id}")
     
     # Run the complete workflow

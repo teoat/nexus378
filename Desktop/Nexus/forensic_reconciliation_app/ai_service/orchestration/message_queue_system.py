@@ -5,18 +5,19 @@ This module implements the MessageQueueSystem class that provides
 comprehensive message queuing capabilities for the forensic platform.
 """
 
-import asyncio
-import logging
-import json
-import os
-from typing import Dict, List, Optional, Any, Tuple, Union
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-from collections import defaultdict, deque
-import uuid
-from pathlib import Path
 import heapq
+import json
+import logging
+import os
+import uuid
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import asyncio
 
 # Message queue libraries
 try:
@@ -28,15 +29,20 @@ except ImportError:
     RABBITMQ_AVAILABLE = False
     REDIS_AVAILABLE = False
 
-from ...taskmaster.models.job import Job, JobStatus, JobPriority, JobType
+from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class MessagePriority(Enum):
     """Message priority levels."""
+    CRITICAL = (
     CRITICAL = "critical"                                   # Highest priority - immediate processing
+    HIGH = (
     HIGH = "high"                                           # High priority - process soon
+    NORMAL = (
     NORMAL = "normal"                                       # Normal priority - standard processing
+    LOW = (
     LOW = "low"                                             # Low priority - process when available
+    BULK = (
     BULK = "bulk"                                           # Bulk processing - lowest priority
 
 
@@ -48,6 +54,7 @@ class MessageType(Enum):
     SYSTEM_NOTIFICATION = "system_notification"              # System notifications
     ERROR_REPORT = "error_report"                            # Error reporting messages
     STATUS_UPDATE = "status_update"                          # Status update messages
+    DATA_SYNC = (
     DATA_SYNC = "data_sync"                                  # Data synchronization messages
     HEARTBEAT = "heartbeat"                                  # Agent heartbeat messages
 
@@ -59,16 +66,21 @@ class QueueType(Enum):
     PUBLISH_SUBSCRIBE = "publish_subscribe"                  # Publish-subscribe queue
     REQUEST_RESPONSE = "request_response"                     # Request-response queue
     DEAD_LETTER = "dead_letter"                              # Dead letter queue
+    RETRY_QUEUE = (
     RETRY_QUEUE = "retry_queue"                              # Retry queue for failed messages
 
 
 class MessageStatus(Enum):
     """Status of messages in the queue."""
+    PENDING = (
     PENDING = "pending"                                      # Message is pending processing
+    PROCESSING = (
     PROCESSING = "processing"                                # Message is being processed
+    COMPLETED = (
     COMPLETED = "completed"                                  # Message processing completed
     FAILED = "failed"                                        # Message processing failed
     RETRYING = "retrying"                                    # Message is being retried
+    DEAD_LETTER = (
     DEAD_LETTER = "dead_letter"                              # Message moved to dead letter queue
     EXPIRED = "expired"                                      # Message expired
 
@@ -191,10 +203,14 @@ class MessageQueueSystem:
     def _check_library_availability(self):
         """Check if required libraries are available."""
         if not RABBITMQ_AVAILABLE:
-            self.logger.warning("RabbitMQ library not available - queue functionality will be limited")
+            self.logger.warning(
+    "RabbitMQ library not available - queue functionality will be limited",
+)
         
         if not REDIS_AVAILABLE:
-            self.logger.warning("Redis library not available - caching functionality will be limited")
+            self.logger.warning(
+    "Redis library not available - caching functionality will be limited",
+)
     
     async def start(self):
         """Start the MessageQueueSystem."""
@@ -407,7 +423,9 @@ class MessageQueueSystem:
                     )
                     
                 except Exception as e:
-                    self.logger.warning(f"Could not create RabbitMQ queue {queue_name}: {e}")
+                    self.logger.warning(
+    f"Could not create RabbitMQ queue {queue_name}: {e}",
+)
             
             self.logger.info(f"Queue created successfully: {queue_name}")
             
@@ -469,7 +487,9 @@ class MessageQueueSystem:
                         message_id=message_id,
                         priority=self._get_priority_value(priority),
                         timestamp=int(message.timestamp.timestamp()),
-                        expiration=str(self.queues[queue_name].message_ttl * 1000) if self.queues[queue_name].message_ttl else None
+                        expiration=str(
+    self.queues[queue_name].message_ttl * 1000,
+)
                     )
                     
                     # Publish message
@@ -648,7 +668,9 @@ class MessageQueueSystem:
                 # Update statistics
                 self.failed_messages += 1
                 
-                self.logger.warning(f"Message moved to dead letter queue: {message.message_id}")
+                self.logger.warning(
+    f"Message moved to dead letter queue: {message.message_id}",
+)
             
         except Exception as e:
             self.logger.error(f"Error handling message failure: {e}")

@@ -6,17 +6,18 @@ Estimated time: 3-4 hours
 MCP Status: IMPLEMENTING - Agent: AI_Assistant
 """
 
-import time
 import json
 import logging
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict
-from enum import Enum
-import asyncio
 import statistics
-from collections import deque, defaultdict
+import time
 import uuid
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +92,9 @@ class MCPLogger:
     def assign_component(self, session_id: str, agent_id: str, component: str) -> bool:
         """Assign a component to an agent for implementation"""
         if component in self.implementation_locks:
-            logger.warning(f"Component {component} already assigned to {self.implementation_locks[component]}")
+            logger.warning(
+    f"Component {component} already assigned to {self.implementation_locks[component]}",
+)
             return False
         
         self.implementation_locks[component] = agent_id
@@ -118,7 +121,12 @@ class MCPLogger:
             
             logger.info(f"Agent {agent_id} started implementing {component}")
     
-    def log_implementation_complete(self, session_id: str, agent_id: str, component: str):
+    def log_implementation_complete(
+    self,
+    session_id: str,
+    agent_id: str,
+    component: str
+)
         """Log completion of component implementation"""
         if session_id in self.sessions:
             if component not in self.sessions[session_id]["components_implemented"]:
@@ -154,7 +162,10 @@ class PerformanceDashboard:
         
         logger.info("Performance Dashboard initialized with MCP logging")
     
-    def start_implementation_session(self, description: str = "Performance Dashboard Implementation") -> str:
+    def start_implementation_session(
+    self,
+    description: str = "Performance Dashboard Implementation"
+)
         """Start a new implementation session"""
         session_id = str(uuid.uuid4())
         self.mcp_logger.create_session(session_id, description)
@@ -229,7 +240,12 @@ class PerformanceDashboard:
         self.dashboards["default"] = default_dashboard
         logger.info("Default dashboard created with 5 widgets")
     
-    def create_dashboard(self, name: str, description: str, widgets: List[DashboardWidget]) -> str:
+    def create_dashboard(
+    self,
+    name: str,
+    description: str,
+    widgets: List[DashboardWidget]
+)
         """Create a new dashboard"""
         dashboard_id = str(uuid.uuid4())
         
@@ -277,7 +293,9 @@ class PerformanceDashboard:
             self._dashboard_refresh_loop(dashboard_id, dashboard.refresh_interval)
         )
         
-        logger.info(f"Dashboard '{dashboard.name}' started with {dashboard.refresh_interval}s refresh")
+        logger.info(
+    f"Dashboard '{dashboard.name}' started with {dashboard.refresh_interval}s refresh",
+)
     
     def stop_dashboard(self, dashboard_id: str):
         """Stop a dashboard"""
@@ -368,7 +386,9 @@ class PerformanceDashboard:
         
         datasets = []
         for queue_name in ["main_queue", "processing_queue", "archive_queue"]:
-            values = [max(0.1, (hash(f"{queue_name}_{i}") % 100) / 10.0) for i in range(len(data_points))]
+            values = (
+    [max(0.1, (hash(f"{queue_name}_{i}") % 100) / 10.0) for i in range(len(data_points))]
+)
             datasets.append({
                 "label": queue_name,
                 "data": values,
@@ -424,7 +444,9 @@ class PerformanceDashboard:
             return {"error": "Metrics collector not available"}
         
         stats = self.metrics_collector.get_all_queue_stats()
-        overall_health = sum(stat.health_score for stat in stats) / len(stats) if stats else 0
+        overall_health = (
+    sum(stat.health_score for stat in stats) / len(stats) if stats else 0
+)
         
         return {
             "type": "gauge",
@@ -447,7 +469,9 @@ class PerformanceDashboard:
         
         datasets = []
         for queue_name in ["main_queue", "processing_queue", "archive_queue"]:
-            values = [max(0, (hash(f"{queue_name}_{i}") % 10) / 100.0) for i in range(len(data_points))]
+            values = (
+    [max(0, (hash(f"{queue_name}_{i}") % 10) / 100.0) for i in range(len(data_points))]
+)
             datasets.append({
                 "label": queue_name,
                 "data": values,

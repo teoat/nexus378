@@ -6,19 +6,20 @@ Estimated time: 1-2 hours
 MCP Status: IMPLEMENTING - Agent: AI_Assistant
 """
 
-import time
 import json
 import logging
-from typing import Dict, List, Optional, Any, Callable
-from dataclasses import dataclass, asdict
-from enum import Enum
-import asyncio
 import smtplib
-import requests
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import time
 import uuid
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+import asyncio
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,9 @@ class MCPLogger:
     def assign_component(self, session_id: str, agent_id: str, component: str) -> bool:
         """Assign a component to an agent for implementation"""
         if component in self.implementation_locks:
-            logger.warning(f"Component {component} already assigned to {self.implementation_locks[component]}")
+            logger.warning(
+    f"Component {component} already assigned to {self.implementation_locks[component]}",
+)
             return False
         
         self.implementation_locks[component] = agent_id
@@ -135,7 +138,12 @@ class MCPLogger:
             
             logger.info(f"Agent {agent_id} started implementing {component}")
     
-    def log_implementation_complete(self, session_id: str, agent_id: str, component: str):
+    def log_implementation_complete(
+    self,
+    session_id: str,
+    agent_id: str,
+    component: str
+)
         """Log completion of component implementation"""
         if session_id in self.sessions:
             if component not in self.sessions[session_id]["components_implemented"]:
@@ -173,7 +181,10 @@ class AlertSystem:
         
         logger.info("Alert System initialized with MCP logging")
     
-    def start_implementation_session(self, description: str = "Alert System Implementation") -> str:
+    def start_implementation_session(
+    self,
+    description: str = "Alert System Implementation"
+)
         """Start a new implementation session"""
         session_id = str(uuid.uuid4())
         self.mcp_logger.create_session(session_id, description)
@@ -307,7 +318,9 @@ class AlertSystem:
                 # Send notifications
                 self._send_notifications(alert)
                 
-                logger.info(f"Alert triggered: {rule.name} - {metric_value} {rule.condition} {rule.threshold}")
+                logger.info(
+    f"Alert triggered: {rule.name} - {metric_value} {rule.condition} {rule.threshold}",
+)
     
     def _is_rule_in_cooldown(self, rule_id: str, cooldown_minutes: int) -> bool:
         """Check if rule is in cooldown period"""
@@ -316,12 +329,18 @@ class AlertSystem:
         
         # Check recent alerts for this rule
         for alert in self.alert_history[-10:]:  # Check last 10 alerts
-            if alert.rule_id == rule_id and alert.created_at > current_time - cooldown_seconds:
+                if alert.rule_id == rule_id and
+    alert.created_at > current_time - cooldown_seconds:
                 return True
         
         return False
     
-    def _get_metric_value(self, metric_name: str, metrics_data: Dict[str, Any]) -> Optional[float]:
+    def _get_metric_value(
+    self,
+    metric_name: str,
+    metrics_data: Dict[str,
+    Any]
+)
         """Extract metric value from metrics data"""
         try:
             if metric_name == "queue_size":
@@ -339,7 +358,12 @@ class AlertSystem:
         except (ValueError, TypeError):
             return None
     
-    def _evaluate_condition(self, value: float, condition: str, threshold: float) -> bool:
+    def _evaluate_condition(
+    self,
+    value: float,
+    condition: str,
+    threshold: float
+)
         """Evaluate alert condition"""
         if condition == ">":
             return value > threshold
@@ -517,7 +541,10 @@ class AlertSystem:
         else:
             logger.error(f"Alert {alert_id} not found")
     
-    def get_active_alerts(self, severity: Optional[AlertSeverity] = None) -> List[Alert]:
+    def get_active_alerts(
+    self,
+    severity: Optional[AlertSeverity] = None
+)
         """Get active alerts, optionally filtered by severity"""
         alerts = list(self.active_alerts.values())
         if severity:
@@ -566,7 +593,9 @@ class AlertSystem:
             return
         
         self.is_monitoring = True
-        self.monitoring_task = asyncio.create_task(self._monitoring_loop(interval_seconds))
+        self.monitoring_task = (
+    asyncio.create_task(self._monitoring_loop(interval_seconds))
+)
         logger.info(f"Alert monitoring started with {interval_seconds}s interval")
     
     def stop_monitoring(self):
@@ -687,7 +716,10 @@ def test_alert_system():
         for alert in active_alerts:
             rule = alert_system.alert_rules.get(alert.rule_id, {})
             print(f"    - {rule.get('name', 'Unknown')}: {alert.message}")
-            print(f"      Severity: {alert.severity.value}, Status: {alert.status.value}")
+            print(
+    f"      Severity: {alert.severity.value},
+    Status: {alert.status.value}"
+)
         
         # Get alert summary
         print("\n📈 Alert System Summary:")
@@ -709,4 +741,10 @@ def test_alert_system():
 if __name__ == "__main__":
     # Run the test
     test_alert_system()
-import time, json, logging, asyncio, uuid, requests
+import json
+import logging
+import time
+import uuid
+
+import asyncio
+import requests

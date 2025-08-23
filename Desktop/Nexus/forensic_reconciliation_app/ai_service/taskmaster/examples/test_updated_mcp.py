@@ -3,8 +3,9 @@
 Test Updated MCP Server - Verify the updated priority TODO list and functionality
 """
 
-import asyncio
 import logging
+
+import asyncio
 
 # Import the MCP server
 from core.mcp_server import mcp_server
@@ -17,16 +18,16 @@ logger = logging.getLogger(__name__)
 async def test_updated_mcp():
     """Test the updated MCP server functionality"""
     logger.info("🧪 Testing Updated MCP Server")
-    
+
     # Get system status
     status = await mcp_server.get_system_status()
     logger.info(f"System Status: {status}")
-    
+
     # Get priority TODO summary
     try:
         priority_summary = await mcp_server.get_priority_todo_summary()
         logger.info(f"Priority TODO Summary: {priority_summary}")
-        
+
         # Show individual tasks
         logger.info("\n📋 Current Priority TODO Items:")
         for task in priority_summary.get("tasks", []):
@@ -35,10 +36,10 @@ async def test_updated_mcp():
             logger.info(f"    Duration: {task['estimated_duration']}")
             logger.info(f"    Status: {task['status']}")
             logger.info("")
-            
+
     except Exception as e:
         logger.error(f"Error getting priority summary: {e}")
-    
+
     # Show all tasks
     logger.info("\n🔍 All Tasks in MCP Server:")
     for task_id, task in mcp_server.tasks.items():
@@ -48,7 +49,7 @@ async def test_updated_mcp():
         logger.info(f"    Priority: {task.priority.value}")
         logger.info(f"    Required Capabilities: {task.required_capabilities}")
         logger.info("")
-    
+
     logger.info("✅ MCP Server Test Completed!")
 
 

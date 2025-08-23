@@ -3,9 +3,11 @@ Example Plugin for the Forensic Reconciliation Platform
 """
 
 import logging
+
 from .plugin_interface import PluginInterface
 
 logger = logging.getLogger(__name__)
+
 
 class ExamplePlugin(PluginInterface):
     """
@@ -33,6 +35,7 @@ class ExamplePlugin(PluginInterface):
         """
         logger.info("ExamplePlugin: Unloaded!")
         # In a real plugin, you would clean up resources here.
+
 
 # Note: The PluginManager will automatically discover and instantiate classes
 # that inherit from PluginInterface in this file. You can have multiple

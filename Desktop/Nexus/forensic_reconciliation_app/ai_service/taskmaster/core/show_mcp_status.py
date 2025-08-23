@@ -5,6 +5,7 @@ Show MCP System Status after DuckDB Task Completion
 
 from simple_registry import SimpleTaskRegistry
 
+
 def main():
     """Show current MCP system status"""
     print("🔍 MCP SYSTEM STATUS - DUCKDB TASK COMPLETED")
@@ -15,9 +16,15 @@ def main():
     
     # Show overall statistics
     total_todos = len(registry.priority_todos)
-    completed_todos = sum(1 for todo in registry.priority_todos if todo["status"] == "completed")
-    pending_todos = sum(1 for todo in registry.priority_todos if todo["status"] == "pending")
-    overall_progress = sum(todo["progress"] for todo in registry.priority_todos) / total_todos
+    completed_todos = sum(
+    1 for todo in registry.priority_todos if todo["status"] == "completed",
+)
+    pending_todos = sum(
+    1 for todo in registry.priority_todos if todo["status"] == "pending",
+)
+    overall_progress = sum(
+    todo["progress"] for todo in registry.priority_todos,
+)
     
     print(f"Total Priority TODOs: {total_todos}")
     print(f"Completed: {completed_todos}")
@@ -29,7 +36,9 @@ def main():
     for todo in registry.priority_todos:
         if todo["status"] == "completed":
             print(f"  - {todo['name']} ({todo['mcp_status']})")
-            print(f"    Progress: {todo['progress']}% | Agent: {todo['assigned_agent']}")
+            print(
+    f"    Progress: {todo['progress']}% | Agent: {todo['assigned_agent']}",
+)
             if 'completion_notes' in todo:
                 print(f"    Notes: {todo['completion_notes']}")
     
@@ -42,8 +51,12 @@ def main():
     
     # Show next priority tasks
     print("\n🎯 NEXT PRIORITY TASKS:")
-    critical_tasks = [todo for todo in registry.priority_todos if todo["priority"] == "CRITICAL" and todo["status"] == "pending"]
-    high_tasks = [todo for todo in registry.priority_todos if todo["priority"] == "HIGH" and todo["status"] == "pending"]
+    critical_tasks = (
+    [todo for todo in registry.priority_todos if todo["priority"] == "CRITICAL" and todo["status"] == "pending"]
+)
+    high_tasks = (
+    [todo for todo in registry.priority_todos if todo["priority"] == "HIGH" and todo["status"] == "pending"]
+)
     
     if critical_tasks:
         print("  🔴 CRITICAL Priority:")

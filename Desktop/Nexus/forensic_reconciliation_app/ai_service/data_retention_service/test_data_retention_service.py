@@ -1,10 +1,13 @@
-import os
 import datetime
+import os
 import time
+
 from fastapi.testclient import TestClient
+
 from .main import app
 
 client = TestClient(app)
+
 
 def test_apply_retention():
     test_dir = "test_retention_dir"

@@ -1,783 +1,1099 @@
 """
-Help Agent RAG System - Retrieval-Augmented Generation for Interactive Guidance
+Help Agent RAG System - Interactive Guidance and Knowledge Management
 
 This module implements the HelpAgent class that provides
-comprehensive help and guidance capabilities using RAG technology
-for the forensic platform.
+comprehensive help and guidance capabilities for the forensic platform.
 """
 
-import asyncio
-import logging
+import hashlib
 import json
-from typing import Dict, List, Optional, Any, Tuple, Union
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-from collections import defaultdict, deque
+import logging
+import re
+import time
 import uuid
-import numpy as np
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
 from pathlib import Path
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import openai
-import tiktoken
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ...taskmaster.models.job import Job, JobStatus, JobPriority, JobType
+import asyncio
+
+from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
-class QueryType(Enum):
-    """Types of user queries."""
-    GENERAL_HELP = "general_help"                           # General help questions
-    WORKFLOW_GUIDANCE = "workflow_guidance"                  # Workflow guidance
-    TECHNICAL_SUPPORT = "technical_support"                  # Technical support
-    FEATURE_EXPLANATION = "feature_explanation"             # Feature explanation
-    ERROR_TROUBLESHOOTING = "error_troubleshooting"          # Error troubleshooting
-    BEST_PRACTICES = "best_practices"                        # Best practices
-    TUTORIAL_REQUEST = "tutorial_request"                    # Tutorial requests
-    REFERENCE_LOOKUP = "reference_lookup"                    # Reference lookups
+class HelpCategory(Enum):
+    """Categories of help content."""
+
+    GETTING_STARTED = "getting_started"  # Platform introduction
+    USER_GUIDE = "user_guide"  # User manual and guides
+    TROUBLESHOOTING = "troubleshooting"  # Problem solving
+    BEST_PRACTICES = "best_practices"  # Recommended practices
+    API_REFERENCE = "api_reference"  # API documentation
+    WORKFLOW_GUIDES = "workflow_guides"  # Process workflows
+    SECURITY = "security"  # Security guidelines
+    COMPLIANCE = "compliance"  # Compliance information
+    CUSTOM = "custom"  # Custom help content
 
 
-class ResponseType(Enum):
-    """Types of responses."""
-    DIRECT_ANSWER = "direct_answer"                          # Direct answer to question
-    STEP_BY_STEP = "step_by_step"                           # Step-by-step guidance
-    REFERENCE_LINK = "reference_link"                        # Reference to documentation
-    TUTORIAL_CONTENT = "tutorial_content"                    # Tutorial content
-    ERROR_SOLUTION = "error_solution"                        # Error solution
-    BEST_PRACTICE_TIP = "best_practice_tip"                  # Best practice tip
-    WORKFLOW_SUGGESTION = "workflow_suggestion"              # Workflow suggestion
+class ContentType(Enum):
+    """Types of help content."""
+
+    TEXT = "text"  # Plain text content
+    MARKDOWN = "markdown"  # Markdown formatted
+    HTML = "html"  # HTML content
+    VIDEO = "video"  # Video tutorials
+    INTERACTIVE = "interactive"  # Interactive guides
+    FAQ = "faq"  # Frequently asked questions
+    TUTORIAL = "tutorial"  # Step-by-step tutorials
+    REFERENCE = "reference"  # Reference material
+
+
+class SearchType(Enum):
+    """Types of search operations."""
+
+    KEYWORD = "keyword"  # Keyword-based search
+    SEMANTIC = "semantic"  # Semantic search
+    FUZZY = "fuzzy"  # Fuzzy matching
+    CATEGORY = "category"  # Category-based search
+    TAG = "tag"  # Tag-based search
+    CONTEXT = "context"  # Context-aware search
 
 
 @dataclass
-class KnowledgeBaseEntry:
-    """A knowledge base entry."""
-    
-    entry_id: str
+class HelpContent:
+    """A piece of help content."""
+
+    content_id: str
     title: str
     content: str
-    category: str
+    content_type: ContentType
+    category: HelpCategory
     tags: List[str]
-    created_date: datetime
+    author: str
+    creation_date: datetime
     last_updated: datetime
-    source: str
-    confidence_score: float
+    version: str
+    language: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class SearchResult:
+    """Result of a help search."""
+
+    result_id: str
+    content_id: str
+    title: str
+    snippet: str
+    relevance_score: float
+    category: HelpCategory
+    content_type: ContentType
+    tags: List[str]
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class UserQuery:
     """A user query for help."""
-    
+
     query_id: str
     user_id: str
     query_text: str
-    query_type: QueryType
+    search_type: SearchType
     context: Dict[str, Any]
     timestamp: datetime
-    priority: str
+    results_returned: int
+    user_feedback: Optional[str]
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
-class HelpResponse:
-    """A help response to a user query."""
-    
-    response_id: str
-    query_id: str
-    response_type: ResponseType
-    response_content: str
-    confidence_score: float
-    source_entries: List[str]
-    generated_timestamp: datetime
-    metadata: Dict[str, Any] = field(default_factory=dict)
+class InteractiveGuide:
+    """An interactive help guide."""
 
-
-@dataclass
-class WorkflowStep:
-    """A step in a workflow guidance."""
-    
-    step_id: str
-    step_number: int
-    step_title: str
-    step_description: str
-    step_instructions: List[str]
-    expected_outcome: str
-    prerequisites: List[str]
-    estimated_time: int  # minutes
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class WorkflowGuide:
-    """A complete workflow guide."""
-    
     guide_id: str
-    guide_title: str
-    guide_description: str
-    workflow_steps: List[WorkflowStep]
-    total_estimated_time: int  # minutes
-    difficulty_level: str
-    prerequisites: List[str]
-    created_date: datetime
+    title: str
+    description: str
+    steps: List[Dict[str, Any]]
+    current_step: int
+    user_progress: Dict[str, Any]
+    completion_status: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class HelpMetrics:
+    """Metrics for help system performance."""
+
+    total_content_items: int
+    total_queries: int
+    successful_searches: int
+    average_response_time: float
+    user_satisfaction: float
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class HelpAgent:
     """
-    Comprehensive help and guidance system using RAG technology.
-    
+    Comprehensive help and guidance system.
+
     The HelpAgent is responsible for:
-    - Processing user queries and requests for help
-    - Retrieving relevant information from knowledge base
-    - Generating contextual responses using RAG
-    - Providing workflow guidance and tutorials
-    - Supporting interactive help sessions
+    - Managing help content and knowledge base
+    - Providing intelligent search and retrieval
+    - Supporting interactive guidance and tutorials
+    - Managing user queries and feedback
+    - Supporting multiple languages and content types
     """
-    
+
     def __init__(self, config: Dict[str, Any]):
         """Initialize the HelpAgent."""
         self.config = config
         self.logger = logging.getLogger(__name__)
-        
+
         # Configuration
-        self.knowledge_base_path = config.get('knowledge_base_path', './knowledge_base')
-        self.max_response_length = config.get('max_response_length', 2000)
-        self.similarity_threshold = config.get('similarity_threshold', 0.7)
-        self.max_retrieved_entries = config.get('max_retrieved_entries', 5)
-        
-        # Knowledge base management
-        self.knowledge_entries: Dict[str, KnowledgeBaseEntry] = {}
-        self.entry_index: Dict[str, List[str]] = defaultdict(list)
-        self.vectorizer: Optional[TfidfVectorizer] = None
-        self.entry_vectors: Optional[np.ndarray] = None
-        
-        # Query processing
+        self.enable_semantic_search = config.get("enable_semantic_search", True)
+        self.enable_fuzzy_search = config.get("enable_fuzzy_search", True)
+        self.max_search_results = config.get("max_search_results", 20)
+        self.supported_languages = config.get(
+            "supported_languages", ["en", "es", "fr", "de"]
+        )
+
+        # Content management
+        self.help_content: Dict[str, HelpContent] = {}
+        self.content_index: Dict[str, List[str]] = defaultdict(list)
+        self.tag_index: Dict[str, List[str]] = defaultdict(list)
+        self.category_index: Dict[HelpCategory, List[str]] = defaultdict(list)
+
+        # Search and retrieval
+        self.search_history: Dict[str, List[str]] = defaultdict(list)
         self.user_queries: Dict[str, UserQuery] = {}
-        self.help_responses: Dict[str, HelpResponse] = {}
-        self.query_history: Dict[str, List[str]] = defaultdict(list)
-        
-        # Workflow management
-        self.workflow_guides: Dict[str, WorkflowGuide] = {}
-        self.workflow_templates: Dict[str, str] = {}
-        
+        self.query_feedback: Dict[str, List[str]] = defaultdict(list)
+
+        # Interactive guides
+        self.interactive_guides: Dict[str, InteractiveGuide] = {}
+        self.user_progress: Dict[str, Dict[str, Any]] = defaultdict(dict)
+
         # Performance tracking
-        self.total_queries_processed = 0
-        self.total_responses_generated = 0
-        self.average_response_time = 0.0
-        
+        self.total_content_items = 0
+        self.total_queries = 0
+        self.successful_searches = 0
+        self.total_response_time = 0.0
+
         # Event loop
         self.loop = asyncio.get_event_loop()
-        
-        # Initialize knowledge base
-        self._initialize_knowledge_base()
-        
+
+        # Initialize help agent components
+        self._initialize_help_agent_components()
+
         self.logger.info("HelpAgent initialized successfully")
-    
+
     async def start(self):
         """Start the HelpAgent."""
         self.logger.info("Starting HelpAgent...")
-        
-        # Initialize help components
-        await self._initialize_help_components()
-        
+
+        # Initialize help agent components
+        await self._initialize_help_agent_components()
+
         # Start background tasks
-        asyncio.create_task(self._update_knowledge_base())
-        asyncio.create_task(self._cleanup_old_data())
-        
+        asyncio.create_task(self._update_content_index())
+        asyncio.create_task(self._analyze_user_feedback())
+
         self.logger.info("HelpAgent started successfully")
-    
+
     async def stop(self):
         """Stop the HelpAgent."""
         self.logger.info("Stopping HelpAgent...")
         self.logger.info("HelpAgent stopped")
-    
-    def _initialize_knowledge_base(self):
-        """Initialize the knowledge base."""
+
+    def _initialize_help_agent_components(self):
+        """Initialize help agent components."""
         try:
-            # Create knowledge base directory
-            kb_path = Path(self.knowledge_base_path)
-            kb_path.mkdir(parents=True, exist_ok=True)
-            
-            # Initialize default knowledge entries
-            self._initialize_default_knowledge()
-            
-            # Initialize vectorizer
-            self._initialize_vectorizer()
-            
-            self.logger.info("Knowledge base initialized successfully")
-            
+            # Initialize help content
+            self._initialize_help_content()
+
+            # Initialize search components
+            self._initialize_search_components()
+
+            # Initialize interactive guides
+            self._initialize_interactive_guides()
+
+            self.logger.info("Help agent components initialized successfully")
+
         except Exception as e:
-            self.logger.error(f"Error initializing knowledge base: {e}")
-    
-    def _initialize_default_knowledge(self):
-        """Initialize default knowledge entries."""
+            self.logger.error(f"Error initializing help agent components: {e}")
+
+    def _initialize_help_content(self):
+        """Initialize help content."""
         try:
-            # Create default knowledge entries
-            default_entries = [
-                {
-                    'title': 'Getting Started with Forensic Platform',
-                    'content': 'Welcome to the forensic platform. This platform provides comprehensive tools for forensic analysis, risk assessment, and evidence management.',
-                    'category': 'getting_started',
-                    'tags': ['introduction', 'platform', 'forensic']
-                },
-                {
-                    'title': 'Evidence Collection Best Practices',
-                    'content': 'When collecting evidence, always maintain chain of custody, document everything, and use appropriate tools for different evidence types.',
-                    'category': 'best_practices',
-                    'tags': ['evidence', 'collection', 'chain_of_custody']
-                },
-                {
-                    'title': 'Risk Assessment Workflow',
-                    'content': 'The risk assessment workflow involves: 1) Identify risks, 2) Assess probability and impact, 3) Prioritize risks, 4) Develop mitigation strategies.',
-                    'category': 'workflow',
-                    'tags': ['risk_assessment', 'workflow', 'mitigation']
-                }
-            ]
-            
-            for entry_data in default_entries:
-                entry = KnowledgeBaseEntry(
-                    entry_id=str(uuid.uuid4()),
-                    title=entry_data['title'],
-                    content=entry_data['content'],
-                    category=entry_data['category'],
-                    tags=entry_data['tags'],
-                    created_date=datetime.utcnow(),
-                    last_updated=datetime.utcnow(),
-                    source='system',
-                    confidence_score=0.9
-                )
-                
-                self.knowledge_entries[entry.entry_id] = entry
-                
-                # Index by category and tags
-                self.entry_index[entry.category].append(entry.entry_id)
-                for tag in entry.tags:
-                    self.entry_index[tag].append(entry.entry_id)
-            
-            self.logger.info(f"Initialized {len(default_entries)} default knowledge entries")
-            
-        except Exception as e:
-            self.logger.error(f"Error initializing default knowledge: {e}")
-    
-    def _initialize_vectorizer(self):
-        """Initialize the TF-IDF vectorizer."""
-        try:
-            if not self.knowledge_entries:
-                return
-            
-            # Prepare text for vectorization
-            texts = [entry.content for entry in self.knowledge_entries.values()]
-            
-            # Create and fit vectorizer
-            self.vectorizer = TfidfVectorizer(
-                max_features=1000,
-                stop_words='english',
-                ngram_range=(1, 2)
-            )
-            
-            self.entry_vectors = self.vectorizer.fit_transform(texts).toarray()
-            
-            self.logger.info("Vectorizer initialized successfully")
-            
-        except Exception as e:
-            self.logger.error(f"Error initializing vectorizer: {e}")
-    
-    async def add_knowledge_entry(self, title: str, content: str, category: str,
-                                 tags: List[str], source: str) -> KnowledgeBaseEntry:
-        """Add a new knowledge base entry."""
-        try:
-            entry = KnowledgeBaseEntry(
-                entry_id=str(uuid.uuid4()),
-                title=title,
-                content=content,
-                category=category,
-                tags=tags,
-                created_date=datetime.utcnow(),
+            # Getting started content
+            getting_started_content = HelpContent(
+                content_id=str(uuid.uuid4()),
+                title="Welcome to the Forensic Reconciliation Platform",
+                content="""
+# Welcome to the Forensic Reconciliation Platform
+
+This platform provides comprehensive forensic analysis capabilities including:
+
+## Key Features
+- **Reconciliation Agent**: Automated forensic reconciliation
+- **Fraud Detection**: Advanced fraud detection algorithms
+- **Risk Assessment**: Multi-factor risk analysis
+- **Evidence Processing**: Comprehensive evidence management
+- **Multi-Agent Orchestration**: Coordinated analysis workflows
+
+## Getting Started
+1. **Authentication**: Log in with your credentials
+2. **Case Creation**: Create a new forensic case
+3. **Data Upload**: Upload evidence and data files
+4. **Analysis**: Run automated analysis workflows
+5. **Review Results**: Examine analysis results and reports
+
+## Support
+For additional help, use the search function or browse our knowledge base.
+                """,
+                content_type=ContentType.MARKDOWN,
+                category=HelpCategory.GETTING_STARTED,
+                tags=["introduction", "platform", "features", "getting-started"],
+                author="System",
+                creation_date=datetime.utcnow(),
                 last_updated=datetime.utcnow(),
-                source=source,
-                confidence_score=0.8  # Default confidence
+                version="1.0",
+                language="en",
             )
-            
-            # Store entry
-            self.knowledge_entries[entry.entry_id] = entry
-            
-            # Update indexes
-            self.entry_index[category].append(entry.entry_id)
-            for tag in tags:
-                self.entry_index[tag].append(entry.entry_id)
-            
-            # Update vectorizer if needed
-            if self.vectorizer:
-                await self._update_vectorizer()
-            
-            self.logger.info(f"Added knowledge entry: {entry.entry_id} - {title}")
-            
-            return entry
-            
+
+            # User guide content
+            user_guide_content = HelpContent(
+                content_id=str(uuid.uuid4()),
+                title="User Guide - Complete Platform Manual",
+                content="""
+# User Guide - Complete Platform Manual
+
+## Table of Contents
+1. [Authentication & Security](#authentication)
+2. [Case Management](#case-management)
+3. [Evidence Processing](#evidence-processing)
+4. [Analysis Workflows](#analysis-workflows)
+5. [Reporting & Export](#reporting)
+
+## Authentication & Security
+The platform uses JWT-based authentication with role-based access control.
+
+## Case Management
+Create, manage, and track forensic cases through their lifecycle.
+
+## Evidence Processing
+Upload, process, and analyze various types of evidence.
+
+## Analysis Workflows
+Run automated analysis workflows using AI agents.
+
+## Reporting & Export
+Generate comprehensive reports and export results.
+                """,
+                content_type=ContentType.MARKDOWN,
+                category=HelpCategory.USER_GUIDE,
+                tags=["user-guide", "manual", "documentation", "tutorials"],
+                author="System",
+                creation_date=datetime.utcnow(),
+                last_updated=datetime.utcnow(),
+                version="1.0",
+                language="en",
+            )
+
+            # Troubleshooting content
+            troubleshooting_content = HelpContent(
+                content_id=str(uuid.uuid4()),
+                title="Troubleshooting Common Issues",
+                content="""
+# Troubleshooting Common Issues
+
+## Authentication Problems
+- **Issue**: Cannot log in
+- **Solution**: Check credentials and contact administrator
+
+## File Upload Issues
+- **Issue**: Files not uploading
+- **Solution**: Check file size and format requirements
+
+## Analysis Failures
+- **Issue**: Analysis workflows failing
+- **Solution**: Verify data quality and system resources
+
+## Performance Issues
+- **Issue**: Slow response times
+- **Solution**: Check system resources and network connectivity
+                """,
+                content_type=ContentType.MARKDOWN,
+                category=HelpCategory.TROUBLESHOOTING,
+                tags=["troubleshooting", "problems", "solutions", "help"],
+                author="System",
+                creation_date=datetime.utcnow(),
+                last_updated=datetime.utcnow(),
+                version="1.0",
+                language="en",
+            )
+
+            # Store content
+            self.help_content[getting_started_content.content_id] = (
+                getting_started_content
+            )
+            self.help_content[user_guide_content.content_id] = user_guide_content
+            self.help_content[troubleshooting_content.content_id] = (
+                troubleshooting_content
+            )
+
+            # Index content
+            self._index_content(getting_started_content)
+            self._index_content(user_guide_content)
+            self._index_content(troubleshooting_content)
+
+            # Update metrics
+            self.total_content_items = len(self.help_content)
+
+            self.logger.info(f"Initialized {len(self.help_content)} help content items")
+
         except Exception as e:
-            self.logger.error(f"Error adding knowledge entry: {e}")
-            raise
-    
-    async def _update_vectorizer(self):
-        """Update the vectorizer with new entries."""
+            self.logger.error(f"Error initializing help content: {e}")
+
+    def _index_content(self, content: HelpContent):
+        """Index help content for search."""
         try:
-            if not self.vectorizer or not self.knowledge_entries:
-                return
-            
-            # Reinitialize vectorizer with all entries
-            texts = [entry.content for entry in self.knowledge_entries.values()]
-            self.entry_vectors = self.vectorizer.fit_transform(texts).toarray()
-            
-            self.logger.info("Vectorizer updated successfully")
-            
+            # Index by category
+            self.category_index[content.category].append(content.content_id)
+
+            # Index by tags
+            for tag in content.tags:
+                self.tag_index[tag.lower()].append(content.content_id)
+
+            # Index by language
+            self.content_index[content.language].append(content.content_id)
+
+            # Index by content type
+            self.content_index[content.content_type.value].append(content.content_id)
+
         except Exception as e:
-            self.logger.error(f"Error updating vectorizer: {e}")
-    
-    async def process_help_query(self, user_id: str, query_text: str, query_type: QueryType = None,
-                                context: Dict[str, Any] = None) -> HelpResponse:
-        """Process a user help query using RAG technology."""
+            self.logger.error(f"Error indexing content: {e}")
+
+    def _initialize_search_components(self):
+        """Initialize search components."""
         try:
-            start_time = datetime.utcnow()
-            
-            # Determine query type if not provided
-            if not query_type:
-                query_type = self._classify_query_type(query_text)
-            
+            # Initialize search algorithms
+            self.search_algorithms = {
+                SearchType.KEYWORD: self._keyword_search,
+                SearchType.SEMANTIC: self._semantic_search,
+                SearchType.FUZZY: self._fuzzy_search,
+                SearchType.CATEGORY: self._category_search,
+                SearchType.TAG: self._tag_search,
+                SearchType.CONTEXT: self._context_search,
+            }
+
+            self.logger.info("Search components initialized successfully")
+
+        except Exception as e:
+            self.logger.error(f"Error initializing search components: {e}")
+
+    def _initialize_interactive_guides(self):
+        """Initialize interactive guides."""
+        try:
+            # Platform tour guide
+            tour_guide = InteractiveGuide(
+                guide_id=str(uuid.uuid4()),
+                title="Platform Tour Guide",
+                description="Interactive tour of the forensic platform features",
+                steps=[
+                    {
+                        "step_number": 1,
+                        "title": "Welcome",
+                        "description": "Welcome to the forensic platform",
+                        "action": "show_welcome",
+                        "duration": 30,
+                    },
+                    {
+                        "step_number": 2,
+                        "title": "Dashboard Overview",
+                        "description": "Explore the main dashboard",
+                        "action": "highlight_dashboard",
+                        "duration": 45,
+                    },
+                    {
+                        "step_number": 3,
+                        "title": "Case Creation",
+                        "description": "Learn how to create a new case",
+                        "action": "show_case_creation",
+                        "duration": 60,
+                    },
+                    {
+                        "step_number": 4,
+                        "title": "Evidence Upload",
+                        "description": "Upload and process evidence",
+                        "action": "show_evidence_upload",
+                        "duration": 60,
+                    },
+                    {
+                        "step_number": 5,
+                        "title": "Analysis Workflows",
+                        "description": "Run automated analysis",
+                        "action": "show_analysis_workflows",
+                        "duration": 90,
+                    },
+                ],
+                current_step=0,
+                user_progress={},
+                completion_status="not_started",
+            )
+
+            # Store guide
+            self.interactive_guides[tour_guide.guide_id] = tour_guide
+
+            self.logger.info(
+                f"Initialized {len(self.interactive_guides)} interactive guides"
+            )
+
+        except Exception as e:
+            self.logger.error(f"Error initializing interactive guides: {e}")
+
+    async def search_help(
+        self,
+        query_text: str,
+        user_id: str,
+        search_type: SearchType = SearchType.KEYWORD,
+        context: Dict[str, Any] = None,
+        max_results: int = None,
+    ) -> List[SearchResult]:
+        """Search for help content."""
+        try:
+            start_time = time.time()
+
+            if max_results is None:
+                max_results = self.max_search_results
+
             # Create user query
             query = UserQuery(
                 query_id=str(uuid.uuid4()),
                 user_id=user_id,
                 query_text=query_text,
-                query_type=query_type,
+                search_type=search_type,
                 context=context or {},
                 timestamp=datetime.utcnow(),
-                priority='normal'
+                results_returned=0,
+                user_feedback=None,
             )
-            
+
             # Store query
             self.user_queries[query.query_id] = query
-            self.query_history[user_id].append(query.query_id)
-            
-            self.logger.info(f"Processing help query: {query.query_id} - Type: {query_type.value}")
-            
-            # Retrieve relevant knowledge
-            relevant_entries = await self._retrieve_relevant_knowledge(query_text)
-            
-            # Generate response using RAG
-            response = await self._generate_rag_response(query, relevant_entries)
-            
-            # Store response
-            self.help_responses[response.response_id] = response
-            
-            # Update statistics
-            self.total_queries_processed += 1
-            self.total_responses_generated += 1
-            
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
-            self.average_response_time = (self.average_response_time + processing_time) / 2
-            
-            self.logger.info(f"Generated help response: {response.response_id}")
-            
-            return response
-            
-        except Exception as e:
-            self.logger.error(f"Error processing help query: {e}")
-            raise
-    
-    def _classify_query_type(self, query_text: str) -> QueryType:
-        """Classify the type of user query."""
-        try:
-            query_lower = query_text.lower()
-            
-            # Simple keyword-based classification
-            if any(word in query_lower for word in ['how', 'step', 'workflow', 'process']):
-                return QueryType.WORKFLOW_GUIDANCE
-            elif any(word in query_lower for word in ['error', 'problem', 'issue', 'bug']):
-                return QueryType.ERROR_TROUBLESHOOTING
-            elif any(word in query_lower for word in ['what is', 'explain', 'feature', 'function']):
-                return QueryType.FEATURE_EXPLANATION
-            elif any(word in query_lower for word in ['best practice', 'recommendation', 'tip']):
-                return QueryType.BEST_PRACTICES
-            elif any(word in query_lower for word in ['tutorial', 'learn', 'guide']):
-                return QueryType.TUTORIAL_REQUEST
-            elif any(word in query_lower for word in ['reference', 'documentation', 'manual']):
-                return QueryType.REFERENCE_LOOKUP
+
+            # Perform search based on type
+            if search_type in self.search_algorithms:
+                search_function = self.search_algorithms[search_type]
+                results = await search_function(query_text, context, max_results)
             else:
-                return QueryType.GENERAL_HELP
-            
-        except Exception as e:
-            self.logger.error(f"Error classifying query type: {e}")
-            return QueryType.GENERAL_HELP
-    
-    async def _retrieve_relevant_knowledge(self, query_text: str) -> List[KnowledgeBaseEntry]:
-        """Retrieve relevant knowledge base entries for a query."""
-        try:
-            if not self.vectorizer or self.entry_vectors is None:
-                # Fallback to simple text search
-                return self._simple_text_search(query_text)
-            
-            # Vectorize query
-            query_vector = self.vectorizer.transform([query_text]).toarray()
-            
-            # Calculate similarities
-            similarities = cosine_similarity(query_vector, self.entry_vectors)[0]
-            
-            # Get top similar entries
-            top_indices = np.argsort(similarities)[::-1][:self.max_retrieved_entries]
-            
-            relevant_entries = []
-            for idx in top_indices:
-                if similarities[idx] >= self.similarity_threshold:
-                    entry_id = list(self.knowledge_entries.keys())[idx]
-                    relevant_entries.append(self.knowledge_entries[entry_id])
-            
-            return relevant_entries
-            
-        except Exception as e:
-            self.logger.error(f"Error retrieving relevant knowledge: {e}")
-            return []
-    
-    def _simple_text_search(self, query_text: str) -> List[KnowledgeBaseEntry]:
-        """Simple text-based search as fallback."""
-        try:
-            query_lower = query_text.lower()
-            relevant_entries = []
-            
-            for entry in self.knowledge_entries.values():
-                # Calculate simple relevance score
-                title_score = sum(1 for word in query_lower.split() if word in entry.title.lower())
-                content_score = sum(1 for word in query_lower.split() if word in entry.content.lower())
-                tag_score = sum(1 for word in query_lower.split() if word in [tag.lower() for tag in entry.tags])
-                
-                total_score = title_score * 2 + content_score + tag_score * 1.5
-                
-                if total_score > 0:
-                    entry.metadata['relevance_score'] = total_score
-                    relevant_entries.append(entry)
-            
-            # Sort by relevance score
-            relevant_entries.sort(key=lambda x: x.metadata.get('relevance_score', 0), reverse=True)
-            
-            return relevant_entries[:self.max_retrieved_entries]
-            
-        except Exception as e:
-            self.logger.error(f"Error in simple text search: {e}")
-            return []
-    
-    async def _generate_rag_response(self, query: UserQuery, relevant_entries: List[KnowledgeBaseEntry]) -> HelpResponse:
-        """Generate a response using RAG technology."""
-        try:
-            if not relevant_entries:
-                # Generate fallback response
-                response_content = self._generate_fallback_response(query)
-                response_type = ResponseType.DIRECT_ANSWER
-                confidence_score = 0.5
-                source_entries = []
-            else:
-                # Generate RAG response
-                response_content = await self._generate_contextual_response(query, relevant_entries)
-                response_type = self._determine_response_type(query.query_type)
-                confidence_score = min(0.95, len(relevant_entries) / self.max_retrieved_entries + 0.3)
-                source_entries = [entry.entry_id for entry in relevant_entries]
-            
-            response = HelpResponse(
-                response_id=str(uuid.uuid4()),
-                query_id=query.query_id,
-                response_type=response_type,
-                response_content=response_content,
-                confidence_score=confidence_score,
-                source_entries=source_entries,
-                generated_timestamp=datetime.utcnow()
+                # Default to keyword search
+                results = await self._keyword_search(query_text, context, max_results)
+
+            # Update query with results
+            query.results_returned = len(results)
+
+            # Store search history
+            self.search_history[user_id].append(query.query_id)
+
+            # Update metrics
+            self.total_queries += 1
+            self.successful_searches += 1
+            response_time = time.time() - start_time
+            self.total_response_time += response_time
+
+            self.logger.info(
+                f"Search completed for user {user_id} in {response_time:.2f}s"
             )
-            
-            return response
-            
+
+            return results
+
         except Exception as e:
-            self.logger.error(f"Error generating RAG response: {e}")
-            raise
-    
-    def _generate_fallback_response(self, query: UserQuery) -> str:
-        """Generate a fallback response when no relevant knowledge is found."""
+            self.logger.error(f"Error searching help: {e}")
+            return []
+
+    async def _keyword_search(
+        self, query_text: str, context: Dict[str, Any], max_results: int
+    ) -> List[SearchResult]:
+        """Perform keyword-based search."""
         try:
-            fallback_responses = {
-                QueryType.GENERAL_HELP: "I understand you need help. Let me search our knowledge base for relevant information.",
-                QueryType.WORKFLOW_GUIDANCE: "I can help you with workflow guidance. Please provide more specific details about what you're trying to accomplish.",
-                QueryType.TECHNICAL_SUPPORT: "For technical support, please describe the specific issue you're experiencing.",
-                QueryType.FEATURE_EXPLANATION: "I'd be happy to explain features. Which specific feature would you like to know more about?",
-                QueryType.ERROR_TROUBLESHOOTING: "I can help troubleshoot errors. Please share the error message and what you were doing when it occurred.",
-                QueryType.BEST_PRACTICES: "I can provide best practices guidance. What specific area are you interested in?",
-                QueryType.TUTORIAL_REQUEST: "I can help you find tutorials. What would you like to learn about?",
-                QueryType.REFERENCE_LOOKUP: "I can help you find reference information. What specific topic are you looking for?"
-            }
-            
-            return fallback_responses.get(query.query_type, "I'm here to help. Please let me know what you need assistance with.")
-            
-        except Exception as e:
-            self.logger.error(f"Error generating fallback response: {e}")
-            return "I'm here to help. Please let me know what you need assistance with."
-    
-    async def _generate_contextual_response(self, query: UserQuery, relevant_entries: List[KnowledgeBaseEntry]) -> str:
-        """Generate a contextual response based on relevant knowledge entries."""
-        try:
-            # Combine relevant knowledge
-            combined_knowledge = "\n\n".join([
-                f"**{entry.title}**\n{entry.content}"
-                for entry in relevant_entries
-            ])
-            
-            # Generate response based on query type
-            if query.query_type == QueryType.WORKFLOW_GUIDANCE:
-                response = self._generate_workflow_response(query, relevant_entries)
-            elif query.query_type == QueryType.ERROR_TROUBLESHOOTING:
-                response = self._generate_troubleshooting_response(query, relevant_entries)
-            elif query.query_type == QueryType.BEST_PRACTICES:
-                response = self._generate_best_practices_response(query, relevant_entries)
-            else:
-                response = self._generate_general_response(query, relevant_entries)
-            
-            # Limit response length
-            if len(response) > self.max_response_length:
-                response = response[:self.max_response_length] + "..."
-            
-            return response
-            
-        except Exception as e:
-            self.logger.error(f"Error generating contextual response: {e}")
-            return self._generate_fallback_response(query)
-    
-    def _generate_workflow_response(self, query: UserQuery, relevant_entries: List[KnowledgeBaseEntry]) -> str:
-        """Generate a workflow-focused response."""
-        try:
-            response_parts = [
-                f"Based on your query about '{query.query_text}', here's a step-by-step workflow:"
-            ]
-            
-            for i, entry in enumerate(relevant_entries, 1):
-                response_parts.append(f"\n**Step {i}: {entry.title}**")
-                response_parts.append(entry.content)
-            
-            response_parts.append("\nThis workflow should help you accomplish your goal. Let me know if you need clarification on any step!")
-            
-            return "\n".join(response_parts)
-            
-        except Exception as e:
-            self.logger.error(f"Error generating workflow response: {e}")
-            return self._generate_fallback_response(query)
-    
-    def _generate_troubleshooting_response(self, query: UserQuery, relevant_entries: List[KnowledgeBaseEntry]) -> str:
-        """Generate a troubleshooting-focused response."""
-        try:
-            response_parts = [
-                f"Here are solutions for the issue you're experiencing:"
-            ]
-            
-            for entry in relevant_entries:
-                response_parts.append(f"\n**{entry.title}**")
-                response_parts.append(entry.content)
-            
-            response_parts.append("\nTry these solutions in order. If the issue persists, please provide more details about the error.")
-            
-            return "\n".join(response_parts)
-            
-        except Exception as e:
-            self.logger.error(f"Error generating troubleshooting response: {e}")
-            return self._generate_fallback_response(query)
-    
-    def _generate_best_practices_response(self, query: UserQuery, relevant_entries: List[KnowledgeBaseEntry]) -> str:
-        """Generate a best practices-focused response."""
-        try:
-            response_parts = [
-                f"Here are best practices related to your query:"
-            ]
-            
-            for entry in relevant_entries:
-                response_parts.append(f"\n**{entry.title}**")
-                response_parts.append(entry.content)
-            
-            response_parts.append("\nFollowing these best practices will help ensure successful outcomes.")
-            
-            return "\n".join(response_parts)
-            
-        except Exception as e:
-            self.logger.error(f"Error generating best practices response: {e}")
-            return self._generate_fallback_response(query)
-    
-    def _generate_general_response(self, query: UserQuery, relevant_entries: List[KnowledgeBaseEntry]) -> str:
-        """Generate a general response."""
-        try:
-            response_parts = [
-                f"Here's information that should help with your query:"
-            ]
-            
-            for entry in relevant_entries:
-                response_parts.append(f"\n**{entry.title}**")
-                response_parts.append(entry.content)
-            
-            response_parts.append("\nI hope this information is helpful. Let me know if you need further clarification!")
-            
-            return "\n".join(response_parts)
-            
-        except Exception as e:
-            self.logger.error(f"Error generating general response: {e}")
-            return self._generate_fallback_response(query)
-    
-    def _determine_response_type(self, query_type: QueryType) -> ResponseType:
-        """Determine the appropriate response type based on query type."""
-        try:
-            response_type_mapping = {
-                QueryType.GENERAL_HELP: ResponseType.DIRECT_ANSWER,
-                QueryType.WORKFLOW_GUIDANCE: ResponseType.STEP_BY_STEP,
-                QueryType.TECHNICAL_SUPPORT: ResponseType.ERROR_SOLUTION,
-                QueryType.FEATURE_EXPLANATION: ResponseType.DIRECT_ANSWER,
-                QueryType.ERROR_TROUBLESHOOTING: ResponseType.ERROR_SOLUTION,
-                QueryType.BEST_PRACTICES: ResponseType.BEST_PRACTICE_TIP,
-                QueryType.TUTORIAL_REQUEST: ResponseType.TUTORIAL_CONTENT,
-                QueryType.REFERENCE_LOOKUP: ResponseType.REFERENCE_LINK
-            }
-            
-            return response_type_mapping.get(query_type, ResponseType.DIRECT_ANSWER)
-            
-        except Exception as e:
-            self.logger.error(f"Error determining response type: {e}")
-            return ResponseType.DIRECT_ANSWER
-    
-    async def create_workflow_guide(self, title: str, description: str, steps: List[Dict[str, Any]]) -> WorkflowGuide:
-        """Create a new workflow guide."""
-        try:
-            workflow_steps = []
-            total_time = 0
-            
-            for i, step_data in enumerate(steps, 1):
-                step = WorkflowStep(
-                    step_id=str(uuid.uuid4()),
-                    step_number=i,
-                    step_title=step_data.get('title', f'Step {i}'),
-                    step_description=step_data.get('description', ''),
-                    step_instructions=step_data.get('instructions', []),
-                    expected_outcome=step_data.get('expected_outcome', ''),
-                    prerequisites=step_data.get('prerequisites', []),
-                    estimated_time=step_data.get('estimated_time', 15)
+            results = []
+            query_lower = query_text.lower()
+
+            for content_id, content in self.help_content.items():
+                # Check title
+                title_score = self._calculate_keyword_score(
+                    query_lower, content.title.lower()
                 )
-                
-                workflow_steps.append(step)
-                total_time += step.estimated_time
-            
-            guide = WorkflowGuide(
-                guide_id=str(uuid.uuid4()),
-                guide_title=title,
-                guide_description=description,
-                workflow_steps=workflow_steps,
-                total_estimated_time=total_time,
-                difficulty_level='medium',  # Default
-                prerequisites=[],
-                created_date=datetime.utcnow()
+
+                # Check content
+                content_score = self._calculate_keyword_score(
+                    query_lower, content.content.lower()
+                )
+
+                # Check tags
+                tag_score = self._calculate_tag_score(query_lower, content.tags)
+
+                # Calculate total score
+                total_score = (
+                    (title_score * 0.4) + (content_score * 0.4) + (tag_score * 0.2)
+                )
+
+                if total_score > 0:
+                    # Create snippet
+                    snippet = self._create_content_snippet(content.content, query_lower)
+
+                    result = SearchResult(
+                        result_id=str(uuid.uuid4()),
+                        content_id=content_id,
+                        title=content.title,
+                        snippet=snippet,
+                        relevance_score=total_score,
+                        category=content.category,
+                        content_type=content.content_type,
+                        tags=content.tags,
+                    )
+
+                    results.append(result)
+
+            # Sort by relevance score
+            results.sort(key=lambda x: x.relevance_score, reverse=True)
+
+            return results[:max_results]
+
+        except Exception as e:
+            self.logger.error(f"Error in keyword search: {e}")
+            return []
+
+    def _calculate_keyword_score(self, query: str, text: str) -> float:
+        """Calculate keyword relevance score."""
+        try:
+            query_words = query.split()
+            text_words = text.split()
+
+            if not query_words or not text_words:
+                return 0.0
+
+            matches = 0
+            for query_word in query_words:
+                if len(query_word) > 2:  # Skip very short words
+                    for text_word in text_words:
+                        if query_word in text_word or text_word in query_word:
+                            matches += 1
+                            break
+
+            return matches / len(query_words)
+
+        except Exception as e:
+            self.logger.error(f"Error calculating keyword score: {e}")
+            return 0.0
+
+    def _calculate_tag_score(self, query: str, tags: List[str]) -> float:
+        """Calculate tag relevance score."""
+        try:
+            if not tags:
+                return 0.0
+
+            query_words = query.split()
+            tag_matches = 0
+
+            for tag in tags:
+                tag_lower = tag.lower()
+                for query_word in query_words:
+                    if query_word in tag_lower or tag_lower in query_word:
+                        tag_matches += 1
+                        break
+
+            return tag_matches / len(tags)
+
+        except Exception as e:
+            self.logger.error(f"Error calculating tag score: {e}")
+            return 0.0
+
+    def _create_content_snippet(
+        self, content: str, query: str, max_length: int = 200
+    ) -> str:
+        """Create a content snippet highlighting the query."""
+        try:
+            # Find query position in content
+            content_lower = content.lower()
+            query_lower = query.lower()
+
+            pos = content_lower.find(query_lower)
+            if pos == -1:
+                # Query not found, return beginning of content
+                return (
+                    content[:max_length] + "..."
+                    if len(content) > max_length
+                    else content
+                )
+
+            # Create snippet around query
+            start = max(0, pos - max_length // 2)
+            end = min(len(content), pos + max_length // 2)
+
+            snippet = content[start:end]
+
+            # Add ellipsis if needed
+            if start > 0:
+                snippet = "..." + snippet
+            if end < len(content):
+                snippet = snippet + "..."
+
+            return snippet
+
+        except Exception as e:
+            self.logger.error(f"Error creating content snippet: {e}")
+            return (
+                content[:max_length] + "..." if len(content) > max_length else content
             )
-            
-            # Store guide
-            self.workflow_guides[guide.guide_id] = guide
-            
-            self.logger.info(f"Created workflow guide: {guide.guide_id} - {title}")
-            
-            return guide
-            
+
+    async def _semantic_search(
+        self, query_text: str, context: Dict[str, Any], max_results: int
+    ) -> List[SearchResult]:
+        """Perform semantic search (placeholder for advanced implementation)."""
+        try:
+            # For now, fall back to keyword search
+            # In a full implementation, this would use embeddings or semantic models
+            return await self._keyword_search(query_text, context, max_results)
+
         except Exception as e:
-            self.logger.error(f"Error creating workflow guide: {e}")
-            raise
-    
-    async def _update_knowledge_base(self):
-        """Update the knowledge base."""
+            self.logger.error(f"Error in semantic search: {e}")
+            return []
+
+    async def _fuzzy_search(
+        self, query_text: str, context: Dict[str, Any], max_results: int
+    ) -> List[SearchResult]:
+        """Perform fuzzy search."""
+        try:
+            results = []
+            query_lower = query_text.lower()
+
+            for content_id, content in self.help_content.items():
+                # Calculate fuzzy match score
+                title_score = self._calculate_fuzzy_score(
+                    query_lower, content.title.lower()
+                )
+                content_score = self._calculate_fuzzy_score(
+                    query_lower, content.content.lower()
+                )
+
+                # Use the higher score
+                total_score = max(title_score, content_score)
+
+                if total_score > 0.3:  # Fuzzy threshold
+                    snippet = self._create_content_snippet(content.content, query_lower)
+
+                    result = SearchResult(
+                        result_id=str(uuid.uuid4()),
+                        content_id=content_id,
+                        title=content.title,
+                        snippet=snippet,
+                        relevance_score=total_score,
+                        category=content.category,
+                        content_type=content.content_type,
+                        tags=content.tags,
+                    )
+
+                    results.append(result)
+
+            # Sort by relevance score
+            results.sort(key=lambda x: x.relevance_score, reverse=True)
+
+            return results[:max_results]
+
+        except Exception as e:
+            self.logger.error(f"Error in fuzzy search: {e}")
+            return []
+
+    def _calculate_fuzzy_score(self, query: str, text: str) -> float:
+        """Calculate fuzzy match score."""
+        try:
+            # Simple fuzzy matching based on character similarity
+            if not query or not text:
+                return 0.0
+
+            # Calculate character overlap
+            query_chars = set(query)
+            text_chars = set(text)
+
+            intersection = len(query_chars.intersection(text_chars))
+            union = len(query_chars.union(text_chars))
+
+            if union == 0:
+                return 0.0
+
+            return intersection / union
+
+        except Exception as e:
+            self.logger.error(f"Error calculating fuzzy score: {e}")
+            return 0.0
+
+    async def _category_search(
+        self, query_text: str, context: Dict[str, Any], max_results: int
+    ) -> List[SearchResult]:
+        """Perform category-based search."""
+        try:
+            results = []
+
+            # Extract category from context or query
+            target_category = context.get("category")
+            if not target_category:
+                # Try to infer category from query
+                target_category = self._infer_category_from_query(query_text)
+
+            if target_category and target_category in self.category_index:
+                content_ids = self.category_index[target_category]
+
+                for content_id in content_ids[:max_results]:
+                    content = self.help_content.get(content_id)
+                    if content:
+                        snippet = self._create_content_snippet(
+                            content.content, query_text.lower()
+                        )
+
+                        result = SearchResult(
+                            result_id=str(uuid.uuid4()),
+                            content_id=content_id,
+                            title=content.title,
+                            snippet=snippet,
+                            relevance_score=0.8,  # High score for category match
+                            category=content.category,
+                            content_type=content.content_type,
+                            tags=content.tags,
+                        )
+
+                        results.append(result)
+
+            return results
+
+        except Exception as e:
+            self.logger.error(f"Error in category search: {e}")
+            return []
+
+    def _infer_category_from_query(self, query: str) -> Optional[HelpCategory]:
+        """Infer help category from query text."""
+        try:
+            query_lower = query.lower()
+
+            # Category keywords
+            category_keywords = {
+                HelpCategory.GETTING_STARTED: [
+                    "start",
+                    "begin",
+                    "welcome",
+                    "introduction",
+                    "first",
+                ],
+                HelpCategory.USER_GUIDE: [
+                    "guide",
+                    "manual",
+                    "how to",
+                    "tutorial",
+                    "instructions",
+                ],
+                HelpCategory.TROUBLESHOOTING: [
+                    "problem",
+                    "error",
+                    "issue",
+                    "fix",
+                    "solve",
+                    "help",
+                ],
+                HelpCategory.BEST_PRACTICES: [
+                    "best",
+                    "practice",
+                    "recommend",
+                    "should",
+                    "advice",
+                ],
+                HelpCategory.API_REFERENCE: [
+                    "api",
+                    "endpoint",
+                    "request",
+                    "response",
+                    "code",
+                ],
+                HelpCategory.WORKFLOW_GUIDES: [
+                    "workflow",
+                    "process",
+                    "step",
+                    "procedure",
+                ],
+                HelpCategory.SECURITY: [
+                    "security",
+                    "authentication",
+                    "authorization",
+                    "permission",
+                ],
+                HelpCategory.COMPLIANCE: [
+                    "compliance",
+                    "regulation",
+                    "policy",
+                    "standard",
+                ],
+            }
+
+            for category, keywords in category_keywords.items():
+                for keyword in keywords:
+                    if keyword in query_lower:
+                        return category
+
+            return None
+
+        except Exception as e:
+            self.logger.error(f"Error inferring category: {e}")
+            return None
+
+    async def _tag_search(
+        self, query_text: str, context: Dict[str, Any], max_results: int
+    ) -> List[SearchResult]:
+        """Perform tag-based search."""
+        try:
+            results = []
+            query_lower = query_text.lower()
+
+            # Find matching tags
+            matching_tags = []
+            for tag, content_ids in self.tag_index.items():
+                if query_lower in tag or tag in query_lower:
+                    matching_tags.extend(content_ids)
+
+            # Remove duplicates
+            unique_content_ids = list(set(matching_tags))
+
+            for content_id in unique_content_ids[:max_results]:
+                content = self.help_content.get(content_id)
+                if content:
+                    snippet = self._create_content_snippet(content.content, query_lower)
+
+                    result = SearchResult(
+                        result_id=str(uuid.uuid4()),
+                        content_id=content_id,
+                        title=content.title,
+                        snippet=snippet,
+                        relevance_score=0.9,  # High score for tag match
+                        category=content.category,
+                        content_type=content.content_type,
+                        tags=content.tags,
+                    )
+
+                    results.append(result)
+
+            return results
+
+        except Exception as e:
+            self.logger.error(f"Error in tag search: {e}")
+            return []
+
+    async def _context_search(
+        self, query_text: str, context: Dict[str, Any], max_results: int
+    ) -> List[SearchResult]:
+        """Perform context-aware search."""
+        try:
+            # Combine multiple search strategies based on context
+            results = []
+
+            # Get user's current context
+            user_context = context.get("user_context", {})
+            current_page = user_context.get("current_page", "")
+            user_role = user_context.get("user_role", "")
+            recent_actions = user_context.get("recent_actions", [])
+
+            # Perform base search
+            base_results = await self._keyword_search(query_text, context, max_results)
+
+            # Boost relevance based on context
+            for result in base_results:
+                context_boost = 0.0
+
+                # Boost if content matches current page
+                if current_page and current_page.lower() in result.title.lower():
+                    context_boost += 0.2
+
+                # Boost if content matches user role
+                if user_role and user_role.lower() in result.content.lower():
+                    context_boost += 0.1
+
+                # Boost if content matches recent actions
+                for action in recent_actions:
+                    if action.lower() in result.content.lower():
+                        context_boost += 0.05
+
+                # Apply context boost
+                result.relevance_score = min(
+                    1.0, result.relevance_score + context_boost
+                )
+                results.append(result)
+
+            # Sort by updated relevance score
+            results.sort(key=lambda x: x.relevance_score, reverse=True)
+
+            return results[:max_results]
+
+        except Exception as e:
+            self.logger.error(f"Error in context search: {e}")
+            return []
+
+    async def get_interactive_guide(self, guide_id: str) -> Optional[InteractiveGuide]:
+        """Get an interactive guide by ID."""
+        return self.interactive_guides.get(guide_id)
+
+    async def start_interactive_guide(self, guide_id: str, user_id: str) -> bool:
+        """Start an interactive guide for a user."""
+        try:
+            guide = self.interactive_guides.get(guide_id)
+            if not guide:
+                return False
+
+            # Initialize user progress
+            self.user_progress[user_id] = {
+                "guide_id": guide_id,
+                "current_step": 0,
+                "started_at": datetime.utcnow(),
+                "completed_steps": [],
+                "notes": {},
+            }
+
+            self.logger.info(f"Started interactive guide {guide_id} for user {user_id}")
+
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Error starting interactive guide: {e}")
+            return False
+
+    async def _update_content_index(self):
+        """Background task to update content index."""
         while True:
             try:
-                # This would update knowledge base from external sources
-                # For now, just log activity
+                # Rebuild content index
+                self._rebuild_content_index()
+
                 await asyncio.sleep(3600)  # Update every hour
-                
+
             except Exception as e:
-                self.logger.error(f"Error updating knowledge base: {e}")
+                self.logger.error(f"Error updating content index: {e}")
                 await asyncio.sleep(3600)
-    
-    async def _cleanup_old_data(self):
-        """Clean up old data and queries."""
+
+    def _rebuild_content_index(self):
+        """Rebuild the content index."""
+        try:
+            # Clear existing indexes
+            self.content_index.clear()
+            self.tag_index.clear()
+            self.category_index.clear()
+
+            # Rebuild indexes
+            for content in self.help_content.values():
+                self._index_content(content)
+
+            self.logger.info("Content index rebuilt successfully")
+
+        except Exception as e:
+            self.logger.error(f"Error rebuilding content index: {e}")
+
+    async def _analyze_user_feedback(self):
+        """Background task to analyze user feedback."""
         while True:
             try:
-                current_time = datetime.utcnow()
-                cutoff_time = current_time - timedelta(days=30)  # Keep 30 days of data
-                
-                # Clean up old queries
-                old_queries = [
-                    query_id for query_id, query in self.user_queries.items()
-                    if query.timestamp < cutoff_time
-                ]
-                
-                for query_id in old_queries:
-                    del self.user_queries[query_id]
-                
-                # Clean up old responses
-                old_responses = [
-                    response_id for response_id, response in self.help_responses.items()
-                    if response.generated_timestamp < cutoff_time
-                ]
-                
-                for response_id in old_responses:
-                    del self.help_responses[response_id]
-                
-                if old_queries or old_responses:
-                    self.logger.info(f"Cleaned up {len(old_queries)} old queries and {len(old_responses)} old responses")
-                
-                await asyncio.sleep(3600)  # Clean up every hour
-                
+                # Analyze search patterns and user satisfaction
+                await self._analyze_search_patterns()
+                await self._analyze_user_satisfaction()
+
+                await asyncio.sleep(7200)  # Analyze every 2 hours
+
             except Exception as e:
-                self.logger.error(f"Error cleaning up old data: {e}")
-                await asyncio.sleep(3600)
-    
-    async def _initialize_help_components(self):
-        """Initialize help components."""
+                self.logger.error(f"Error analyzing user feedback: {e}")
+                await asyncio.sleep(7200)
+
+    async def _analyze_search_patterns(self):
+        """Analyze search patterns for improvement."""
         try:
-            # Initialize default components
-            await self._initialize_default_components()
-            
-            self.logger.info("Help components initialized successfully")
-            
+            # Analyze popular search terms
+            search_terms = defaultdict(int)
+            for query in self.user_queries.values():
+                search_terms[query.query_text.lower()] += 1
+
+            # Find most common searches
+            popular_searches = sorted(
+                search_terms.items(), key=lambda x: x[1], reverse=True
+            )[:10]
+
+            self.logger.info(f"Top search terms: {popular_searches}")
+
         except Exception as e:
-            self.logger.error(f"Error initializing help components: {e}")
-    
-    async def _initialize_default_components(self):
-        """Initialize default help components."""
+            self.logger.error(f"Error analyzing search patterns: {e}")
+
+    async def _analyze_user_satisfaction(self):
+        """Analyze user satisfaction metrics."""
         try:
-            # This would initialize default components
-            # For now, just log initialization
-            self.logger.info("Default help components initialized")
-            
+            # Calculate average response time
+            if self.total_queries > 0:
+                avg_response_time = self.total_response_time / self.total_queries
+                self.logger.info(f"Average response time: {avg_response_time:.2f}s")
+
+            # Calculate success rate
+            if self.total_queries > 0:
+                success_rate = self.successful_searches / self.total_queries
+                self.logger.info(f"Search success rate: {success_rate:.2%}")
+
         except Exception as e:
-            self.logger.error(f"Error initializing default components: {e}")
-    
-    def get_performance_metrics(self) -> Dict[str, Any]:
-        """Get performance metrics."""
-        return {
-            'total_queries_processed': self.total_queries_processed,
-            'total_responses_generated': self.total_responses_generated,
-            'average_response_time': self.average_response_time,
-            'query_types_supported': [t.value for t in QueryType],
-            'response_types_supported': [t.value for t in ResponseType],
-            'total_knowledge_entries': len(self.knowledge_entries),
-            'total_workflow_guides': len(self.workflow_guides),
-            'knowledge_base_path': self.knowledge_base_path,
-            'similarity_threshold': self.similarity_threshold
-        }
+            self.logger.error(f"Error analyzing user satisfaction: {e}")
+
+    def get_help_metrics(self) -> HelpMetrics:
+        """Get help system performance metrics."""
+        try:
+            avg_response_time = 0.0
+            if self.total_queries > 0:
+                avg_response_time = self.total_response_time / self.total_queries
+
+            user_satisfaction = 0.0
+            if self.total_queries > 0:
+                user_satisfaction = self.successful_searches / self.total_queries
+
+            return HelpMetrics(
+                total_content_items=self.total_content_items,
+                total_queries=self.total_queries,
+                successful_searches=self.successful_searches,
+                average_response_time=avg_response_time,
+                user_satisfaction=user_satisfaction,
+                metadata={
+                    "enable_semantic_search": self.enable_semantic_search,
+                    "enable_fuzzy_search": self.enable_fuzzy_search,
+                    "max_search_results": self.max_search_results,
+                    "supported_languages": self.supported_languages,
+                    "help_categories_supported": [hc.value for hc in HelpCategory],
+                    "content_types_supported": [ct.value for ct in ContentType],
+                    "search_types_supported": [st.value for st in SearchType],
+                    "interactive_guides_count": len(self.interactive_guides),
+                },
+            )
+
+        except Exception as e:
+            self.logger.error(f"Error getting help metrics: {e}")
+            return HelpMetrics(
+                total_content_items=0,
+                total_queries=0,
+                successful_searches=0,
+                average_response_time=0.0,
+                user_satisfaction=0.0,
+            )
 
 
 # Example usage and testing
 if __name__ == "__main__":
     # Configuration
     config = {
-        'knowledge_base_path': './knowledge_base',
-        'max_response_length': 2000,
-        'similarity_threshold': 0.7,
-        'max_retrieved_entries': 5
+        "enable_semantic_search": True,
+        "enable_fuzzy_search": True,
+        "max_search_results": 20,
+        "supported_languages": ["en", "es", "fr", "de"],
     }
-    
+
     # Initialize help agent
-    agent = HelpAgent(config)
-    
+    help_agent = HelpAgent(config)
+
     print("HelpAgent system initialized successfully!")

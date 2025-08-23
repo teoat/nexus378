@@ -1,9 +1,12 @@
 import os
+
 from fastapi.testclient import TestClient
-from .main import app
+
 from .chain_of_custody import LOG_FILE
+from .main import app
 
 client = TestClient(app)
+
 
 def test_log_and_get_history():
     item_id = "test_item_123"
@@ -13,8 +16,14 @@ def test_log_and_get_history():
         os.remove(LOG_FILE)
 
     # Log some events
-    client.post("/log_event", json={"item_id": item_id, "event_description": "Created", "user_id": "user1"})
-    client.post("/log_event", json={"item_id": item_id, "event_description": "Viewed", "user_id": "user2"})
+    client.post(
+        "/log_event",
+        json={"item_id": item_id, "event_description": "Created", "user_id": "user1"},
+    )
+    client.post(
+        "/log_event",
+        json={"item_id": item_id, "event_description": "Viewed", "user_id": "user2"},
+    )
 
     # Get history
     response = client.post("/get_history", json={"item_id": item_id})

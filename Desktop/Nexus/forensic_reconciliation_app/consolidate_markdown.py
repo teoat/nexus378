@@ -4,11 +4,12 @@ Markdown Consolidation Script
 Consolidates all .md files into a single master document for the Forensic Platform.
 """
 
+import json
 import os
 import re
 from pathlib import Path
-from typing import List, Dict, Any
-import json
+from typing import Any, Dict, List
+
 
 class MarkdownConsolidator:
     """Consolidates multiple markdown files into a single master document"""
@@ -70,7 +71,11 @@ class MarkdownConsolidator:
         path_str = str(file_path).lower()
         
         # Architecture and Design
-        if any(keyword in filename for keyword in ["architecture", "master", "overview"]):
+        if any(
+    keyword in filename for keyword in ["architecture",
+    "master",
+    "overview"]
+)
             return "Architecture & Design"
         
         # Documentation and API
@@ -108,11 +113,15 @@ class MarkdownConsolidator:
             
             # Extract title from first heading
             title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
-            title = title_match.group(1) if title_match else file_path.stem.replace('_', ' ').title()
+            title = (
+    title_match.group(1) if title_match else file_path.stem.replace('_', ' ').title()
+)
             
             # Extract description from first paragraph
             description_match = re.search(r'^([^#\n]+)$', content, re.MULTILINE)
-            description = description_match.group(1).strip() if description_match else ""
+            description = (
+    description_match.group(1).strip() if description_match else ""
+)
             
             # Count sections and content
             sections = len(re.findall(r'^#{2,}\s+', content, re.MULTILINE))
@@ -171,7 +180,11 @@ class MarkdownConsolidator:
         
         return consolidated
     
-    def _generate_consolidated_document(self, file_contents: List[Dict], categories: Dict) -> str:
+    def _generate_consolidated_document(
+    self,
+    file_contents: List[Dict],
+    categories: Dict
+)
         """Generate the consolidated markdown document"""
         
         # Header
@@ -192,7 +205,9 @@ class MarkdownConsolidator:
             toc_sections.append(f"- [{category}](#{category_id})")
             
             for file_info in files:
-                file_id = file_info["filename"].lower().replace('.md', '').replace('_', '-')
+                file_id = (
+    file_info["filename"].lower().replace('.md', '').replace('_', '-')
+)
                 toc_sections.append(f"  - [{file_info['title']}](#{file_id})")
         
         consolidated += "\n".join(toc_sections)
@@ -204,7 +219,9 @@ class MarkdownConsolidator:
             consolidated += f"## {category}\n\n"
             
             for file_info in files:
-                file_id = file_info["filename"].lower().replace('.md', '').replace('_', '-')
+                file_id = (
+    file_info["filename"].lower().replace('.md', '').replace('_', '-')
+)
                 
                 # File header
                 consolidated += f"### {file_info['title']}\n\n"
@@ -269,7 +286,10 @@ This document consolidates information from the following sources:
         from datetime import datetime
         return datetime.now().strftime("%B %d, %Y at %I:%M %p")
     
-    def save_consolidated_document(self, output_path: str = "FORENSIC_PLATFORM_MASTER.md"):
+    def save_consolidated_document(
+    self,
+    output_path: str = "FORENSIC_PLATFORM_MASTER.md"
+)
         """Save the consolidated document"""
         consolidated_content = self.consolidate_content()
         

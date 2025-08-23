@@ -6,27 +6,28 @@ comprehensive OCR processing capabilities for the Evidence Agent
 in the forensic platform.
 """
 
-import asyncio
-import logging
 import json
+import logging
 import os
-from typing import Dict, List, Optional, Any, Tuple, Union
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-from collections import defaultdict
-import uuid
-import tempfile
 import shutil
+import tempfile
+import uuid
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import asyncio
 
 # OCR Libraries
 try:
-    import pytesseract
-    from PIL import Image, ImageEnhance, ImageFilter
+    import fitz  # PyMuPDF
     import pdf2image
     import PyPDF2
-    import fitz  # PyMuPDF
+    import pytesseract
+    from PIL import Image, ImageEnhance, ImageFilter
     TESSERACT_AVAILABLE = True
 except ImportError:
     TESSERACT_AVAILABLE = False
@@ -38,7 +39,7 @@ try:
 except ImportError:
     PDFPLUMBER_AVAILABLE = False
 
-from ...taskmaster.models.job import Job, JobStatus, JobPriority, JobType
+from ...taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class DocumentType(Enum):
@@ -184,10 +185,14 @@ class OCRProcessor:
     def _check_ocr_availability(self):
         """Check if OCR libraries are available."""
         if not TESSERACT_AVAILABLE:
-            self.logger.warning("Tesseract OCR not available - OCR functionality will be limited")
+            self.logger.warning(
+    "Tesseract OCR not available - OCR functionality will be limited",
+)
         
         if not PDFPLUMBER_AVAILABLE:
-            self.logger.warning("PDFPlumber not available - PDF text extraction will be limited")
+            self.logger.warning(
+    "PDFPlumber not available - PDF text extraction will be limited",
+)
     
     async def start(self):
         """Start the OCRProcessor."""
@@ -248,7 +253,9 @@ class OCRProcessor:
             else:
                 self.failed_processing += 1
             
-            self.logger.info(f"OCR processing completed: {result.result_id} - Status: {result.ocr_status.value}")
+            self.logger.info(
+    f"OCR processing completed: {result.result_id} - Status: {result.ocr_status.value}",
+)
             
             return result
             
@@ -285,7 +292,11 @@ class OCRProcessor:
             self.logger.error(f"Error determining document type: {e}")
             return DocumentType.UNKNOWN
     
-    async def _process_pdf_document(self, document_path: str, config: OCRConfiguration) -> OCRResult:
+    async def _process_pdf_document(
+        self,
+        document_path: str,
+        config: OCRConfiguration
+    ):
         """Process a PDF document with OCR."""
         try:
             start_time = datetime.utcnow()
@@ -352,7 +363,12 @@ class OCRProcessor:
             self.logger.error(f"Error extracting PDF text: {e}")
             return ""
     
-    async def _ocr_pdf_document(self, document_path: str, config: OCRConfiguration, start_time: datetime) -> OCRResult:
+    async def _ocr_pdf_document(
+        self,
+        document_path: str,
+        config: OCRConfiguration,
+        start_time: datetime
+    ):
         """Perform OCR on PDF document."""
         try:
             # Convert PDF to images
@@ -402,7 +418,9 @@ class OCRProcessor:
             
             # Determine OCR status and quality
             ocr_status = self._determine_ocr_status(pages)
-            ocr_quality = self._determine_ocr_quality(total_confidence / len(pages) if pages else 0.0)
+            ocr_quality = (
+    self._determine_ocr_quality(total_confidence / len(pages) if pages else 0.0)
+)
             
             # Create result
             result = OCRResult(
@@ -439,7 +457,11 @@ class OCRProcessor:
             self.logger.error(f"Error converting PDF to images: {e}")
             return []
     
-    async def _process_image_document(self, document_path: str, config: OCRConfiguration) -> OCRResult:
+    async def _process_image_document(
+        self,
+        document_path: str,
+        config: OCRConfiguration
+    ):
         """Process an image document with OCR."""
         try:
             start_time = datetime.utcnow()
@@ -488,7 +510,11 @@ class OCRProcessor:
             self.logger.error(f"Error processing image document: {e}")
             raise
     
-    async def _process_unknown_document(self, document_path: str, config: OCRConfiguration) -> OCRResult:
+    async def _process_unknown_document(
+        self,
+        document_path: str,
+        config: OCRConfiguration
+    ):
         """Process an unknown document type."""
         try:
             # Try to treat as image
@@ -603,7 +629,9 @@ class OCRProcessor:
                 custom_config += f' -l {languages}'
             
             # Perform OCR
-            ocr_data = pytesseract.image_to_data(image, config=custom_config, output_type=pytesseract.Output.DICT)
+            ocr_data = (
+    pytesseract.image_to_data(image, config=custom_config, output_type=pytesseract.Output.DICT)
+)
             
             # Extract text and confidence scores
             text_content = ""
@@ -642,7 +670,9 @@ class OCRProcessor:
             
             # Save image to temp file
             temp_dir = tempfile.gettempdir()
-            image_path = os.path.join(temp_dir, f"ocr_page_{page_number}_{uuid.uuid4()}.png")
+            image_path = (
+    os.path.join(temp_dir, f"ocr_page_{page_number}_{uuid.uuid4()}.png")
+)
             image.save(image_path)
             
             page_result = OCRPage(
@@ -748,13 +778,13 @@ class OCRProcessor:
     async def _process_ocr_queue(self):
         """Process documents in the OCR queue."""
         while True:
-            try:
-                if self.processing_queue and len(self.active_processing) < 3:  # Max 3 concurrent
-                    document_path = self.processing_queue.pop(0)
-                    
-                    # Start processing
-                    task = asyncio.create_task(self._process_document_async(document_path))
-                    self.active_processing[document_path] = task
+                            try:
+                    if self.processing_queue and len(self.active_processing) < 3:  # Max 3 concurrent
+                        document_path = self.processing_queue.pop(0)
+                        
+                        # Start processing
+                        task = asyncio.create_task(self._process_document_async(document_path))
+                        self.active_processing[document_path] = task
                 
                 await asyncio.sleep(1)  # Check queue every second
                 
@@ -779,7 +809,9 @@ class OCRProcessor:
             try:
                 # Clean up temp directory
                 temp_dir = tempfile.gettempdir()
-                temp_files = [f for f in os.listdir(temp_dir) if f.startswith('ocr_page_')]
+                temp_files = (
+    [f for f in os.listdir(temp_dir) if f.startswith('ocr_page_')]
+)
                 
                 for temp_file in temp_files:
                     temp_path = os.path.join(temp_dir, temp_file)

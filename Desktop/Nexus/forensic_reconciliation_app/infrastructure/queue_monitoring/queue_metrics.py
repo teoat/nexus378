@@ -6,16 +6,17 @@ Estimated time: 2-3 hours
 MCP Status: IMPLEMENTING - Agent: AI_Assistant
 """
 
-import time
 import json
 import logging
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, asdict
-from enum import Enum
-import asyncio
 import statistics
-from collections import deque, defaultdict
+import time
 import uuid
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,9 @@ class MCPLogger:
     def assign_component(self, session_id: str, agent_id: str, component: str) -> bool:
         """Assign a component to an agent for implementation"""
         if component in self.implementation_locks:
-            logger.warning(f"Component {component} already assigned to {self.implementation_locks[component]}")
+            logger.warning(
+    f"Component {component} already assigned to {self.implementation_locks[component]}",
+)
             return False
         
         self.implementation_locks[component] = agent_id
@@ -105,7 +108,12 @@ class MCPLogger:
             
             logger.info(f"Agent {agent_id} started implementing {component}")
     
-    def log_implementation_complete(self, session_id: str, agent_id: str, component: str):
+    def log_implementation_complete(
+    self,
+    session_id: str,
+    agent_id: str,
+    component: str
+)
         """Log completion of component implementation"""
         if session_id in self.sessions:
             if component not in self.sessions[session_id]["components_implemented"]:
@@ -138,7 +146,10 @@ class QueueMetricsCollector:
         
         logger.info("Queue Metrics Collector initialized with MCP logging")
     
-    def start_implementation_session(self, description: str = "Queue Metrics Implementation") -> str:
+    def start_implementation_session(
+    self,
+    description: str = "Queue Metrics Implementation"
+)
         """Start a new implementation session"""
         session_id = str(uuid.uuid4())
         self.mcp_logger.create_session(session_id, description)
@@ -227,9 +238,15 @@ class QueueMetricsCollector:
             return 0.0
         
         # Calculate health score based on multiple factors
-        size_score = max(0, 100 - (stats.current_size / 1000) * 100)  # Penalize large queues
-        throughput_score = min(100, (stats.avg_throughput / 100) * 100)  # Reward high throughput
-        latency_score = max(0, 100 - (stats.avg_latency / 1000) * 100)  # Penalize high latency
+        size_score = (
+    max(0, 100 - (stats.current_size / 1000) * 100)  # Penalize large queues
+)
+        throughput_score = (
+    min(100, (stats.avg_throughput / 100) * 100)  # Reward high throughput
+)
+        latency_score = (
+    max(0, 100 - (stats.avg_latency / 1000) * 100)  # Penalize high latency
+)
         error_score = max(0, 100 - stats.error_rate * 100)  # Penalize errors
         
         # Weighted average
@@ -264,19 +281,29 @@ class QueueMetricsCollector:
         
         for queue_name, stats in self.queue_stats.items():
             # Queue size
-            prometheus_lines.append(f'queue_size{{queue="{queue_name}"}} {stats.current_size}')
+            prometheus_lines.append(
+    f'queue_size{{queue="{queue_name}"}} {stats.current_size}',
+)
             
             # Throughput
-            prometheus_lines.append(f'queue_throughput{{queue="{queue_name}"}} {stats.avg_throughput}')
+            prometheus_lines.append(
+    f'queue_throughput{{queue="{queue_name}"}} {stats.avg_throughput}',
+)
             
             # Latency
-            prometheus_lines.append(f'queue_latency{{queue="{queue_name}"}} {stats.avg_latency}')
+            prometheus_lines.append(
+    f'queue_latency{{queue="{queue_name}"}} {stats.avg_latency}',
+)
             
             # Error rate
-            prometheus_lines.append(f'queue_error_rate{{queue="{queue_name}"}} {stats.error_rate}')
+            prometheus_lines.append(
+    f'queue_error_rate{{queue="{queue_name}"}} {stats.error_rate}',
+)
             
             # Health score
-            prometheus_lines.append(f'queue_health_score{{queue="{queue_name}"}} {stats.health_score}')
+            prometheus_lines.append(
+    f'queue_health_score{{queue="{queue_name}"}} {stats.health_score}',
+)
         
         return '\n'.join(prometheus_lines)
     
@@ -290,7 +317,9 @@ class QueueMetricsCollector:
             return
         
         self.is_collecting = True
-        self.collection_task = asyncio.create_task(self._collection_loop(interval_seconds))
+        self.collection_task = (
+    asyncio.create_task(self._collection_loop(interval_seconds))
+)
         logger.info(f"Started metric collection with {interval_seconds}s interval")
     
     def stop_collection(self):
@@ -352,7 +381,12 @@ class QueueMetricsCollector:
         
         logger.info("Cleaned up old metrics")
     
-    def _update_queue_stats(self, queue_name: str, metric_type: MetricType, value: float):
+    def _update_queue_stats(
+    self,
+    queue_name: str,
+    metric_type: MetricType,
+    value: float
+)
         """Update queue statistics"""
         if queue_name not in self.queue_stats:
             self.queue_stats[queue_name] = QueueStats(

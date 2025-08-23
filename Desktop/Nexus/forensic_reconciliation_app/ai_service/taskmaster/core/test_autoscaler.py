@@ -1,9 +1,15 @@
+import time
 import unittest
 from unittest.mock import MagicMock
-import time
 
-from Desktop.Nexus.forensic_reconciliation_app.ai_service.taskmaster.core.autoscaler import AutoScaler, ScalingDecision
-from Desktop.Nexus.forensic_reconciliation_app.ai_service.taskmaster.core.mcp_server import Agent
+from Desktop.Nexus.forensic_reconciliation_app.ai_service.taskmaster.core.autoscaler import (
+    AutoScaler,
+    ScalingDecision,
+)
+from Desktop.Nexus.forensic_reconciliation_app.ai_service.taskmaster.core.mcp_server import (
+    Agent,
+)
+
 
 class TestAutoScaler(unittest.TestCase):
 
@@ -14,8 +20,8 @@ class TestAutoScaler(unittest.TestCase):
             "MIN_AGENTS": 2,
             "MAX_AGENTS": 5,
             "TASKS_PER_AGENT_THRESHOLD": 3,
-            "IDLE_AGENT_PERCENT_THRESHOLD": 0.6, # 60%
-            "COOLDOWN_PERIOD_S": 10, # Short cooldown for testing
+            "IDLE_AGENT_PERCENT_THRESHOLD": 0.6,  # 60%
+            "COOLDOWN_PERIOD_S": 10,  # Short cooldown for testing
         }
         self.autoscaler = AutoScaler(self.mock_mcp_server, self.config)
 
@@ -24,7 +30,7 @@ class TestAutoScaler(unittest.TestCase):
         # Simulate high load: 15 pending tasks, 3 agents (5 tasks/agent > threshold of 3)
         self.mock_mcp_server.get_system_status.return_value = {
             "task_status": {"pending": 15, "in_progress": 3},
-            "agents": {"total_registered": 3}
+            "agents": {"total_registered": 3},
         }
 
         decision = self.autoscaler.make_scaling_decision()
@@ -35,7 +41,7 @@ class TestAutoScaler(unittest.TestCase):
         # Simulate low load: 0 pending tasks, 5 agents, 1 busy (4 idle = 80% > threshold of 60%)
         self.mock_mcp_server.get_system_status.return_value = {
             "task_status": {"pending": 0, "in_progress": 1},
-            "agents": {"total_registered": 5}
+            "agents": {"total_registered": 5},
         }
 
         decision = self.autoscaler.make_scaling_decision()
@@ -46,7 +52,7 @@ class TestAutoScaler(unittest.TestCase):
         # High load, but already at max agents
         self.mock_mcp_server.get_system_status.return_value = {
             "task_status": {"pending": 20, "in_progress": 5},
-            "agents": {"total_registered": 5} # MAX_AGENTS is 5
+            "agents": {"total_registered": 5},  # MAX_AGENTS is 5
         }
 
         decision = self.autoscaler.make_scaling_decision()
@@ -57,7 +63,7 @@ class TestAutoScaler(unittest.TestCase):
         # Idle agents, but already at min agents
         self.mock_mcp_server.get_system_status.return_value = {
             "task_status": {"pending": 0, "in_progress": 0},
-            "agents": {"total_registered": 2} # MIN_AGENTS is 2
+            "agents": {"total_registered": 2},  # MIN_AGENTS is 2
         }
 
         decision = self.autoscaler.make_scaling_decision()
@@ -68,7 +74,7 @@ class TestAutoScaler(unittest.TestCase):
         # Load is below the scale-up threshold
         self.mock_mcp_server.get_system_status.return_value = {
             "task_status": {"pending": 5, "in_progress": 3},
-            "agents": {"total_registered": 3} # 5/3 < 3
+            "agents": {"total_registered": 3},  # 5/3 < 3
         }
 
         decision = self.autoscaler.make_scaling_decision()
@@ -79,7 +85,7 @@ class TestAutoScaler(unittest.TestCase):
         # Trigger a scale up
         self.mock_mcp_server.get_system_status.return_value = {
             "task_status": {"pending": 15, "in_progress": 3},
-            "agents": {"total_registered": 3}
+            "agents": {"total_registered": 3},
         }
         decision1 = self.autoscaler.make_scaling_decision()
         self.assertEqual(decision1, ScalingDecision.SCALE_UP)
@@ -96,5 +102,6 @@ class TestAutoScaler(unittest.TestCase):
         decision3 = self.autoscaler.make_scaling_decision()
         self.assertEqual(decision3, ScalingDecision.SCALE_UP)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

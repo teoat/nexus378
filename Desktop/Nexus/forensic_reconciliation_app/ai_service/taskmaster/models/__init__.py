@@ -5,11 +5,13 @@ This package contains all the data models used by the Taskmaster system
 for job assignment, workflow management, and resource allocation.
 """
 
-from .job import Job, JobStatus, JobPriority, JobType, JobResult
+<<<<<<< Updated upstream
+from .job import Job, JobPriority, JobResult, JobStatus, JobType
+
 # from .agent import Agent, AgentStatus, AgentType, AgentCapability
-from .queue import Queue, QueueType, QueueStatus, QueuePolicy
-from .workflow import Workflow, WorkflowStatus, WorkflowStep, WorkflowDependency
-from .task import Task, TaskStatus, TaskResult, TaskDependency
+from .queue import Queue, QueuePolicy, QueueStatus, QueueType
+from .task import Task, TaskDependency, TaskResult, TaskStatus
+from .workflow import Workflow, WorkflowDependency, WorkflowStatus, WorkflowStep
 
 __all__ = [
     # Job models
@@ -26,4 +28,15 @@ __all__ = [
     
     # Task models
     "Task", "TaskStatus", "TaskResult", "TaskDependency"
+=======
+from .job import Job, JobPriority, JobResult, JobStatus, JobType
+
+__all__ = [
+    # Job models
+    "Job",
+    "JobStatus",
+    "JobPriority",
+    "JobType",
+    "JobResult",
+>>>>>>> Stashed changes
 ]

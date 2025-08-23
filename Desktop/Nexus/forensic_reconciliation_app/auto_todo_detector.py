@@ -4,16 +4,16 @@ Automatic TODO Detector for Forensic Reconciliation Platform
 Automatically scans codebase for unimplemented components and adds them as TODOs.
 """
 
+import json
+import logging
 import os
 import re
-import json
 import time
-import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, asdict
-from enum import Enum
 import uuid
+from dataclasses import asdict, dataclass
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +88,12 @@ class MCPLogger:
         }
         logger.info(f"MCP Session created: {session_id} - {description}")
     
-    def log_auto_todo_generation(self, session_id: str, component_name: str, todo_id: str):
+    def log_auto_todo_generation(
+    self,
+    session_id: str,
+    component_name: str,
+    todo_id: str
+)
         """Log automatic TODO generation"""
         if session_id in self.sessions:
             self.sessions[session_id]["auto_todos_generated"].append({
@@ -175,7 +180,10 @@ class AutoTODODetector:
             ]
         }
     
-    def start_implementation_session(self, description: str = "Auto TODO Detection") -> str:
+    def start_implementation_session(
+    self,
+    description: str = "Auto TODO Detection"
+)
         """Start a new implementation session"""
         session_id = str(uuid.uuid4())
         self.mcp_logger.create_session(session_id, description)
@@ -199,14 +207,20 @@ class AutoTODODetector:
         
         return detected_components
     
-    def _scan_for_pattern(self, component_type: ComponentType, pattern: str) -> Dict[str, DetectedComponent]:
+    def _scan_for_pattern(
+    self,
+    component_type: ComponentType,
+    pattern: str
+)
         """Scan for components matching a specific pattern"""
         components = {}
         
         # Search for files matching the pattern
         for file_path in self.project_root.rglob("*"):
             if file_path.is_file() and self._file_matches_pattern(file_path, pattern):
-                component = self._analyze_file_component(file_path, component_type, pattern)
+                component = (
+    self._analyze_file_component(file_path, component_type, pattern)
+)
                 if component:
                     components[component.id] = component
         
@@ -225,7 +239,12 @@ class AutoTODODetector:
         
         return False
     
-    def _analyze_file_component(self, file_path: Path, component_type: ComponentType, pattern: str) -> Optional[DetectedComponent]:
+    def _analyze_file_component(
+    self,
+    file_path: Path,
+    component_type: ComponentType,
+    pattern: str
+)
         """Analyze a file to determine component implementation status"""
         try:
             # Read file content
@@ -233,7 +252,9 @@ class AutoTODODetector:
                 content = f.read()
             
             # Determine implementation status
-            status = self._determine_implementation_status(file_path, component_type, content)
+            status = (
+    self._determine_implementation_status(file_path, component_type, content)
+)
             
             # Skip if already fully implemented
             if status == ImplementationStatus.FULLY_IMPLEMENTED:
@@ -301,7 +322,11 @@ class AutoTODODetector:
         
         return ' '.join(name_parts)
     
-    def _calculate_priority(self, component_type: ComponentType, status: ImplementationStatus) -> int:
+    def _calculate_priority(
+    self,
+    component_type: ComponentType,
+    status: ImplementationStatus
+)
         """Calculate priority for a component (1-5, where 1 is highest)"""
         # Base priority by component type
         type_priorities = {
@@ -326,7 +351,11 @@ class AutoTODODetector:
         else:
             return 5  # Fully implemented
     
-    def _estimate_implementation_hours(self, component_type: ComponentType, status: ImplementationStatus) -> float:
+    def _estimate_implementation_hours(
+    self,
+    component_type: ComponentType,
+    status: ImplementationStatus
+)
         """Estimate implementation hours for a component"""
         # Base estimates by component type
         type_estimates = {
@@ -351,7 +380,12 @@ class AutoTODODetector:
         else:
             return 0.0  # Fully implemented
     
-    def _generate_component_description(self, component_type: ComponentType, pattern: str, status: ImplementationStatus) -> str:
+    def _generate_component_description(
+    self,
+    component_type: ComponentType,
+    pattern: str,
+    status: ImplementationStatus
+)
         """Generate a description for a component"""
         status_text = {
             ImplementationStatus.NOT_IMPLEMENTED: "needs to be implemented",
@@ -361,12 +395,18 @@ class AutoTODODetector:
         
         return f"{component_type.value.replace('_', ' ').title()} component for {pattern} that {status_text[status]}"
     
-    def _identify_dependencies(self, content: str, component_type: ComponentType) -> List[str]:
+    def _identify_dependencies(
+    self,
+    content: str,
+    component_type: ComponentType
+)
         """Identify dependencies for a component"""
         dependencies = []
         
         # Look for import statements
-        import_matches = re.findall(r'^from\s+(\w+(?:\.\w+)*)\s+import', content, re.MULTILINE)
+        import_matches = (
+    re.findall(r'^from\s+(\w+(?:\.\w+)*)\s+import', content, re.MULTILINE)
+)
         dependencies.extend(import_matches)
         
         # Look for class inheritance
@@ -411,7 +451,10 @@ class AutoTODODetector:
         
         return auto_todos
     
-    def export_todos_to_json(self, output_file: str = "auto_generated_todos.json") -> str:
+    def export_todos_to_json(
+    self,
+    output_file: str = "auto_generated_todos.json"
+)
         """Export generated TODOs to JSON file"""
         try:
             todos_data = {
@@ -451,7 +494,9 @@ class AutoTODODetector:
                             f.write(f"### {todo.title}\n\n")
                             f.write(f"**Description:** {todo.description}\n\n")
                             f.write(f"**Type:** {todo.component_type.value}\n")
-                            f.write(f"**Estimated Hours:** {todo.estimated_hours:.1f}\n")
+                            f.write(
+    f"**Estimated Hours:** {todo.estimated_hours:.1f}\n",
+)
                             f.write(f"**Status:** {todo.status}\n")
                             f.write(f"**Auto-Generated:** {todo.auto_generated}\n")
                             

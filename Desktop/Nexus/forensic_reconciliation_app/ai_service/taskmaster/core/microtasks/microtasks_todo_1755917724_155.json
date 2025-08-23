@@ -1,0 +1,51 @@
+{
+  "todo_id": "todo_1755917724_155",
+  "created_at": "2025-08-23T11:55:26.975985",
+  "microtasks": [
+    {
+      "id": "todo_1755917724_155_generic_1",
+      "title": "Research Phase",
+      "description": "Complete research phase for - [ ] **LangGraph Integration**",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 11:55:26.975960",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755917724_155_generic_2",
+      "title": "Planning Phase",
+      "description": "Complete planning phase for - [ ] **LangGraph Integration**",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 11:55:26.975964",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755917724_155_generic_3",
+      "title": "Implementation Phase",
+      "description": "Complete implementation phase for - [ ] **LangGraph Integration**",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 11:55:26.975966",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755917724_155_generic_4",
+      "title": "Testing Phase",
+      "description": "Complete testing phase for - [ ] **LangGraph Integration**",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 11:55:26.975968",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755917724_155_generic_5",
+      "title": "Documentation Phase",
+      "description": "Complete documentation phase for - [ ] **LangGraph Integration**",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 11:55:26.975970",
+      "type": "generic"
+    }
+  ]
+}

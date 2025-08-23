@@ -5,17 +5,18 @@ Priority: CRITICAL | Estimated Duration: 8-12 hours
 Required Capabilities: security, authentication, mfa_implementation
 """
 
-import asyncio
-import logging
-import json
-import time
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
-from enum import Enum
-from datetime import datetime, timedelta
-import secrets
-import hashlib
 import base64
+import hashlib
+import json
+import logging
+import secrets
+import time
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -239,7 +240,11 @@ class MFAMCPServer:
             
             logger.info(f"Updated progress for {subtask}: {progress}% (Overall: {overall_progress:.1f}%)")
     
-    async def setup_mfa_for_user(self, user_id: str, methods: List[MFAMethod]) -> Dict[str, Any]:
+    async def setup_mfa_for_user(
+    self,
+    user_id: str,
+    methods: List[MFAMethod]
+)
         """Setup MFA for a user with specified methods"""
         try:
             logger.info(f"Setting up MFA for user {user_id} with methods: {methods}")
@@ -257,7 +262,11 @@ class MFAMCPServer:
                     results["backup_codes"] = await self._setup_backup_codes(user_id)
             
             # Log the setup
-            self._log_audit_event("mfa_setup", user_id, {"methods": [m.value for m in methods]})
+            self._log_audit_event(
+    "mfa_setup",
+    user_id,
+    {"methods": [m.value for m in methods]}
+)
             
             return {
                 "success": True,
@@ -419,7 +428,9 @@ class MFAMCPServer:
                                  challenge_data: Dict[str, Any]) -> Dict[str, Any]:
         """Verify MFA challenge for a user"""
         try:
-            logger.info(f"Verifying MFA challenge for user {user_id} with method {method}")
+            logger.info(
+    f"Verifying MFA challenge for user {user_id} with method {method}",
+)
             
             # Check if user is locked out
             if await self._is_user_locked_out(user_id, method):
@@ -453,7 +464,12 @@ class MFAMCPServer:
             logger.error(f"Failed to verify MFA challenge for user {user_id}: {e}")
             return {"success": False, "error": str(e)}
     
-    async def _verify_totp(self, user_id: str, challenge_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _verify_totp(
+    self,
+    user_id: str,
+    challenge_data: Dict[str,
+    Any]
+)
         """Verify TOTP challenge"""
         try:
             # TOTP verification implementation would go here
@@ -463,7 +479,10 @@ class MFAMCPServer:
             if not totp_code:
                 return {"success": False, "error": "TOTP code required"}
             
-            # Simulate verification (in real implementation, this would validate against the secret)
+            # Simulate verification (
+    in real implementation,
+    this would validate against the secret
+)
             if len(totp_code) == 6 and totp_code.isdigit():
                 # Update last used timestamp
                 secret_key = f"{user_id}_totp"
@@ -478,7 +497,12 @@ class MFAMCPServer:
             logger.error(f"Failed to verify TOTP for user {user_id}: {e}")
             return {"success": False, "error": str(e)}
     
-    async def _verify_sms(self, user_id: str, challenge_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _verify_sms(
+    self,
+    user_id: str,
+    challenge_data: Dict[str,
+    Any]
+)
         """Verify SMS challenge"""
         try:
             # SMS verification implementation would go here
@@ -503,7 +527,12 @@ class MFAMCPServer:
             logger.error(f"Failed to verify SMS for user {user_id}: {e}")
             return {"success": False, "error": str(e)}
     
-    async def _verify_hardware_token(self, user_id: str, challenge_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _verify_hardware_token(
+    self,
+    user_id: str,
+    challenge_data: Dict[str,
+    Any]
+)
         """Verify hardware token challenge"""
         try:
             # Hardware token verification implementation would go here
@@ -528,7 +557,12 @@ class MFAMCPServer:
             logger.error(f"Failed to verify hardware token for user {user_id}: {e}")
             return {"success": False, "error": str(e)}
     
-    async def _verify_backup_code(self, user_id: str, challenge_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _verify_backup_code(
+    self,
+    user_id: str,
+    challenge_data: Dict[str,
+    Any]
+)
         """Verify backup code challenge"""
         try:
             # Backup code verification implementation would go here

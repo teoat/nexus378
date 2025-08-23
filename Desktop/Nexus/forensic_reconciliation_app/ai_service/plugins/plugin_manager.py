@@ -5,15 +5,16 @@ This module provides the PluginManager, which is responsible for discovering,
 loading, and managing the lifecycle of all plugins.
 """
 
-import os
 import importlib.util
 import inspect
 import logging
+import os
 from typing import Dict
 
 from .plugin_interface import PluginInterface
 
 logger = logging.getLogger(__name__)
+
 
 class PluginManager:
     """
@@ -34,7 +35,9 @@ class PluginManager:
             self.plugin_folder = os.path.join(os.path.dirname(__file__), plugin_folder)
 
         self.loaded_plugins: Dict[str, PluginInterface] = {}
-        logger.info(f"PluginManager initialized. Plugin folder set to: {self.plugin_folder}")
+        logger.info(
+            f"PluginManager initialized. Plugin folder set to: {self.plugin_folder}"
+        )
 
     def discover_and_load_plugins(self):
         """
@@ -43,7 +46,9 @@ class PluginManager:
         """
         logger.info("Starting plugin discovery...")
         if not os.path.isdir(self.plugin_folder):
-            logger.warning(f"Plugin folder '{self.plugin_folder}' not found. No plugins will be loaded.")
+            logger.warning(
+                f"Plugin folder '{self.plugin_folder}' not found. No plugins will be loaded."
+            )
             return
 
         for filename in os.listdir(self.plugin_folder):
@@ -54,9 +59,14 @@ class PluginManager:
                 try:
                     self._load_module_and_register_plugins(module_name, module_path)
                 except Exception as e:
-                    logger.error(f"Failed to load or register plugins from {module_name}: {e}", exc_info=True)
+                    logger.error(
+                        f"Failed to load or register plugins from {module_name}: {e}",
+                        exc_info=True,
+                    )
 
-        logger.info(f"Plugin discovery complete. Loaded {len(self.loaded_plugins)} plugins.")
+        logger.info(
+            f"Plugin discovery complete. Loaded {len(self.loaded_plugins)} plugins."
+        )
 
     def _load_module_and_register_plugins(self, module_name: str, module_path: str):
         """
@@ -71,11 +81,17 @@ class PluginManager:
         spec.loader.exec_module(module)
 
         for name, obj in inspect.getmembers(module):
-            if inspect.isclass(obj) and issubclass(obj, PluginInterface) and obj is not PluginInterface:
+            if (
+                inspect.isclass(obj)
+                and issubclass(obj, PluginInterface)
+                and obj is not PluginInterface
+            ):
                 try:
                     plugin_instance = obj()
                     if plugin_instance.name in self.loaded_plugins:
-                        logger.warning(f"Plugin with name '{plugin_instance.name}' already loaded. Skipping duplicate.")
+                        logger.warning(
+                            f"Plugin with name '{plugin_instance.name}' already loaded. Skipping duplicate."
+                        )
                         continue
 
                     # Initialize the plugin
@@ -83,10 +99,15 @@ class PluginManager:
 
                     # Store the loaded plugin
                     self.loaded_plugins[plugin_instance.name] = plugin_instance
-                    logger.info(f"Successfully loaded and registered plugin: '{plugin_instance.name}' from {module_name}")
+                    logger.info(
+                        f"Successfully loaded and registered plugin: '{plugin_instance.name}' from {module_name}"
+                    )
 
                 except Exception as e:
-                    logger.error(f"Failed to instantiate or register plugin class '{obj.__name__}' from {module_name}: {e}", exc_info=True)
+                    logger.error(
+                        f"Failed to instantiate or register plugin class '{obj.__name__}' from {module_name}: {e}",
+                        exc_info=True,
+                    )
 
     def shutdown(self):
         """
@@ -98,7 +119,9 @@ class PluginManager:
                 plugin.unload()
                 logger.info(f"Plugin '{plugin_name}' unloaded successfully.")
             except Exception as e:
-                logger.error(f"Error unloading plugin '{plugin_name}': {e}", exc_info=True)
+                logger.error(
+                    f"Error unloading plugin '{plugin_name}': {e}", exc_info=True
+                )
         self.loaded_plugins.clear()
         logger.info("All plugins shut down.")
 

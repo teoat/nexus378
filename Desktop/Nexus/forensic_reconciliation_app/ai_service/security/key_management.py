@@ -3,14 +3,14 @@ Key Management Service for AI Service
 Handles encryption key generation, storage, and rotation
 """
 
+import base64
+import hashlib
+import logging
 import os
 import secrets
-import hashlib
-import base64
-from datetime import datetime, timedelta
-from typing import Optional, Dict, List, Tuple
 from dataclasses import dataclass
-import logging
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -74,9 +74,9 @@ class KeyManagementService:
             raise ValueError("RSA key size must be 1024, 2048, or 4096 bits")
         
         try:
-            from cryptography.hazmat.primitives.asymmetric import rsa
             from cryptography.hazmat.primitives import serialization
-            
+            from cryptography.hazmat.primitives.asymmetric import rsa
+
             # Generate private key
             private_key = rsa.generate_private_key(
                 public_exponent=65537,
@@ -185,7 +185,9 @@ class KeyManagementService:
         if old_key.key_type.startswith('aes'):
             new_key_id, _ = self.generate_aes_key(int(old_key.key_type.split('-')[1]))
         elif old_key.key_type.startswith('rsa'):
-            new_key_id, _, _ = self.generate_rsa_key_pair(int(old_key.key_type.split('-')[1]))
+            new_key_id, _, _ = (
+    self.generate_rsa_key_pair(int(old_key.key_type.split('-')[1]))
+)
         elif old_key.key_type.startswith('hmac'):
             new_key_id, _ = self.generate_hmac_key(int(old_key.key_type.split('-')[1]))
         else:
@@ -216,7 +218,11 @@ class KeyManagementService:
         
         return True
     
-    def list_keys(self, key_type: Optional[str] = None, active_only: bool = True) -> List[Dict]:
+    def list_keys(
+    self,
+    key_type: Optional[str] = None,
+    active_only: bool = True
+)
         """List all keys with optional filtering"""
         keys = []
         

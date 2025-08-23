@@ -5,13 +5,14 @@ Priority: HIGH | Estimated Duration: 4-6 hours
 Required Capabilities: database_setup, olap_configuration, performance_optimization
 """
 
-import duckdb
+import json
 import logging
 import os
-import json
-from typing import Dict, List, Any, Optional
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import duckdb
 
 logger = logging.getLogger(__name__)
 
@@ -310,8 +311,12 @@ class DuckDBSetup:
                     DATE_TRUNC('day', processing_timestamp) as processing_date,
                     COUNT(*) as records_processed,
                     AVG(CAST(processing_time AS DECIMAL)) as avg_processing_time,
-                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as successful_processing,
-                    SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_processing
+                    SUM(
+    CASE WHEN status = 'completed' THEN 1 ELSE 0 END,
+)
+                    SUM(
+    CASE WHEN status = 'failed' THEN 1 ELSE 0 END,
+)
                 FROM staging.evidence_staging
                 GROUP BY DATE_TRUNC('day', processing_timestamp)
                 ORDER BY processing_date DESC
@@ -420,12 +425,32 @@ class DuckDBSetup:
                 ("raw_data.evidence", "evidence_type", "idx_evidence_type"),
                 ("raw_data.evidence", "created_timestamp", "idx_evidence_created"),
                 ("raw_data.file_metadata", "evidence_id", "idx_file_metadata_evidence"),
-                ("raw_data.file_metadata", "file_hash_sha256", "idx_file_metadata_hash"),
-                ("raw_data.file_metadata", "file_extension", "idx_file_metadata_extension"),
-                ("processed.reconciliation_results", "case_id", "idx_reconciliation_case"),
-                ("processed.reconciliation_results", "reconciliation_type", "idx_reconciliation_type"),
+                (
+    "raw_data.file_metadata",
+    "file_hash_sha256",
+    "idx_file_metadata_hash"
+)
+                (
+    "raw_data.file_metadata",
+    "file_extension",
+    "idx_file_metadata_extension"
+)
+                (
+    "processed.reconciliation_results",
+    "case_id",
+    "idx_reconciliation_case"
+)
+                (
+    "processed.reconciliation_results",
+    "reconciliation_type",
+    "idx_reconciliation_type"
+)
                 ("analytics.performance_metrics", "metric_name", "idx_metrics_name"),
-                ("analytics.performance_metrics", "collection_timestamp", "idx_metrics_timestamp")
+                (
+    "analytics.performance_metrics",
+    "collection_timestamp",
+    "idx_metrics_timestamp"
+)
             ]
             
             for table, column, index_name in indexes:
@@ -436,16 +461,33 @@ class DuckDBSetup:
             
             # Composite indexes for complex queries
             composite_indexes = [
-                ("raw_data.evidence", "case_id, evidence_type", "idx_evidence_case_type"),
-                ("raw_data.file_metadata", "evidence_id, file_extension", "idx_file_evidence_ext"),
-                ("processed.reconciliation_results", "case_id, reconciliation_type", "idx_recon_case_type")
+                (
+    "raw_data.evidence",
+    "case_id,
+    evidence_type",
+    "idx_evidence_case_type"
+)
+                (
+    "raw_data.file_metadata",
+    "evidence_id,
+    file_extension",
+    "idx_file_evidence_ext"
+)
+                (
+    "processed.reconciliation_results",
+    "case_id,
+    reconciliation_type",
+    "idx_recon_case_type"
+)
             ]
             
             for table, columns, index_name in composite_indexes:
                 try:
                     self.connection.execute(f"CREATE INDEX IF NOT EXISTS {index_name} ON {table} ({columns})")
                 except Exception as e:
-                    logger.warning(f"Could not create composite index {index_name}: {e}")
+                    logger.warning(
+    f"Could not create composite index {index_name}: {e}",
+)
             
             self.setup_log.append("Performance indexes created successfully")
             logger.info("Performance indexes created successfully")
@@ -518,7 +560,9 @@ class DuckDBSetup:
             
             # Test 1: Basic query performance
             start_time = datetime.now()
-            result = self.connection.execute("SELECT COUNT(*) FROM raw_data.evidence").fetchone()
+            result = (
+    self.connection.execute("SELECT COUNT(*) FROM raw_data.evidence").fetchone()
+)
             basic_query_time = (datetime.now() - start_time).total_seconds()
             
             # Test 2: Join query performance
@@ -584,7 +628,9 @@ class DuckDBSetup:
                 table_counts[schema] = result[0] if result else 0
             
             # Get database size
-            size_result = self.connection.execute("SELECT pg_size_pretty(pg_database_size(current_database()))").fetchone()
+            size_result = (
+    self.connection.execute("SELECT pg_size_pretty(pg_database_size(current_database()))").fetchone()
+)
             db_size = size_result[0] if size_result else "Unknown"
             
             return {

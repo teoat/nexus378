@@ -4,137 +4,232 @@
 version: '3.8'
 
 services:
-  # PostgreSQL 15+ - Metadata & Audit Storage
-  postgres:
-    image: postgres:15-alpine
-    container_name: nexus_postgres
-    environment:
-      POSTGRES_DB: nexus_forensics
-      POSTGRES_USER: nexus_user
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password_change_in_prod}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./datastore/postgres/init:/docker-entrypoint-initdb.d
-    ports:
-      - "5432:5432"
-    networks:
-      - nexus_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nexus_user -d nexus_forensics"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Neo4j 5+ - Fraud Pattern Detection
-  neo4j:
-    image: neo4j:5-community
-    container_name: nexus_neo4j
-    environment:
-      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-secure_password_change_in_prod}
-      NEO4J_PLUGINS: '["apoc", "graph-data-science"]'
-      NEO4J_dbms_security_procedures_unrestricted: "apoc.*,gds.*"
-      NEO4J_dbms_memory_heap_initial__size: 2G
-      NEO4J_dbms_memory_heap_max__size: 4G
-      NEO4J_dbms_memory_pagecache_size: 2G
-    volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
-      - neo4j_import:/var/lib/neo4j/import
-      - neo4j_plugins:/plugins
-    ports:
-      - "7474:7474"  # HTTP
-      - "7687:7687"  # Bolt
-    networks:
-      - nexus_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7474"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Redis 7+ - Caching & Message Queues
-  redis:
-    image: redis:7-alpine
-    container_name: nexus_redis
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-secure_password_change_in_prod}
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    networks:
-      - nexus_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # RabbitMQ - Multi-Agent Orchestration
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: nexus_rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-nexus_user}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-secure_password_change_in_prod}
-      RABBITMQ_DEFAULT_VHOST: nexus_forensics
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    ports:
-      - "5672:5672"   # AMQP
-      - "15672:15672" # Management UI
-    networks:
-      - nexus_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # MinIO - Immutable Evidence Storage
+  # MinIO Object Storage
   minio:
     image: minio/minio:latest
-    container_name: nexus_minio
-    command: server /data --console-address ":9001"
+    container_name: forensic_minio
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-nexus_admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-secure_password_change_in_prod}
-      MINIO_BROWSER_REDIRECT_URL: http://localhost:9001
+      - MINIO_ROOT_USER=forensic_user
+      - MINIO_ROOT_PASSWORD=secure_password_123
+      - MINIO_BROWSER_REDIRECT_URL=http://localhost:9001
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     volumes:
       - minio_data:/data
-    ports:
-      - "9000:9000"  # API
-      - "9001:9001"  # Console
-    networks:
-      - nexus_network
-    restart: unless-stopped
+    command: server /data --console-address ":9001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
-
-  # DuckDB - OLAP Reconciliation Engine
-  duckdb:
-    image: ghcr.io/duckdb/duckdb:latest
-    container_name: nexus_duckdb
-    volumes:
-      - duckdb_data:/data
-      - ./datastore/duckdb:/workspace
-    working_dir: /workspace
-    command: /bin/sh -c "tail -f /dev/null"  # Keep container running
-    networks:
-      - nexus_network
+      start_period: 40s
     restart: unless-stopped
 
-  # Prometheus - Metrics Collection
+  # Neo4j Graph Database
+  neo4j:
+    image: neo4j:5-community
+    container_name: forensic_neo4j
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+    environment:
+      - NEO4J_dbms_memory_heap_max__size=4G
+      - NEO4J_dbms_memory_pagecache_size=2G
+      - NEO4J_dbms_connector_bolt_listen__address=0.0.0.0:7687
+      - NEO4J_dbms_connector_http_listen__address=0.0.0.0:7474
+      - NEO4J_dbms_connector_https_listen__address=0.0.0.0:7473
+      - NEO4J_dbms_security_auth__enabled=false
+      - NEO4J_dbms_logs_debug_level=INFO
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+      - neo4j_plugins:/plugins
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474/browser/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: forensic_redis
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # RabbitMQ Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: forensic_rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_logs:/var/log/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=forensic_user
+      - RABBITMQ_DEFAULT_PASS=secure_password_123
+      - RABBITMQ_DEFAULT_VHOST=forensic_vhost
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: forensic_postgres
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    environment:
+      - POSTGRES_DB=forensic_reconciliation
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=forensic_secure_2024
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./datastore/postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Elasticsearch Search Engine
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: forensic_elasticsearch
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx2g
+      - cluster.name=forensic-cluster
+      - node.name=forensic-node
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Kibana Dashboard
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: forensic_kibana
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_NAME=forensic-kibana
+      - SERVER_HOST=0.0.0.0
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Prometheus Monitoring
   prometheus:
     image: prom/prometheus:latest
-    container_name: nexus_prometheus
+    container_name: forensic_prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -142,185 +237,179 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
-    networks:
-      - nexus_network
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
       interval: 30s
       timeout: 10s
       retries: 3
+    restart: unless-stopped
 
-  # Grafana - Monitoring Dashboards
+  # Grafana Dashboard
   grafana:
     image: grafana/grafana:latest
-    container_name: nexus_grafana
-    environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-secure_password_change_in_prod}
-      GF_USERS_ALLOW_SIGN_UP: "false"
+    container_name: forensic_grafana
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    ports:
+      - "3001:3000"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=forensic_secure_2024
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # API Gateway (Multi-stage build)
+  api_gateway:
+    build:
+      context: ./api_gateway
+      dockerfile: Dockerfile
+      target: production
+      cache_from:
+        - forensic_reconciliation_app-api_gateway:cache
+      args:
+        - NODE_ENV=production
+        - BUILDKIT_INLINE_CACHE=1
+    image: forensic_reconciliation_app-api_gateway:latest
+    container_name: forensic_api_gateway
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
     ports:
       - "3000:3000"
-    networks:
-      - nexus_network
-    restart: unless-stopped
-    depends_on:
-      - prometheus
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Elasticsearch - Log Aggregation
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: nexus_elasticsearch
     environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms1g -Xmx2g"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
-    networks:
-      - nexus_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Kibana - Log Visualization
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.11.0
-    container_name: nexus_kibana
-    environment:
-      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-    volumes:
-      - kibana_data:/usr/share/kibana/data
-    ports:
-      - "5601:5601"
-    networks:
-      - nexus_network
-    restart: unless-stopped
-    depends_on:
-      - elasticsearch
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # AI Service - Python AI Layer
-  ai_service:
-    build:
-      context: ./ai_service
-      dockerfile: Dockerfile
-    container_name: nexus_ai_service
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_DB=nexus_forensics
-      - POSTGRES_USER=nexus_user
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secure_password_change_in_prod}
-      - NEO4J_URI=bolt://neo4j:7687
-      - NEO4J_USER=${NEO4J_USER:-neo4j}
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-secure_password_change_in_prod}
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-secure_password_change_in_prod}
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USER=${RABBITMQ_USER:-nexus_user}
-      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-secure_password_change_in_prod}
-      - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-nexus_admin}
-      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD:-secure_password_change_in_prod}
-    volumes:
-      - ./ai_service:/app
-      - ai_service_data:/app/data
-    ports:
-      - "8000:8000"
-    networks:
-      - nexus_network
-    restart: unless-stopped
-    depends_on:
-      - postgres
-      - neo4j
-      - redis
-      - rabbitmq
-      - minio
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # API Gateway - Node.js Gateway
-  gateway:
-    build:
-      context: ./gateway
-      dockerfile: Dockerfile
-    container_name: nexus_gateway
-    environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=3000
-      - POSTGRES_HOST=postgres
-      - POSTGRES_DB=nexus_forensics
-      - POSTGRES_USER=nexus_user
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secure_password_change_in_prod}
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-secure_password_change_in_prod}
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USER=${RABBITMQ_USER:-nexus_user}
-      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-secure_password_change_in_prod}
-      - AI_SERVICE_URL=http://ai_service:8000
-    volumes:
-      - ./gateway:/app
-      - /app/node_modules
-    ports:
-      - "3000:3000"
-    networks:
-      - nexus_network
-    restart: unless-stopped
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgresql://postgres:forensic_secure_2024@postgres:5432/forensic_reconciliation
+      - RABBITMQ_URL=amqp://forensic_user:secure_password_123@rabbitmq:5672/forensic_vhost
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - NEO4J_URL=bolt://neo4j:7687
+      - MINIO_URL=http://minio:9000
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-      - ai_service
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Main Application
+  forensic_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      cache_from:
+        - forensic_reconciliation_app:cache
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    image: forensic_reconciliation_app:latest
+    container_name: forensic_app
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    environment:
+      - PYTHONPATH=/app
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgresql://postgres:forensic_secure_2024@postgres:5432/forensic_reconciliation
+      - RABBITMQ_URL=amqp://forensic_user:secure_password_123@rabbitmq:5672/forensic_vhost
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - NEO4J_URL=bolt://neo4j:7687
+      - MINIO_URL=http://minio:9000
+    volumes:
+      - ./uploads:/app/uploads
+      - ./reports:/app/reports
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
-  neo4j_data:
-  neo4j_logs:
-  neo4j_import:
-  neo4j_plugins:
-  redis_data:
-  rabbitmq_data:
   minio_data:
-  duckdb_data:
-  prometheus_data:
-  grafana_data:
+    driver: local
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  neo4j_import:
+    driver: local
+  neo4j_plugins:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  rabbitmq_logs:
+    driver: local
+  postgres_data:
+    driver: local
   elasticsearch_data:
-  kibana_data:
-  ai_service_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
 
 networks:
-  nexus_network:
+  default:
+    name: forensic_network
     driver: bridge
     ipam:
       config:

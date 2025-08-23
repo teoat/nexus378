@@ -6,19 +6,20 @@ Priority: HIGH | Duration: 24-32 hours
 Required Capabilities: ai_development, pattern_detection, fraud_analysis
 """
 
-import asyncio
-import logging
+import itertools
 import json
+import logging
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+import asyncio
+import networkx as nx
 import numpy as np
 import pandas as pd
-import networkx as nx
-from typing import Dict, List, Any, Optional, Tuple, Set
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
-from collections import defaultdict, deque
-import itertools
-from sklearn.ensemble import IsolationForest
 from sklearn.cluster import DBSCAN
+from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
 logger = logging.getLogger(__name__)
@@ -233,7 +234,9 @@ class FraudAgentPatternDetection:
                 if (len(cycle) >= self.config["circular_pattern_min_length"] and 
                     len(cycle) <= self.config["circular_pattern_max_length"]):
                     
-                    pattern = await self._analyze_circular_pattern(cycle, f"circular_{i}")
+                    pattern = (
+    await self._analyze_circular_pattern(cycle, f"circular_{i}")
+)
                     if pattern and pattern.detection_score > 0.5:
                         circular_patterns.append(pattern)
             
@@ -268,7 +271,9 @@ class FraudAgentPatternDetection:
                 return None
             
             # Calculate detection score based on various factors
-            detection_score = await self._calculate_circular_detection_score(cycle, cycle_transactions, total_amount)
+            detection_score = (
+    await self._calculate_circular_detection_score(cycle, cycle_transactions, total_amount)
+)
             
             # Determine risk level
             if detection_score > 0.8:
@@ -304,7 +309,10 @@ class FraudAgentPatternDetection:
             score_factors = []
             
             # Amount factor (higher amounts are more suspicious)
-            amount_factor = min(1.0, total_amount / self.config["suspicious_amount_threshold"])
+            amount_factor = min(
+    1.0,
+    total_amount / self.config["suspicious_amount_threshold"]
+)
             score_factors.append(amount_factor * 0.3)
             
             # Pattern length factor (shorter cycles are more suspicious)
@@ -444,7 +452,9 @@ class FraudAgentPatternDetection:
             # Look for multiple transactions just below reporting threshold
             for account, daily_txs in daily_transactions.items():
                 for date, txs in daily_txs.items():
-                    daily_amount = sum(tx.amount for tx in txs if tx.from_account == account)
+                    daily_amount = sum(
+    tx.amount for tx in txs if tx.from_account == account,
+)
                     
                     # Check for structuring pattern
                     if (len(txs) > 3 and  # Multiple transactions
@@ -698,8 +708,12 @@ class FraudAgentPatternDetection:
         """Generate comprehensive risk summary"""
         return {
             "total_patterns_detected": len(self.circular_patterns) + len(self.suspicious_patterns),
-            "high_risk_patterns": len([p for p in self.circular_patterns if p.risk_level == "HIGH"]) + 
-                                len([p for p in self.suspicious_patterns if p.risk_score > 0.8]),
+            "high_risk_patterns": len(
+    [p for p in self.circular_patterns if p.risk_level == "HIGH"],
+)
+                                len(
+    [p for p in self.suspicious_patterns if p.risk_score > 0.8],
+)
             "total_alerts": len(self.alerts),
             "critical_alerts": len([a for a in self.alerts if a.severity == "HIGH"]),
             "investigation_required": len([a for a in self.alerts if a.requires_investigation]),

@@ -3,14 +3,14 @@ TOTP (Time-based One-Time Password) Authentication Service
 Implements RFC 6238 TOTP standard for secure authentication
 """
 
-import logging
-import time
 import base64
-import hmac
 import hashlib
+import hmac
+import logging
+import secrets
+import time
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Tuple
-import secrets
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,11 @@ class TOTPService:
         """Get existing TOTP secret for user"""
         return self.totp_secrets.get(user_id)
     
-    def generate_totp_code(self, user_id: str, timestamp: Optional[int] = None) -> Optional[str]:
+    def generate_totp_code(
+    self,
+    user_id: str,
+    timestamp: Optional[int] = None
+)
         """Generate TOTP code for user at specific timestamp"""
         try:
             secret = self.get_totp_secret(user_id)
@@ -64,7 +68,9 @@ class TOTPService:
             # Generate TOTP code
             code = self._generate_totp(secret, timestamp)
             
-            logger.debug(f"Generated TOTP code for user {user_id} at timestamp {timestamp}")
+            logger.debug(
+    f"Generated TOTP code for user {user_id} at timestamp {timestamp}",
+)
             return code
             
         except Exception as e:
@@ -88,7 +94,10 @@ class TOTPService:
             current_period = current_time // self.totp_config["period"]
             
             # Check current period and window periods
-            for period_offset in range(-self.totp_config["window"], self.totp_config["window"] + 1):
+            for period_offset in range(
+    -self.totp_config["window"],
+    self.totp_config["window"] + 1
+)
                 check_period = current_period + period_offset
                 check_timestamp = check_period * self.totp_config["period"]
                 
@@ -139,7 +148,12 @@ class TOTPService:
             logger.error(f"Failed to generate TOTP: {e}")
             raise
     
-    def get_qr_code_data(self, user_id: str, issuer: str = "Forensic Platform", account_name: str = None) -> Optional[str]:
+    def get_qr_code_data(
+    self,
+    user_id: str,
+    issuer: str = "Forensic Platform",
+    account_name: str = None
+)
         """Generate QR code data for TOTP setup"""
         try:
             secret = self.get_totp_secret(user_id)

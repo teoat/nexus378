@@ -8,6 +8,7 @@ and execution.
 
 from abc import ABC, abstractmethod
 
+
 class PluginInterface(ABC):
     """
     Abstract Base Class for all plugins.

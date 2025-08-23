@@ -1,17 +1,21 @@
-import unittest
+import logging
 import os
 import shutil
-import logging
 import sys
-from unittest.mock import patch, MagicMock
+import unittest
+from unittest.mock import MagicMock, patch
 
 # Use absolute import based on the project structure
-from Desktop.Nexus.forensic_reconciliation_app.ai_service.plugins.plugin_manager import PluginManager
-from .plugin_manager import PluginManager
+from Desktop.Nexus.forensic_reconciliation_app.ai_service.plugins.plugin_manager import (
+    PluginManager,
+)
+
 from .plugin_interface import PluginInterface
+from .plugin_manager import PluginManager
 
 # Suppress logging for cleaner test output
 logging.disable(logging.CRITICAL)
+
 
 class TestPluginManager(unittest.TestCase):
 
@@ -24,7 +28,8 @@ class TestPluginManager(unittest.TestCase):
         # Create a valid plugin file that uses an absolute import
         # This ensures it references the same PluginInterface class as the manager
         with open(os.path.join(self.test_plugin_dir, "valid_plugin.py"), "w") as f:
-            f.write("""
+            f.write(
+                """
 import logging
 from ..plugin_interface import PluginInterface
 
@@ -35,21 +40,26 @@ class ValidPlugin(PluginInterface):
     def description(self): return "A valid plugin for testing."
     def initialize(self, **kwargs): logging.info("ValidPlugin Initialized")
     def unload(self): logging.info("ValidPlugin Unloaded")
-""")
+"""
+            )
 
         # Create a file that is not a plugin
         with open(os.path.join(self.test_plugin_dir, "not_a_plugin.py"), "w") as f:
             f.write("class NotAPlugin: pass")
 
         # Create a file with a class that doesn't inherit from the interface
-        with open(os.path.join(self.test_plugin_dir, "invalid_inheritance.py"), "w") as f:
-            f.write("""
+        with open(
+            os.path.join(self.test_plugin_dir, "invalid_inheritance.py"), "w"
+        ) as f:
+            f.write(
+                """
 class InvalidPlugin:
     @property
     def name(self): return "Invalid Plugin"
     def initialize(self, **kwargs): pass
     def unload(self): pass
-""")
+"""
+            )
 
         # Create a file with a syntax error
         with open(os.path.join(self.test_plugin_dir, "broken_plugin.py"), "w") as f:
@@ -100,5 +110,5 @@ class InvalidPlugin:
         self.assertEqual(len(manager.loaded_plugins), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

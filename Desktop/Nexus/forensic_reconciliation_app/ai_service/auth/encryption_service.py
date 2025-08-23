@@ -3,19 +3,20 @@ End-to-End Encryption Service
 Implements AES-256 encryption with secure key management
 """
 
-import logging
-import os
 import base64
 import hashlib
 import hmac
-from datetime import datetime, timedelta
-from typing import Dict, Optional, Tuple, Any
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.backends import default_backend
+import logging
+import os
 import secrets
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional, Tuple
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +166,11 @@ class EncryptionService:
             logger.error(f"Failed to decrypt data: {e}")
             raise
     
-    def derive_key_from_password(self, password: str, salt: Optional[bytes] = None) -> Tuple[bytes, bytes]:
+    def derive_key_from_password(
+    self,
+    password: str,
+    salt: Optional[bytes] = None
+)
         """Derive encryption key from password using PBKDF2"""
         try:
             if salt is None:

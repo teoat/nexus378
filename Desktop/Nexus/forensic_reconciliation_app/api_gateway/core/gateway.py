@@ -5,25 +5,26 @@ This module implements the APIGateway class that provides
 comprehensive API gateway capabilities for the forensic platform.
 """
 
-import asyncio
-import logging
 import json
+import logging
 import os
-from typing import Dict, List, Optional, Any, Tuple, Union
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-from collections import defaultdict
 import uuid
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import asyncio
 
 # Web framework libraries
 try:
-    from fastapi import FastAPI, HTTPException, Depends, Request, Response
+    import uvicorn
+    from fastapi import Depends, FastAPI, HTTPException, Request, Response
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.middleware.trustedhost import TrustedHostMiddleware
     from fastapi.responses import JSONResponse
-    import uvicorn
     from starlette.middleware.base import BaseHTTPMiddleware
     FASTAPI_AVAILABLE = True
 except ImportError:
@@ -37,7 +38,7 @@ try:
 except ImportError:
     AUTH_LIBRARIES_AVAILABLE = False
 
-from ...taskmaster.models.job import Job, JobStatus, JobPriority, JobType
+from ...taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class EndpointType(Enum):
@@ -64,6 +65,7 @@ class ServiceType(Enum):
     """Types of backend services."""
     AI_SERVICE = "ai_service"                               # AI service endpoints
     AUTH_SERVICE = "auth_service"                           # Authentication service
+    EVIDENCE_SERVICE = (
     EVIDENCE_SERVICE = "evidence_service"                    # Evidence processing service
     CASE_SERVICE = "case_service"                            # Case management service
     REPORT_SERVICE = "report_service"                        # Report generation service
@@ -156,7 +158,10 @@ class APIGateway:
         self.debug = config.get('debug', False)
         self.title = config.get('title', 'Forensic Platform API Gateway')
         self.version = config.get('version', '1.0.0')
-        self.description = config.get('description', 'Comprehensive API Gateway for Forensic Platform')
+        self.description = config.get(
+    'description',
+    'Comprehensive API Gateway for Forensic Platform'
+)
         
         # API management
         self.routes: Dict[str, APIRoute] = {}
@@ -187,16 +192,22 @@ class APIGateway:
     def _check_library_availability(self):
         """Check if required libraries are available."""
         if not FASTAPI_AVAILABLE:
-            self.logger.warning("FastAPI not available - API gateway functionality will be limited")
+            self.logger.warning(
+    "FastAPI not available - API gateway functionality will be limited",
+)
         
         if not AUTH_LIBRARIES_AVAILABLE:
-            self.logger.warning("Authentication libraries not available - auth functionality will be limited")
+            self.logger.warning(
+    "Authentication libraries not available - auth functionality will be limited",
+)
     
     def _initialize_fastapi_app(self):
         """Initialize FastAPI application."""
         try:
             if not FASTAPI_AVAILABLE:
-                self.logger.warning("FastAPI not available - skipping app initialization")
+                self.logger.warning(
+    "FastAPI not available - skipping app initialization",
+)
                 return
             
             # Create FastAPI app
@@ -707,7 +718,9 @@ class APIGateway:
             if self.app and FASTAPI_AVAILABLE:
                 self._add_fastapi_route(route)
             
-            self.logger.info(f"Route added successfully: {route.route_id} - {route.path}")
+            self.logger.info(
+    f"Route added successfully: {route.route_id} - {route.path}",
+)
             
         except Exception as e:
             self.logger.error(f"Error adding route: {e}")
@@ -797,7 +810,11 @@ class APIGateway:
             self.logger.error(f"Error creating request context: {e}")
             raise
     
-    async def _process_request(self, route: APIRoute, context: RequestContext) -> ResponseData:
+    async def _process_request(
+    self,
+    route: APIRoute,
+    context: RequestContext
+)
         """Process API request."""
         try:
             # Update statistics
@@ -841,7 +858,11 @@ class APIGateway:
                 request_id=context.request_id
             )
     
-    async def _route_to_service(self, route: APIRoute, context: RequestContext) -> ResponseData:
+    async def _route_to_service(
+    self,
+    route: APIRoute,
+    context: RequestContext
+)
         """Route request to appropriate backend service."""
         try:
             # For now, return mock response
@@ -897,12 +918,16 @@ class APIGateway:
         """Add a backend service endpoint."""
         try:
             if service_endpoint.service_id in self.service_endpoints:
-                raise ValueError(f"Service endpoint already exists: {service_endpoint.service_id}")
+                raise ValueError(
+    f"Service endpoint already exists: {service_endpoint.service_id}",
+)
             
             # Store service endpoint
             self.service_endpoints[service_endpoint.service_id] = service_endpoint
             
-            self.logger.info(f"Service endpoint added successfully: {service_endpoint.service_id}")
+            self.logger.info(
+    f"Service endpoint added successfully: {service_endpoint.service_id}",
+)
             
         except Exception as e:
             self.logger.error(f"Error adding service endpoint: {e}")

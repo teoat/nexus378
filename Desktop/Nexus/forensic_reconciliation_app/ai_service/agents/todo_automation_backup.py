@@ -5,18 +5,19 @@ Processes multiple TODOs simultaneously with robust error handling and completio
 Enhanced with MCP logging and continuous processing loops.
 """
 
-import asyncio
 import concurrent.futures
+import json
 import logging
+import re
 import time
+import uuid
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import List, Dict, Optional, Callable, Any
-import re
-import json
-import uuid
-from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Optional
+
+import asyncio
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -83,7 +84,14 @@ class MCPLogger:
         }
         return session_id
     
-    def log_agent_activity(self, session_id: str, agent_id: str, todo_id: str, action: str, details: str):
+    def log_agent_activity(
+    self,
+    session_id: str,
+    agent_id: str,
+    todo_id: str,
+    action: str,
+    details: str
+)
         """Log agent activity to prevent overlapping"""
         if session_id not in self.agent_activities:
             self.agent_activities[session_id] = []
@@ -165,7 +173,9 @@ class TodoAgent:
                                              f"Agent {self.agent_id} started processing TODO {todo.id}")
         
         try:
-            logger.info(f"Agent {self.agent_id} processing TODO: {todo.content[:50]}...")
+            logger.info(
+    f"Agent {self.agent_id} processing TODO: {todo.content[:50]}...",
+)
             
             # Simulate processing time based on TODO complexity
             processing_time = self._estimate_processing_time(todo)
@@ -433,7 +443,9 @@ class TodoAutomationSystem:
                 self.todo_queue and 
                 len(self.processing_todos) < self.max_concurrent_agents):
                 
-                batch_size = min(10, self.max_concurrent_agents - len(self.processing_todos))
+                batch_size = (
+    min(10, self.max_concurrent_agents - len(self.processing_todos))
+)
                 self.mark_todos_for_processing(batch_size)
             
             # Start processing marked TODOs
@@ -487,7 +499,12 @@ class TodoAutomationSystem:
             
             available_slots -= 1
     
-    async def _process_todo_with_agent(self, todo: TodoItem, agent: TodoAgent, session_id: str):
+    async def _process_todo_with_agent(
+    self,
+    todo: TodoItem,
+    agent: TodoAgent,
+    session_id: str
+)
         """Process a TODO with a specific agent"""
         try:
             result = await agent.process_todo(todo, session_id)
@@ -510,7 +527,9 @@ class TodoAutomationSystem:
                 else:
                     self.failed_todos.append(todo)
                     self.stats["failed"] += 1
-                    logger.error(f"❌ Failed TODO after {todo.attempts} attempts: {todo.content[:50]}...")
+                    logger.error(
+    f"❌ Failed TODO after {todo.attempts} attempts: {todo.content[:50]}...",
+)
             
             self.stats["total_processed"] += 1
             self.stats["total_processing_time"] += result.processing_time

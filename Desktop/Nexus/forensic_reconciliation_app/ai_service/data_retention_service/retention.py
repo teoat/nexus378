@@ -1,5 +1,6 @@
-import os
 import datetime
+import os
+
 
 def apply_retention_policy(path: str, days: int) -> int:
     """

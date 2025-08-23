@@ -1,5 +1,7 @@
-from .base_agent import BaseAgent
 from thefuzz import fuzz
+
+from .base_agent import BaseAgent
+
 
 class ReconciliationAgent(BaseAgent):
     """
@@ -18,8 +20,8 @@ class ReconciliationAgent(BaseAgent):
                                'source2': [{'id': 2, 'description': 'Coffee Shop', 'amount': 5.00}]}
         :return: A list of matched transaction pairs, with the match score.
         """
-        source1_transactions = data.get('source1', [])
-        source2_transactions = data.get('source2', [])
+        source1_transactions = data.get("source1", [])
+        source2_transactions = data.get("source2", [])
         matched_pairs = []
 
         # Create a copy of the second list to be able to remove items from it
@@ -30,9 +32,9 @@ class ReconciliationAgent(BaseAgent):
             highest_score = -1
 
             for t2 in remaining_source2:
-                if t1.get('amount') == t2.get('amount'):
-                    description1 = t1.get('description', '')
-                    description2 = t2.get('description', '')
+                if t1.get("amount") == t2.get("amount"):
+                    description1 = t1.get("description", "")
+                    description2 = t2.get("description", "")
 
                     score = fuzz.ratio(description1.lower(), description2.lower())
 

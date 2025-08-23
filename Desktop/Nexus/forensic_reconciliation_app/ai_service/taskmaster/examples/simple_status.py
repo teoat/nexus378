@@ -3,9 +3,10 @@
 Simple Status Update - Basic status monitoring for MCP Server
 """
 
-import asyncio
 import logging
 from datetime import datetime
+
+import asyncio
 
 # Import the MCP server
 from core.mcp_server import mcp_server
@@ -18,18 +19,18 @@ logger = logging.getLogger(__name__)
 async def show_current_status():
     """Show current status of the MCP server"""
     logger.info("📊 Current MCP Server Status")
-    
+
     # Get system status
     status = await mcp_server.get_system_status()
     logger.info(f"System Status: {status}")
-    
+
     # Get priority TODO summary
     try:
         priority_summary = await mcp_server.get_priority_todo_summary()
         logger.info(f"Priority TODO Summary: {priority_summary}")
     except Exception as e:
         logger.error(f"Error getting priority summary: {e}")
-    
+
     # Show task details
     logger.info("\n📋 Task Details:")
     for task_id, task in mcp_server.tasks.items():

@@ -5,18 +5,19 @@ This module implements the RateLimiter class that provides
 comprehensive rate limiting and throttling capabilities for the API gateway.
 """
 
-import asyncio
-import logging
 import json
+import logging
 import os
-from typing import Dict, List, Optional, Any, Tuple, Union
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-from collections import defaultdict, deque
-import uuid
-from pathlib import Path
 import time
+import uuid
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import asyncio
 
 # Redis libraries for distributed rate limiting
 try:
@@ -25,7 +26,7 @@ try:
 except ImportError:
     REDIS_AVAILABLE = False
 
-from ...taskmaster.models.job import Job, JobStatus, JobPriority, JobType
+from ...taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class RateLimitStrategy(Enum):
@@ -162,7 +163,9 @@ class RateLimiter:
     def _check_library_availability(self):
         """Check if required libraries are available."""
         if not REDIS_AVAILABLE:
-            self.logger.warning("Redis not available - distributed rate limiting will be disabled")
+            self.logger.warning(
+    "Redis not available - distributed rate limiting will be disabled",
+)
             self.enable_distributed_limiting = False
     
     def _initialize_default_rules(self):
@@ -183,8 +186,8 @@ class RateLimiter:
                     delay_seconds=None,
                     priority=100,
                     enabled=True
-                )
-            )
+):
+):
             
             # Authentication endpoints rate limit
             self.add_rule(
@@ -201,8 +204,8 @@ class RateLimiter:
                     delay_seconds=300,  # 5 minutes block
                     priority=90,
                     enabled=True
-                )
-            )
+):
+):
             
             # AI service endpoints rate limit
             self.add_rule(
@@ -219,8 +222,8 @@ class RateLimiter:
                     delay_seconds=60,
                     priority=80,
                     enabled=True
-                )
-            )
+):
+):
             
             # Evidence processing rate limit
             self.add_rule(
@@ -237,8 +240,8 @@ class RateLimiter:
                     delay_seconds=30,
                     priority=70,
                     enabled=True
-                )
-            )
+):
+):
             
             # Report generation rate limit
             self.add_rule(
@@ -255,8 +258,8 @@ class RateLimiter:
                     delay_seconds=120,
                     priority=60,
                     enabled=True
-                )
-            )
+):
+):
             
             self.logger.info("Default rate limiting rules initialized successfully")
             
@@ -296,12 +299,14 @@ class RateLimiter:
                     port=self.redis_port,
                     db=self.redis_db,
                     decode_responses=True
-                )
+):
                 
                 # Test connection
                 self.redis_connection.ping()
                 
-                self.logger.info("Redis connection established for distributed rate limiting")
+                self.logger.info(
+    "Redis connection established for distributed rate limiting",
+):
                 
         except Exception as e:
             self.logger.warning(f"Could not establish Redis connection: {e}")
@@ -316,7 +321,9 @@ class RateLimiter:
             # Store rule
             self.rules[rule.rule_id] = rule
             
-            self.logger.info(f"Rate limiting rule added successfully: {rule.rule_id} - {rule.name}")
+            self.logger.info(
+    f"Rate limiting rule added successfully: {rule.rule_id} - {rule.name}",
+):
             
         except Exception as e:
             self.logger.error(f"Error adding rate limiting rule: {e}")
@@ -361,7 +368,12 @@ class RateLimiter:
             self.logger.error(f"Error removing rate limiting rule: {e}")
             raise
     
-    async def check_rate_limit(self, client_info: Dict[str, Any], endpoint: str) -> ThrottleResult:
+    async def check_rate_limit(
+    self,
+    client_info: Dict[str,
+    Any],
+    endpoint: str
+):
         """Check if a request is allowed based on rate limiting rules."""
         try:
             if not self.enable_rate_limiting:
@@ -376,7 +388,7 @@ class RateLimiter:
                     throttle_action=None,
                     delay_seconds=None,
                     message="Rate limiting disabled"
-                )
+):
             
             # Identify client
             client_id = await self._identify_client(client_info)
@@ -395,7 +407,7 @@ class RateLimiter:
                     throttle_action=None,
                     delay_seconds=None,
                     message="No rate limiting rule found"
-                )
+):
             
             # Check rate limit based on strategy
             if rule.strategy == RateLimitStrategy.FIXED_WINDOW:
@@ -436,7 +448,7 @@ class RateLimiter:
                 throttle_action=None,
                 delay_seconds=None,
                 message=f"Rate limiting error: {str(e)}"
-            )
+):
     
     async def _identify_client(self, client_info: Dict[str, Any]) -> str:
         """Identify client from request information."""
@@ -456,7 +468,7 @@ class RateLimiter:
                 api_key=api_key,
                 user_agent=user_agent,
                 session_id=session_id
-            )
+):
             
             # Store client identifier
             self.client_identifiers[client_identifier.client_id] = client_identifier
@@ -508,7 +520,11 @@ class RateLimiter:
             self.logger.error(f"Error matching endpoint pattern: {e}")
             return False
     
-    async def _check_fixed_window(self, client_id: str, rule: RateLimitRule) -> ThrottleResult:
+    async def _check_fixed_window(
+    self,
+    client_id: str,
+    rule: RateLimitRule
+):
         """Check rate limit using fixed window strategy."""
         try:
             current_time = datetime.utcnow()
@@ -526,7 +542,7 @@ class RateLimiter:
                     last_request=current_time,
                     blocked_until=None,
                     retry_after=None
-                )
+):
             
             state = self.client_states[client_id][rule.rule_id]
             
@@ -544,7 +560,7 @@ class RateLimiter:
                     throttle_action=rule.throttle_action,
                     delay_seconds=rule.delay_seconds,
                     message=f"Rate limit exceeded. Retry after {retry_after} seconds."
-                )
+):
             
             # Check if window has reset
             window_duration = timedelta(minutes=1)
@@ -571,7 +587,7 @@ class RateLimiter:
                     throttle_action=rule.throttle_action,
                     delay_seconds=rule.delay_seconds,
                     message="Rate limit exceeded"
-                )
+):
             
             # Allow request
             state.current_requests += 1
@@ -588,13 +604,17 @@ class RateLimiter:
                 throttle_action=None,
                 delay_seconds=None,
                 message="Request allowed"
-            )
+):
             
         except Exception as e:
             self.logger.error(f"Error in fixed window check: {e}")
             raise
     
-    async def _check_sliding_window(self, client_id: str, rule: RateLimitRule) -> ThrottleResult:
+    async def _check_sliding_window(
+    self,
+    client_id: str,
+    rule: RateLimitRule
+):
         """Check rate limit using sliding window strategy."""
         try:
             current_time = datetime.utcnow()
@@ -612,7 +632,7 @@ class RateLimiter:
                     last_request=current_time,
                     blocked_until=None,
                     retry_after=None
-                )
+):
             
             state = self.client_states[client_id][rule.rule_id]
             
@@ -637,7 +657,7 @@ class RateLimiter:
                     throttle_action=rule.throttle_action,
                     delay_seconds=rule.delay_seconds,
                     message="Rate limit exceeded"
-                )
+):
             
             # Allow request
             state.current_requests += 1
@@ -654,13 +674,17 @@ class RateLimiter:
                 throttle_action=None,
                 delay_seconds=None,
                 message="Request allowed"
-            )
+):
             
         except Exception as e:
             self.logger.error(f"Error in sliding window check: {e}")
             raise
     
-    async def _check_token_bucket(self, client_id: str, rule: RateLimitRule) -> ThrottleResult:
+    async def _check_token_bucket(
+    self,
+    client_id: str,
+    rule: RateLimitRule
+):
         """Check rate limit using token bucket strategy."""
         try:
             current_time = datetime.utcnow()
@@ -678,7 +702,7 @@ class RateLimiter:
                     last_request=current_time,
                     blocked_until=None,
                     retry_after=None
-                )
+):
             
             state = self.client_states[client_id][rule.rule_id]
             
@@ -691,7 +715,10 @@ class RateLimiter:
             tokens_to_add = (time_since_last / 60) * tokens_per_minute
             
             # Current tokens (simplified)
-            current_tokens = min(bucket_capacity, state.current_requests + tokens_to_add)
+            current_tokens = min(
+    bucket_capacity,
+    state.current_requests + tokens_to_add
+):
             
             if current_tokens < 1:
                 return ThrottleResult(
@@ -705,7 +732,7 @@ class RateLimiter:
                     throttle_action=rule.throttle_action,
                     delay_seconds=rule.delay_seconds,
                     message="No tokens available"
-                )
+):
             
             # Allow request
             state.current_requests = max(0, current_tokens - 1)
@@ -722,13 +749,17 @@ class RateLimiter:
                 throttle_action=None,
                 delay_seconds=None,
                 message="Request allowed"
-            )
+):
             
         except Exception as e:
             self.logger.error(f"Error in token bucket check: {e}")
             raise
     
-    async def _check_leaky_bucket(self, client_id: str, rule: RateLimitRule) -> ThrottleResult:
+    async def _check_leaky_bucket(
+    self,
+    client_id: str,
+    rule: RateLimitRule
+):
         """Check rate limit using leaky bucket strategy."""
         try:
             current_time = datetime.utcnow()
@@ -746,7 +777,7 @@ class RateLimiter:
                     last_request=current_time,
                     blocked_until=None,
                     retry_after=None
-                )
+):
             
             state = self.client_states[client_id][rule.rule_id]
             
@@ -773,7 +804,7 @@ class RateLimiter:
                     throttle_action=rule.throttle_action,
                     delay_seconds=rule.delay_seconds,
                     message="Bucket is full"
-                )
+):
             
             # Allow request
             state.current_requests = current_level + 1
@@ -790,13 +821,17 @@ class RateLimiter:
                 throttle_action=None,
                 delay_seconds=None,
                 message="Request allowed"
-            )
+):
             
         except Exception as e:
             self.logger.error(f"Error in leaky bucket check: {e}")
             raise
     
-    async def _check_adaptive(self, client_id: str, rule: RateLimitRule) -> ThrottleResult:
+    async def _check_adaptive(
+    self,
+    client_id: str,
+    rule: RateLimitRule
+):
         """Check rate limit using adaptive strategy."""
         try:
             # Adaptive rate limiting based on system load and client behavior
@@ -823,11 +858,13 @@ class RateLimiter:
                             expired_clients.append((client_id, rule_id))
                 
                 for client_id, rule_id in expired_clients:
-                    if client_id in self.client_states and rule_id in self.client_states[client_id]:
+                        if client_id in self.client_states and
+    rule_id in self.client_states[client_id]:
                         del self.client_states[client_id][rule_id]
                     
                     # Remove empty client entries
-                    if client_id in self.client_states and not self.client_states[client_id]:
+                        if client_id in self.client_states and
+    not self.client_states[client_id]:
                         del self.client_states[client_id]
                 
                 if expired_clients:

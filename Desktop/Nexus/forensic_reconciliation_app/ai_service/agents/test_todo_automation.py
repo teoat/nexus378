@@ -4,9 +4,11 @@ Test file for TODO Automation System
 Demonstrates the system functionality and provides sample TODOs for testing.
 """
 
-import asyncio
 import time
+
+import asyncio
 from todo_automation import TodoAutomationSystem, TodoItem, TodoStatus
+
 
 async def test_basic_functionality():
     """Test basic functionality of the TODO automation system"""
@@ -89,11 +91,41 @@ async def test_priority_processing():
     
     # Create TODOs with different priorities
     priority_todos = [
-        TodoItem(id="p1", content="# TODO [low]: Add comments", file_path="file1.py", line_number=1, priority=1),
-        TodoItem(id="p2", content="# TODO [medium]: Refactor function", file_path="file2.py", line_number=2, priority=3),
-        TodoItem(id="p3", content="# TODO [high]: Fix critical bug", file_path="file3.py", line_number=3, priority=5),
-        TodoItem(id="p4", content="# TODO [urgent]: Security patch", file_path="file4.py", line_number=4, priority=5),
-        TodoItem(id="p5", content="# TODO: General improvement", file_path="file5.py", line_number=5, priority=2),
+        TodoItem(
+    id="p1",
+    content="# TODO [low]: Add comments",
+    file_path="file1.py",
+    line_number=1,
+    priority=1
+)
+        TodoItem(
+    id="p2",
+    content="# TODO [medium]: Refactor function",
+    file_path="file2.py",
+    line_number=2,
+    priority=3
+)
+        TodoItem(
+    id="p3",
+    content="# TODO [high]: Fix critical bug",
+    file_path="file3.py",
+    line_number=3,
+    priority=5
+)
+        TodoItem(
+    id="p4",
+    content="# TODO [urgent]: Security patch",
+    file_path="file4.py",
+    line_number=4,
+    priority=5
+)
+        TodoItem(
+    id="p5",
+    content="# TODO: General improvement",
+    file_path="file5.py",
+    line_number=5,
+    priority=2
+)
     ]
     
     automation.todo_queue.extend(priority_todos)
