@@ -287,13 +287,9 @@ services:
       start_period: 40s
     restart: unless-stopped
 
-  # API Gateway (Python)
-  gateway:
+  # API Gateway (Node.js)
+  api_gateway:
     build:
-      context: ./gateway
-      dockerfile: Dockerfile.python
-    image: forensic_reconciliation_app-gateway:latest
-    container_name: forensic_gateway
       context: ./api_gateway
       dockerfile: Dockerfile
       target: development
@@ -315,6 +311,7 @@ services:
           cpus: '0.25'
     ports:
       - "8080:8080"
+      - "8443:8443"
     environment:
       - REDIS_URL=redis://redis:6379
       - POSTGRES_URL=postgresql://postgres:forensic_secure_2024@postgres:5432/forensic_reconciliation
@@ -322,11 +319,14 @@ services:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - NEO4J_URL=bolt://neo4j:7687
       - MINIO_URL=http://minio:9000
-      - "3000:3000"
+      - HTTPS_PORT=8443
+      - SSL_KEY_FILE=/etc/ssl/key.pem
+      - SSL_CERT_FILE=/etc/ssl/cert.pem
     env_file: .env
     volumes:
       - ./api_gateway:/app
       - /app/node_modules
+      - ./ssl:/etc/ssl
     depends_on:
       postgres:
         condition: service_healthy

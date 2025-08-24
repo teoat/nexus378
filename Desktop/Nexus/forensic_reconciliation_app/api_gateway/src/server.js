@@ -7,7 +7,9 @@ const compression = require('compression');
 const winston = require('winston');
 const { ElasticsearchTransport } = require('winston-elasticsearch');
 const rateLimit = require('express-rate-limit');
-const { createServer } = require('http');
+const { createServer: createHttpServer } = require('http');
+const { createServer: createHttpsServer } = require('https');
+const fs = require('fs');
 const { WebSocketServer } = require('ws');
 
 // Import middleware and routes
@@ -23,7 +25,18 @@ const config = require('./config');
 
 // Create Express app
 const app = express();
-const server = createServer(app);
+
+// Create HTTP or HTTPS server
+let server;
+if (process.env.SSL_KEY_FILE && process.env.SSL_CERT_FILE) {
+  const options = {
+    key: fs.readFileSync(process.env.SSL_KEY_FILE),
+    cert: fs.readFileSync(process.env.SSL_CERT_FILE),
+  };
+  server = createHttpsServer(options, app);
+} else {
+  server = createHttpServer(app);
+}
 
 // Create WebSocket server
 const wss = new WebSocketServer({ server });
@@ -175,13 +188,24 @@ app.use('*', (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || config.port || 3000;
-server.listen(PORT, () => {
-  console.log(`🚀 API Gateway server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔌 WebSocket server active on ws://localhost:${PORT}`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+const HTTP_PORT = process.env.PORT || config.port || 3000;
+const HTTPS_PORT = process.env.HTTPS_PORT || 8443;
+
+if (process.env.SSL_KEY_FILE && process.env.SSL_CERT_FILE) {
+  server.listen(HTTPS_PORT, () => {
+    console.log(`🚀 API Gateway server running on HTTPS port ${HTTPS_PORT}`);
+    console.log(`📊 Health check: https://localhost:${HTTPS_PORT}/health`);
+    console.log(`🔌 WebSocket server active on wss://localhost:${HTTPS_PORT}`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+} else {
+  server.listen(HTTP_PORT, () => {
+    console.log(`🚀 API Gateway server running on HTTP port ${HTTP_PORT}`);
+    console.log(`📊 Health check: http://localhost:${HTTP_PORT}/health`);
+    console.log(`🔌 WebSocket server active on ws://localhost:${HTTP_PORT}`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
