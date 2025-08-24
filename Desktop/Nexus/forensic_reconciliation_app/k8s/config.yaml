@@ -22,13 +22,13 @@ data:
   AI_SERVICE_HOST: "ai-service"
   AI_SERVICE_PORT: "8000"
   GATEWAY_HOST: "api-gateway"
-  GATEWAY_PORT: "3000"
-  NODE_ENV: "development"
-  JWT_EXPIRES_IN: "24h"
+  GATEWAY_PORT: "8443"
+  NODE_ENV: "production"
+  JWT_EXPIRES_IN: "1h"
   JWT_REFRESH_EXPIRES_IN: "7d"
-  LOG_LEVEL: "info"
-  DEBUG_MODE: "true"
-  HOT_RELOAD: "true"
+  LOG_LEVEL: "warn"
+  DEBUG_MODE: "false"
+  HOT_RELOAD: "false"
 ---
 apiVersion: v1
 kind: Secret

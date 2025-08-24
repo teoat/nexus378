@@ -7,8 +7,12 @@ metadata:
     app: api-gateway
 spec:
   ports:
-    - port: 3000
-      targetPort: 3000
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: https
+      port: 8443
+      targetPort: 8443
   selector:
     app: api-gateway
 ---
@@ -18,7 +22,7 @@ metadata:
   name: api-gateway
   namespace: forensic-app
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: api-gateway
@@ -29,12 +33,32 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: forensic_reconciliation_app-api_gateway:dev
-          imagePullPolicy: IfNotPresent
+          image: forensic_reconciliation_app-api_gateway:latest
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: forensic-config
             - secretRef:
                 name: forensic-secret
           ports:
-            - containerPort: 3000
+            - containerPort: 8080
+            - containerPort: 8443
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
