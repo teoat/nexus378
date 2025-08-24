@@ -1,0 +1,11 @@
+# This file contains the Python dependencies for the AI service.
+
+# Neo4j driver
+neo4j==5.20.0
+
+# DuckDB driver
+duckdb==0.10.2
+
+# Testing
+pytest==8.0.0
+pytest-asyncio==0.23.5
