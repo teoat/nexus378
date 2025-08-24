@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 import asyncio
 
 from ..models.job import Job, JobStatus
-from .job_scheduler import JobScheduler
+from .production_task_system import UnifiedTaskSystem
 from .resource_monitor import ResourceMonitor
 from .task_router import TaskRouter
 from .workflow_orchestrator import WorkflowOrchestrator
@@ -67,7 +67,7 @@ class Taskmaster:
         self.uptime_start: Optional[datetime] = None
 
         # Core components
-        self.job_scheduler: Optional[JobScheduler] = None
+        self.unified_task_system: Optional[UnifiedTaskSystem] = None
         self.task_router: Optional[TaskRouter] = None
         self.workflow_orchestrator: Optional[WorkflowOrchestrator] = None
         self.resource_monitor: Optional[ResourceMonitor] = None
@@ -135,55 +135,52 @@ class Taskmaster:
             raise
 
     async def submit_job(self, job: Job) -> str:
-        """Submit a job for processing."""
+        """Submit a job for processing using UnifiedTaskSystem."""
         try:
             if self.status != SystemStatus.RUNNING:
                 raise RuntimeError("Taskmaster system is not running")
 
-            if not self.job_scheduler:
-                raise RuntimeError("Job scheduler not initialized")
+            if not self.unified_task_system:
+                raise RuntimeError("UnifiedTaskSystem not initialized")
 
-            # Submit job to scheduler
-            job_id = await self.job_scheduler.schedule_job(job)
+            # Submit job to UnifiedTaskSystem
+            task_id = self.unified_task_system.add_new_todo(
+                name=job.job_type.value,
+                description=job.parameters.get("description", "No description"),
+                priority=job.priority.value,
+                estimated_duration="2-4 hours",  # Placeholder
+                required_capabilities=job.parameters.get(
+                    "required_capabilities", ["general"]
+                ),
+            )
 
-            # Update metrics
-            self.total_jobs_processed += 1
-            self.active_jobs += 1
-
-            self.logger.info(f"Job {job_id} submitted successfully")
-            return job_id
+            self.logger.info(f"Job {task_id} submitted successfully")
+            return task_id
 
         except Exception as e:
             self.logger.error(f"Error submitting job: {e}")
             raise
 
     async def get_job_result(self, job_id: str) -> Optional[Dict[str, Any]]:
-        """Get the result of a completed job."""
+        """Get the result of a completed job from UnifiedTaskSystem."""
         try:
-            if not self.job_scheduler:
+            if not self.unified_task_system:
                 return None
 
-            # Get job status
-            status = await self.job_scheduler.get_job_status(job_id)
+            task = self.unified_task_system.tasks.get(job_id)
+            if not task:
+                return {"job_id": job_id, "status": "not_found"}
 
-            if status == JobStatus.COMPLETED:
-                # In a real implementation, this would return actual results
-                return {
-                    "job_id": job_id,
-                    "status": status.value,
-                    "result": "Job completed successfully",
-                }
-            elif status == JobStatus.FAILED:
-                return {
-                    "job_id": job_id,
-                    "status": status.value,
-                    "error": "Job failed during execution",
-                }
-            else:
-                return {
-                    "job_id": job_id,
-                    "status": status.value if status else "unknown",
-                }
+            return {
+                "job_id": task.id,
+                "status": task.status.value,
+                "progress": task.progress,
+                "result": (
+                    task.implementation_notes[-1]
+                    if task.implementation_notes
+                    else "In progress"
+                ),
+            }
 
         except Exception as e:
             self.logger.error(f"Error getting job result for {job_id}: {e}")
@@ -201,17 +198,22 @@ class Taskmaster:
             if self.uptime_start:
                 uptime_seconds = (datetime.utcnow() - self.uptime_start).total_seconds()
 
-            # Get system health
+            # Get metrics from UnifiedTaskSystem
+            system_status = (
+                self.unified_task_system.get_system_status()
+                if self.unified_task_system
+                else {}
+            )
             system_health = "unknown"
             if self.resource_monitor:
                 health = await self.resource_monitor.get_system_health()
                 system_health = health.overall_status.value
 
             return SystemMetrics(
-                total_jobs_processed=self.total_jobs_processed,
-                active_jobs=self.active_jobs,
-                completed_jobs=self.completed_jobs,
-                failed_jobs=self.failed_jobs,
+                total_jobs_processed=system_status.get("total_tasks", 0),
+                active_jobs=system_status.get("in_progress_tasks", 0),
+                completed_jobs=system_status.get("completed_tasks", 0),
+                failed_jobs=system_status.get("failed_tasks", 0),
                 system_health=system_health,
                 uptime_seconds=uptime_seconds,
                 last_updated=datetime.utcnow(),
@@ -232,9 +234,9 @@ class Taskmaster:
     async def _initialize_components(self):
         """Initialize all core components."""
         try:
-            # Initialize job scheduler
-            scheduler_config = self.config.get("scheduler", {})
-            self.job_scheduler = JobScheduler(scheduler_config)
+            # Initialize UnifiedTaskSystem
+            db_path = self.config.get("db_path", "unified_tasks.db")
+            self.unified_task_system = UnifiedTaskSystem(db_path)
 
             # Initialize task router
             router_config = self.config.get("router", {})
@@ -257,9 +259,7 @@ class Taskmaster:
     async def _start_components(self):
         """Start all core components."""
         try:
-            # Start job scheduler
-            if self.job_scheduler:
-                await self.job_scheduler.start()
+            # UnifiedTaskSystem runs its background tasks on init, so no start() needed yet.
 
             # Start resource monitor
             if self.resource_monitor:
@@ -274,9 +274,7 @@ class Taskmaster:
     async def _stop_components(self):
         """Stop all core components."""
         try:
-            # Stop job scheduler
-            if self.job_scheduler:
-                await self.job_scheduler.stop()
+            # UnifiedTaskSystem does not have a stop method yet.
 
             # Stop resource monitor
             if self.resource_monitor:
@@ -318,18 +316,8 @@ class Taskmaster:
 
     async def _update_metrics(self):
         """Update system metrics."""
-        try:
-            if self.job_scheduler:
-                # Get scheduler metrics
-                scheduler_metrics = self.job_scheduler.get_metrics()
-
-                # Update local metrics
-                self.active_jobs = scheduler_metrics.active_jobs
-                self.completed_jobs = scheduler_metrics.total_jobs_completed
-                self.failed_jobs = scheduler_metrics.total_jobs_failed
-
-        except Exception as e:
-            self.logger.error(f"Error updating metrics: {e}")
+        # This is now handled by get_system_metrics directly from UnifiedTaskSystem
+        pass
 
     async def _check_system_health(self):
         """Check overall system health."""
@@ -364,10 +352,8 @@ class Taskmaster:
         """Get status of all components."""
         return {
             "taskmaster": self.status.value,
-            "job_scheduler": (
-                self.job_scheduler.status.value
-                if self.job_scheduler
-                else "not_initialized"
+            "unified_task_system": (
+                "running" if self.unified_task_system else "not_initialized"
             ),
             "task_router": "initialized" if self.task_router else "not_initialized",
             "workflow_orchestrator": (

@@ -515,6 +515,16 @@ class UnifiedTaskSystem:
     def _initialize_database(self):
         """Initialize SQLite database for persistence"""
         try:
+            # Import the secret manager
+            from ..security import secret_manager
+
+            # Demonstrate fetching a secret
+            db_password = secret_manager.get_secret("database/credentials", "password")
+            if db_password:
+                logger.info("Successfully fetched database password from secret manager (simulated).")
+            else:
+                logger.warning("Could not fetch database password. Using fallback or unauthenticated connection.")
+
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
 

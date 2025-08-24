@@ -11,6 +11,8 @@ const { createServer: createHttpServer } = require('http');
 const { createServer: createHttpsServer } = require('https');
 const fs = require('fs');
 const { WebSocketServer } = require('ws');
+const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 // Import middleware and routes
 const authMiddleware = require('./middleware/auth');
@@ -122,6 +124,44 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api', apiRoutes);
+
+// Swagger API Documentation
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Forensic Reconciliation API',
+      version: '1.0.0',
+      description: 'API documentation for the Forensic Reconciliation + Fraud Platform',
+    },
+    servers: [
+      {
+        url: 'http://localhost:8080',
+        description: 'Development server'
+      },
+      {
+        url: 'https://api.forensic-reconciliation.com',
+        description: 'Production server'
+      }
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        }
+      }
+    },
+    security: [{
+      bearerAuth: []
+    }]
+  },
+  apis: ['./src/routes/*.js'],
+};
+
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // GraphQL routes
 app.use('/graphql', graphqlRoutes);

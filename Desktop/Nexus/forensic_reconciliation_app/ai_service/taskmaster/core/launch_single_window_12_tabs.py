@@ -9,9 +9,10 @@ import subprocess
 import time
 from pathlib import Path
 
+
 def launch_single_window_12_tabs():
     """Launch ONE Terminal window with 12 tabs using a reliable method"""
-    
+
     print("🚀 Single Window 12-Tab Terminal Launcher")
     print("=" * 55)
     print(" Opening ONE Terminal.app window with 12 tabs")
@@ -21,35 +22,35 @@ def launch_single_window_12_tabs():
     print("   - Tab 11: Dynamic Worker Coordinator")
     print("   - Tab 12: System Monitor")
     print()
-    
+
     # Get project paths
     current_dir = Path(__file__).parent.absolute()
     project_root = current_dir.parent.parent.parent.parent  # Go up to Nexus root
     venv_path = project_root / ".venv"
-    
+
     print(f"📍 Project Root: {project_root}")
     print(f"🔧 Core Directory: {current_dir}")
     print(f"🐍 Virtual Environment: {venv_path}")
     print()
-    
+
     # Check if virtual environment exists
     if not venv_path.exists():
         print("❌ Virtual environment not found!")
         print(f"   Expected at: {venv_path}")
         return False
-    
+
     print(f"✅ Virtual environment found at: {venv_path}")
     print()
-    
+
     # Check if engines exist
     engines = [
         "collective_worker_processor.py",
         "todo_processing_engine.py",
-        "task_breakdown_engine.py", 
+        "task_breakdown_engine.py",
         "dynamic_worker_coordinator.py",
-        "monitor_collective_system.py"
+        "monitor_collective_system.py",
     ]
-    
+
     print("🔍 Checking engines...")
     for engine in engines:
         engine_path = current_dir / engine
@@ -58,16 +59,16 @@ def launch_single_window_12_tabs():
         else:
             print(f"   ❌ {engine} - MISSING!")
             return False
-    
+
     print("\n🚀 Launching Single Window with 12 Tabs...")
     print("⏱️  Starting in 3 seconds...")
-    
+
     for i in range(3, 0, -1):
         print(f"   {i}...")
         time.sleep(1)
-    
+
     # Create a focused AppleScript that creates one window with tabs
-    applescript = f'''
+    applescript = f"""
 tell application "Terminal"
     -- Create new window with first tab
     set newWindow to do script "cd '{current_dir}' && source '{venv_path}/bin/activate' && echo '🚀 Worker 1 - Tab 1' && python3 collective_worker_processor.py --worker-id 1 --max-workers 8"
@@ -138,18 +139,16 @@ tell application "Terminal"
     delay 3
     
 end tell
-'''
-    
+"""
+
     try:
         print("🔧 Executing AppleScript to create single window with 12 tabs...")
-        
+
         # Execute AppleScript
         result = subprocess.run(
-            ['osascript', '-e', applescript],
-            capture_output=True,
-            text=True
+            ["osascript", "-e", applescript], capture_output=True, text=True
         )
-        
+
         if result.returncode == 0:
             print("✅ Single Window 12-Tab Terminal System launched successfully!")
             print()
@@ -175,17 +174,18 @@ end tell
             print()
             print("🚀 The collective system is now running!")
             print("   Check the single Terminal window for all 12 tabs")
-            
+
         else:
             print("❌ Failed to launch Terminal system")
             print(f"Error: {result.stderr}")
             return False
-            
+
     except Exception as e:
         print(f"❌ Error launching Terminal system: {e}")
         return False
-    
+
     return True
+
 
 def main():
     """Main entry point"""
@@ -196,11 +196,12 @@ def main():
             print("   You can now monitor all 12 tabs in ONE Terminal window")
         else:
             print("\n❌ Failed to setup Single Window 12-Tab Terminal System")
-            
+
     except KeyboardInterrupt:
         print("\n🛑 Terminal system setup interrupted by user")
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
+
 
 if __name__ == "__main__":
     main()
