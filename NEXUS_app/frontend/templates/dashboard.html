@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        /* Navigation */
+        .nav {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .card-content {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+
+        .card-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #d5dbdb;
+        }
+
+        /* Frenly Character - Top Right */
+        .frenly-character {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .frenly-character:hover {
+            transform: scale(1.1);
+        }
+
+        /* Frenly Character Design */
+        .frenly-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border-radius: 50%;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .frenly-avatar::before {
+            content: "👩‍💼";
+            font-size: 45px;
+        }
+
+        /* Status Indicator */
+        .frenly-status {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: #2ecc71;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Hoverable Interface */
+        .frenly-interface {
+            position: absolute;
+            top: 90px;
+            right: 0;
+            width: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 25px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .frenly-character:hover .frenly-interface {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Interface Header */
+        .interface-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .interface-header h3 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .interface-header p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* AI Mode Controls */
+        .ai-mode-controls {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .ai-mode-controls h4 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            background: #ecf0f1;
+            color: #2c3e50;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .mode-btn:hover {
+            background: #d5dbdb;
+        }
+
+        /* Mode Intersection Info */
+        .intersection-info {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .intersection-info h4 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .intersection-details {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mode-badge {
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .intersection-description {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        /* Chat Interface */
+        .chat-interface {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .chat-messages {
+            margin-bottom: 15px;
+        }
+
+        .message {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: 20px;
+        }
+
+        .message.frenly {
+            background: #f1f3f4;
+            color: #2c3e50;
+            margin-right: 20px;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+
+        .chat-input button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input button:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #7f8c8d;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #2ecc71;
+            border-radius: 50%;
+        }
+
+        /* Tooltip */
+        .frenly-tooltip {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: #2c3e50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .frenly-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            right: 20px;
+            border: 5px solid transparent;
+            border-top-color: #2c3e50;
+        }
+
+        .frenly-character:hover .frenly-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .frenly-interface {
+                width: 350px;
+                right: -50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Frenly Character - Top Right Corner -->
+    <div class="frenly-character">
+        <!-- Status Indicator -->
+        <div class="frenly-status"></div>
+        
+        <!-- Frenly Avatar -->
+        <div class="frenly-avatar"></div>
+        
+        <!-- Tooltip -->
+        <div class="frenly-tooltip">Hi! I'm Frenly, your AI secretary. Hover to chat!</div>
+        
+        <!-- Hoverable Interface -->
+        <div class="frenly-interface">
+            <!-- Interface Header -->
+            <div class="interface-header">
+                <h3>👩‍💼 Frenly</h3>
+                <p>Your AI Secretary & App Manager</p>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button class="action-btn" onclick="switchMode('investigation')">
+                    🔍 Investigation
+                </button>
+                <button class="action-btn" onclick="switchMode('construction')">
+                    🏗️ Construction
+                </button>
+                <button class="action-btn" onclick="switchMode('audit')">
+                    📊 Audit
+                </button>
+                <button class="action-btn" onclick="switchMode('litigation')">
+                    ⚖️ Litigation
+                </button>
+            </div>
+            
+            <!-- AI Mode Controls -->
+            <div class="ai-mode-controls">
+                <h4>🤖 AI Processing Mode</h4>
+                <div class="mode-buttons">
+                    <button class="mode-btn" onclick="switchAIMode('guided')" id="guided-btn">
+                        🎯 Guided
+                    </button>
+                    <button class="mode-btn" onclick="switchAIMode('eco')" id="eco-btn">
+                        🌱 Eco
+                    </button>
+                    <button class="mode-btn" onclick="switchAIMode('extreme')" id="extreme-btn">
+                        ⚡ Extreme
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mode Intersection Info -->
+            <div class="intersection-info" id="intersectionInfo">
+                <h4>📋 Current Mode</h4>
+                <div class="intersection-details">
+                    <div class="mode-badge">
+                        <span id="currentAppMode">Investigation</span> + 
+                        <span id="currentAIMode">Guided</span>
+                    </div>
+                    <p id="intersectionDescription">Forensic investigation with guided analysis</p>
+                </div>
+            </div>
+            
+            <!-- Chat Interface -->
+            <div class="chat-interface">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message frenly welcome-message">
+                        👋 Hi! I'm Frenly, your AI secretary. I can help you manage the app, switch modes, and answer questions. What would you like to do?
+                    </div>
+                </div>
+                
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="Ask me anything..." onkeypress="handleKeyPress(event)">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+            
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Online</span>
+                </div>
+                <span>Ready to help!</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>🔍 Nexus Platform</h1>
+        <p>Comprehensive forensic analysis and reconciliation tools</p>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav">
+        <div class="nav-links">
+            <a href="#overview">Overview</a>
+            <a href="#reconciliation">Reconciliation</a>
+            <a href="#fraud">Fraud Detection</a>
+            <a href="#evidence">Evidence</a>
+            <a href="#reports">Reports</a>
+            <a href="#settings">Settings</a>
+        </div>
+        <div class="nav-links">
+            <a href="/frenly_interface.html" target="_blank">Full Frenly Interface</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="dashboard-grid">
+            <!-- Overview Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">System Overview</div>
+                </div>
+                <div class="card-content">
+                    Monitor system health, performance metrics, and overall platform status. Get real-time insights into all components.
+                </div>
+                <div class="card-actions">
+                    <a href="#" class="btn btn-primary">View Dashboard</a>
+                    <a href="#" class="btn btn-secondary">Settings</a>
+                </div>
+            </div>
+
+            <!-- Reconciliation Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">🔍</div>
+                    <div class="card-title">Data Reconciliation</div>
+                </div>
+                <div class="card-content">
+                    Match and reconcile financial data, identify discrepancies, and generate reconciliation reports with AI assistance.
+                </div>
+                <div class="card-actions">
+                    <a href="#" class="btn btn-primary">Start Reconciliation</a>
+                    <a href="#" class="btn btn-secondary">View History</a>
+                </div>
+            </div>
+
+            <!-- Fraud Detection Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">🚨</div>
+                    <div class="card-title">Fraud Detection</div>
+                </div>
+                <div class="card-content">
+                    Advanced AI-powered fraud detection algorithms to identify suspicious patterns, anomalies, and potential fraud cases.
+                </div>
+                <div class="card-actions">
+                    <a href="#" class="btn btn-primary">Run Analysis</a>
+                    <a href="#" class="btn btn-secondary">View Alerts</a>
+                </div>
+            </div>
+
+            <!-- Evidence Management Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">📄</div>
+                    <div class="card-title">Evidence Management</div>
+                </div>
+                <div class="card-content">
+                    Secure storage, processing, and analysis of digital evidence with chain of custody tracking and metadata extraction.
+                </div>
+                <div class="card-actions">
+                    <a href="#" class="btn btn-primary">Upload Evidence</a>
+                    <a href="#" class="btn btn-secondary">Browse Files</a>
+                </div>
+            </div>
+
+            <!-- Entity Analysis Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">🕸️</div>
+                    <div class="card-title">Entity Analysis</div>
+                </div>
+                <div class="card-content">
+                    Map relationships between entities, visualize networks, and identify connections using graph database technology.
+                </div>
+                <div class="card-actions">
+                    <a href="#" class="btn btn-primary">View Network</a>
+                    <a href="#" class="btn btn-secondary">Add Entities</a>
+                </div>
+            </div>
+
+            <!-- Legal Analysis Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">⚖️</div>
+                    <div class="card-title">Legal Analysis</div>
+                </div>
+                <div class="card-content">
+                    Map findings to legal codes, generate legal reports, and prepare litigation support materials with AI assistance.
+                </div>
+                <div class="card-actions">
+                    <a href="#" class="btn btn-primary">Legal Review</a>
+                    <a href="#" class="btn btn-secondary">Code Mapping</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Section -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon">⚡</div>
+                <div class="card-title">Quick Actions</div>
+            </div>
+            <div class="card-content">
+                <p>Need help? Hover over Frenly in the top right corner to get instant assistance with:</p>
+                <ul style="margin: 15px 0; padding-left: 20px;">
+                    <li>Switching between app modes (Investigation, Construction, Audit, Litigation)</li>
+                    <li>Getting help with specific features</li>
+                    <li>System status and health checks</li>
+                    <li>AI agent coordination</li>
+                    <li>Workflow guidance</li>
+                </ul>
+            </div>
+            <div class="card-actions">
+                <a href="/frenly_interface.html" target="_blank" class="btn btn-primary">Open Full Frenly Interface</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Frenly Character Management
+        class FrenlyCharacter {
+            constructor() {
+                this.currentAppMode = 'investigation';
+                this.currentAIMode = 'guided';
+                this.chatHistory = [];
+                this.isTyping = false;
+                this.init();
+            }
+
+            init() {
+                this.addWelcomeMessage();
+                this.setupEventListeners();
+                this.updateIntersectionInfo();
+            }
+
+            addWelcomeMessage() {
+                const messages = document.getElementById('chatMessages');
+                const welcomeMsg = document.createElement('div');
+                welcomeMsg.className = 'message frenly welcome-message';
+                welcomeMsg.innerHTML = '👋 Hi! I\'m Frenly, your AI secretary. I can help you manage the app, switch modes, and answer questions. What would you like to do?';
+                messages.appendChild(welcomeMsg);
+            }
+
+            setupEventListeners() {
+                // Add any additional event listeners here
+            }
+
+            async switchAppMode(mode) {
+                this.currentAppMode = mode;
+                
+                // Update interface based on mode
+                this.updateInterfaceForMode(mode);
+                
+                // Add mode change message
+                this.addMessage('frenly', `✅ Switched to ${mode} mode. The dashboard has been updated with relevant features and data.`);
+                
+                // Simulate app mode change
+                await this.simulateModeChange(mode);
+            }
+
+            async switchAIMode(mode) {
+                this.currentAIMode = mode;
+                this.updateIntersectionInfo();
+                this.addMessage('frenly', `✅ Switched AI processing mode to ${mode}. The dashboard will now use ${mode} analysis for data reconciliation and fraud detection.`);
+            }
+
+            updateInterfaceForMode(mode) {
+                const modeNames = {
+                    'investigation': '🔍 Investigation',
+                    'construction': '🏗️ Construction', 
+                    'audit': '📊 Audit',
+                    'litigation': '⚖️ Litigation'
+                };
+
+                // Update status bar
+                const statusBar = document.querySelector('.status-bar span:last-child');
+                statusBar.textContent = `${modeNames[mode]} Mode Active`;
+            }
+
+            updateIntersectionInfo() {
+                const currentAppModeSpan = document.getElementById('currentAppMode');
+                const currentAIModeSpan = document.getElementById('currentAIMode');
+                const intersectionDescriptionP = document.getElementById('intersectionDescription');
+
+                currentAppModeSpan.textContent = modeNames[this.currentAppMode];
+                currentAIModeSpan.textContent = this.currentAIMode.charAt(0).toUpperCase() + this.currentAIMode.slice(1);
+
+                const appModeName = modeNames[this.currentAppMode];
+                const aiModeName = this.currentAIMode.charAt(0).toUpperCase() + this.currentAIMode.slice(1);
+
+                if (this.currentAppMode === 'investigation' && this.currentAIMode === 'guided') {
+                    intersectionDescriptionP.textContent = `${appModeName} with guided analysis.`;
+                } else if (this.currentAppMode === 'construction' && this.currentAIMode === 'eco') {
+                    intersectionDescriptionP.textContent = `${appModeName} with eco-friendly processing.`;
+                } else if (this.currentAppMode === 'audit' && this.currentAIMode === 'extreme') {
+                    intersectionDescriptionP.textContent = `${appModeName} with extreme performance.`;
+                } else {
+                    intersectionDescriptionP.textContent = `${appModeName} with ${aiModeName} processing.`;
+                }
+            }
+
+            async simulateModeChange(mode) {
+                // Simulate loading and mode change
+                this.addMessage('frenly', '🔄 Updating dashboard components...');
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                this.addMessage('frenly', `✨ ${mode.charAt(0).toUpperCase() + mode.slice(1)} mode is now active! You can now access mode-specific features.`);
+            }
+
+            addMessage(sender, text) {
+                const messages = document.getElementById('chatMessages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                messageDiv.textContent = text;
+                
+                messages.appendChild(messageDiv);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            async processUserQuery(query) {
+                // Add user message
+                this.addMessage('user', query);
+                
+                // Show typing indicator
+                this.showTypingIndicator();
+                
+                // Process query based on current mode
+                const response = await this.generateResponse(query);
+                
+                // Hide typing indicator and show response
+                this.hideTypingIndicator();
+                this.addMessage('frenly', response);
+            }
+
+            showTypingIndicator() {
+                const messages = document.getElementById('chatMessages');
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'message frenly';
+                typingDiv.id = 'typingIndicator';
+                typingDiv.innerHTML = '💭 Thinking...';
+                messages.appendChild(typingDiv);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            hideTypingIndicator() {
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+
+            async generateResponse(query) {
+                const queryLower = query.toLowerCase();
+                
+                // Simple response logic based on query and current mode
+                if (queryLower.includes('help') || queryLower.includes('what can you do')) {
+                    return `I can help you with:\n• Switching app modes (Investigation, Construction, Audit, Litigation)\n• Managing dashboard views\n• Answering questions about the platform\n• Coordinating AI agents\n• System monitoring and health checks\n\nWhat would you like to do?`;
+                }
+                
+                if (queryLower.includes('mode') || queryLower.includes('switch')) {
+                    return `Currently in ${this.currentAppMode} mode. You can switch to:\n• Investigation: 🔍 Standard forensic analysis\n• Construction: 🏗️ Project analysis\n• Audit: 📊 Financial auditing\n• Litigation: ⚖️ Legal proceedings\n\nClick any mode button above to switch!`;
+                }
+                
+                if (queryLower.includes('dashboard') || queryLower.includes('view')) {
+                    return `In ${this.currentAppMode} mode, you can access:\n• Overview dashboard\n• Data reconciliation tools\n• Fraud detection panels\n• Evidence management\n• Entity relationship mapping\n• Legal analysis tools\n\nWould you like me to switch to a specific view?`;
+                }
+                
+                if (queryLower.includes('status') || queryLower.includes('health')) {
+                    return `System Status:\n✅ All components running\n✅ AI agents active\n✅ Database connected\n✅ File storage operational\n\nPerformance: Excellent\nUptime: 99.9%\n\nEverything is working perfectly!`;
+                }
+                
+                // Default response
+                return `I understand you're asking about "${query}". In ${this.currentAppMode} mode, I can help you navigate the platform, switch views, and coordinate with AI agents. What specific aspect would you like to explore?`;
+            }
+        }
+
+        // Initialize Frenly
+        const frenly = new FrenlyCharacter();
+
+        // Global functions for button clicks
+        function switchMode(mode) {
+            frenly.switchAppMode(mode);
+        }
+
+        function switchAIMode(mode) {
+            frenly.switchAIMode(mode);
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                frenly.processUserQuery(message);
+                input.value = '';
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Add some interactive features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click sound effect to buttons
+            const buttons = document.querySelectorAll('.action-btn, .chat-input button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Add click animation
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+
+            // Add hover effects to the character
+            const character = document.querySelector('.frenly-character');
+            character.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.05)';
+            });
+            
+            character.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

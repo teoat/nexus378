@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-service-config
+  namespace: forensic-platform
+data:
+  ENVIRONMENT: "production"
+  PORT: "8000"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  RABBITMQ_HOST: "rabbitmq"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_VHOST: "forensic_vhost"
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "forensic_reconciliation_prod"
+  NEO4J_HOST: "neo4j"
+  NEO4J_PORT: "7687"
+  MINIO_HOST: "minio"
+  MINIO_PORT: "9000"
+  MODEL_CACHE_DIR: "/app/model_cache"
+  LOG_LEVEL: "INFO"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ai-service-secret
+  namespace: forensic-platform
+type: Opaque
+data:
+  POSTGRES_USER: Zm9yZW5zaWNfcHJvZF91c2Vy # forensic_prod_user
+  POSTGRES_PASSWORD: U2VjdXJlUHJvZFBhc3N3b3JkMjAyNCE= # SecureProdPassword2024!
+  REDIS_PASSWORD: U2VjdXJlUmVkaXNQYXNzd29yZDIwMjQh # SecureRedisPassword2024!
+  RABBITMQ_USER: Zm9yZW5zaWNfdXNlcg== # forensic_user
+  RABBITMQ_PASSWORD: U2VjdXJlUmFiYml0TVFQYXNzd29yZDIwMjQh # SecureRabbitMQPassword2024!
+  NEO4J_USER: bmVvNGo= # neo4j
+  NEO4J_PASSWORD: U2VjdXJlTmVvNGpQYXNzd29yZDIwMjQh # SecureNeo4jPassword2024!
+  MINIO_ACCESS_KEY: Zm9yZW5zaWNfdXNlcg== # forensic_user
+  MINIO_SECRET_KEY: U2VjdXJlTWluaW9QYXNzd29yZDIwMjQh # SecureMinioPassword2024!
+  MODEL_API_KEY: U2VjdXJlTW9kZWxBUElLZXkyMDI0IQ== # SecureModelAPIKey2024!
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ai-service-model-cache-pvc
+  namespace: forensic-platform
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-service
+  namespace: forensic-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-service
+  template:
+    metadata:
+      labels:
+        app: ai-service
+    spec:
+      containers:
+      - name: ai-service
+        image: ai-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: ai-service-config
+        - secretRef:
+            name: ai-service-secret
+        volumeMounts:
+        - name: model-cache
+          mountPath: /app/model_cache
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+            nvidia.com/gpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+            nvidia.com/gpu: "1"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: ai-service-model-cache-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-service
+  namespace: forensic-platform
+spec:
+  selector:
+    app: ai-service
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP

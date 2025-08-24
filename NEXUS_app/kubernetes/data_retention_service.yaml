@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-retention-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-retention-service
+  template:
+    metadata:
+      labels:
+        app: data-retention-service
+    spec:
+      containers:
+      - name: data-retention-service
+        image: data-retention-service:latest
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-retention-service
+spec:
+  selector:
+    app: data-retention-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+  type: ClusterIP

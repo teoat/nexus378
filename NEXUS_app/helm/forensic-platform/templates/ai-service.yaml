@@ -1,0 +1,141 @@
+{{- if .Values.aiService.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "forensic-platform.aiService.fullname" . }}-config
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+data:
+  ENVIRONMENT: {{ .Values.global.environment | quote }}
+  PORT: "8000"
+  REDIS_HOST: {{ .Release.Name }}-redis-master
+  REDIS_PORT: "6379"
+  RABBITMQ_HOST: {{ .Release.Name }}-rabbitmq
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_VHOST: {{ .Values.rabbitmq.vhost | quote }}
+  POSTGRES_HOST: {{ .Release.Name }}-postgresql
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: {{ .Values.postgresql.auth.database | quote }}
+  NEO4J_HOST: {{ .Release.Name }}-neo4j
+  NEO4J_PORT: "7687"
+  MINIO_HOST: {{ .Release.Name }}-minio
+  MINIO_PORT: "9000"
+  MODEL_CACHE_DIR: "/app/model_cache"
+  LOG_LEVEL: {{ .Values.aiService.logLevel | quote }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "forensic-platform.aiService.fullname" . }}-model-cache
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.aiService.persistence.modelCache.size }}
+  {{- if .Values.aiService.persistence.modelCache.storageClass }}
+  storageClassName: {{ .Values.aiService.persistence.modelCache.storageClass }}
+  {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "forensic-platform.aiService.fullname" . }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.aiService.replicaCount }}
+  selector:
+    matchLabels:
+      app: ai-service
+      {{- include "forensic-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: ai-service
+        {{- include "forensic-platform.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/ai-service.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.aiService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.aiService.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-ai-service
+          securityContext:
+            {{- toYaml .Values.aiService.securityContext | nindent 12 }}
+          image: "{{ .Values.aiService.image.repository }}:{{ .Values.aiService.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.aiService.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "forensic-platform.aiService.fullname" . }}-config
+            - secretRef:
+                name: {{ .Release.Name }}-postgresql
+            - secretRef:
+                name: {{ .Release.Name }}-redis
+            - secretRef:
+                name: {{ .Release.Name }}-rabbitmq
+            - secretRef:
+                name: {{ .Release.Name }}-neo4j
+            - secretRef:
+                name: {{ .Release.Name }}-minio
+          volumeMounts:
+            - name: model-cache
+              mountPath: /app/model_cache
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.aiService.resources | nindent 12 }}
+      volumes:
+        - name: model-cache
+          persistentVolumeClaim:
+            claimName: {{ include "forensic-platform.aiService.fullname" . }}-model-cache
+      {{- with .Values.aiService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.aiService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.aiService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "forensic-platform.aiService.fullname" . }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: ai-service
+    {{- include "forensic-platform.selectorLabels" . | nindent 4 }}
+{{- end }}

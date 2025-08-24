@@ -1,0 +1,33 @@
+# MFA System Requirements
+# Core dependencies for Multi-Factor Authentication system
+
+# QR Code generation
+qrcode>=7.4.2
+Pillow>=10.0.0  # For QR code image processing
+
+# Redis client (optional, for SMS code storage)
+redis>=5.0.0
+
+# Async support
+asyncio-mqtt>=0.16.1
+
+# Security and cryptography
+cryptography>=41.0.0
+pyotp>=2.9.0  # Alternative TOTP implementation
+
+# Testing dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.11.0
+
+# Development dependencies
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+
+# Logging and monitoring
+structlog>=23.1.0
+
+# Configuration management
+pydantic>=2.0.0
+python-dotenv>=1.0.0

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Platform - Welcome</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 60px 0;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+
+        /* Frenly Character Section */
+        .frenly-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 40px;
+            margin: 40px 0;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .frenly-avatar-large {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border-radius: 50%;
+            border: 6px solid #fff;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            position: relative;
+        }
+
+        .frenly-avatar-large::before {
+            content: "👩‍💼";
+            font-size: 70px;
+        }
+
+        .frenly-status-large {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 30px;
+            height: 30px;
+            background: #2ecc71;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .frenly-title {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #feca57;
+        }
+
+        .frenly-description {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .frenly-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #feca57;
+        }
+
+        .feature-desc {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #feca57, #ff6b6b);
+            color: #2c3e50;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        /* Platform Features */
+        .platform-features {
+            margin: 60px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: #feca57;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .platform-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .platform-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .platform-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .platform-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #feca57;
+        }
+
+        .platform-desc {
+            font-size: 1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .frenly-title {
+                font-size: 2rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔍 Nexus Platform</h1>
+            <p>Advanced AI-powered forensic analysis and reconciliation tools</p>
+        </div>
+
+        <!-- Frenly Character Section -->
+        <div class="frenly-section">
+            <div class="frenly-avatar-large">
+                <div class="frenly-status-large"></div>
+            </div>
+            
+            <h2 class="frenly-title">👩‍💼 Meet Frenly</h2>
+            <p class="frenly-description">
+                Your intelligent AI secretary who lives inside the app and helps you manage everything. 
+                She's always available in the top right corner of every page, ready to assist you with 
+                any task, question, or app management need.
+            </p>
+            
+            <div class="frenly-features">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-title">Smart Mode Switching</div>
+                    <div class="feature-desc">Switch between Investigation, Construction, Audit, and Litigation modes with a single click</div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <div class="feature-title">AI Agent Coordination</div>
+                    <div class="feature-desc">Frenly coordinates all AI agents to provide comprehensive answers and solutions</div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <div class="feature-title">Natural Conversation</div>
+                    <div class="feature-desc">Chat naturally with Frenly about any aspect of the platform or your work</div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-title">Instant Help</div>
+                    <div class="feature-desc">Get immediate assistance without leaving your current workflow</div>
+                </div>
+            </div>
+            
+            <div class="cta-buttons">
+                <a href="/templates/dashboard.html" class="btn btn-primary">🚀 Launch Dashboard with Frenly</a>
+                <a href="/frenly_interface.html" class="btn btn-secondary">💬 Full Frenly Interface</a>
+            </div>
+        </div>
+
+        <!-- Platform Features -->
+        <div class="platform-features">
+            <h2 class="section-title">Platform Capabilities</h2>
+            
+            <div class="features-grid">
+                <div class="platform-card">
+                    <div class="platform-icon">🔍</div>
+                    <div class="platform-title">Data Reconciliation</div>
+                    <div class="platform-desc">
+                        Advanced AI-powered reconciliation tools to match and verify financial data, 
+                        identify discrepancies, and generate comprehensive reports.
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-icon">🚨</div>
+                    <div class="platform-title">Fraud Detection</div>
+                    <div class="platform-desc">
+                        Machine learning algorithms to detect suspicious patterns, anomalies, 
+                        and potential fraud cases with high accuracy.
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-icon">📄</div>
+                    <div class="platform-title">Evidence Management</div>
+                    <div class="platform-desc">
+                        Secure digital evidence storage with chain of custody tracking, 
+                        metadata extraction, and advanced search capabilities.
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-icon">🕸️</div>
+                    <div class="platform-title">Entity Analysis</div>
+                    <div class="platform-desc">
+                        Graph database technology to map relationships between entities, 
+                        visualize networks, and identify hidden connections.
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-icon">⚖️</div>
+                    <div class="platform-title">Legal Analysis</div>
+                    <div class="platform-desc">
+                        AI-powered legal code mapping, case law analysis, and 
+                        litigation support material generation.
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-icon">📊</div>
+                    <div class="platform-title">Comprehensive Reporting</div>
+                    <div class="platform-desc">
+                        Generate detailed reports, visualizations, and presentations 
+                        for stakeholders, legal proceedings, and compliance requirements.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Getting Started -->
+        <div class="frenly-section">
+            <h2 class="frenly-title">🚀 Getting Started</h2>
+            <p class="frenly-description">
+                Ready to begin? Frenly will guide you through every step. Simply hover over her 
+                character in the top right corner of any page to get started with your forensic analysis.
+            </p>
+            
+            <div class="cta-buttons">
+                <a href="/templates/dashboard.html" class="btn btn-primary">🎯 Start with Dashboard</a>
+                <a href="/frenly_interface.html" class="btn btn-secondary">👩‍💼 Chat with Frenly</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to platform cards
+            const cards = document.querySelectorAll('.platform-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Add click effects to buttons
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

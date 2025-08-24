@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-of-custody-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chain-of-custody-service
+  template:
+    metadata:
+      labels:
+        app: chain-of-custody-service
+    spec:
+      containers:
+      - name: chain-of-custody-service
+        image: chain-of-custody-service:latest
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chain-of-custody-service
+spec:
+  selector:
+    app: chain-of-custody-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+  type: ClusterIP

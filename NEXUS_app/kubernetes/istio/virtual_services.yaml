@@ -1,0 +1,50 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: api-virtual-service
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - api-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /encryption
+    route:
+    - destination:
+        host: encryption-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /hash
+    route:
+    - destination:
+        host: hash-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /coc
+    route:
+    - destination:
+        host: chain-of-custody-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /retention
+    route:
+    - destination:
+        host: data-retention-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /gdpr
+    route:
+    - destination:
+        host: gdpr-service
+        port:
+          number: 80

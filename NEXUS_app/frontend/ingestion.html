@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Ingestion - Nexus</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Nexus</h1>
+    </header>
+    <main>
+        <div class="container">
+            <div class="ingestion-form">
+                <h2>Upload Evidence File</h2>
+                <form id="upload-form">
+                    <div class="form-group">
+                        <label for="file-upload">Choose a file to upload:</label>
+                        <input type="file" id="file-upload" name="file" required>
+                    </div>
+                    <button type="submit" class="btn">Upload</button>
+                </form>
+                <div class="form-group">
+                    <label for="mode-select">Select Mode:</label>
+                    <select id="mode-select" name="mode">
+                        <option value="guided">Guided Mode</option>
+                        <option value="eco">Eco Mode</option>
+                        <option value="extreme">Extreme Mode</option>
+                    </select>
+                </div>
+                <div id="message" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>

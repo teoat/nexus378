@@ -1,0 +1,164 @@
+# Global Values
+global:
+  environment: production
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: standard
+
+# Infrastructure Services Configuration
+postgresql:
+  enabled: true
+  auth:
+    database: forensic_reconciliation_prod
+    username: forensic_prod_user
+    existingSecret: postgres-secret
+  primary:
+    persistence:
+      size: 20Gi
+    resources:
+      requests:
+        memory: 1Gi
+        cpu: 500m
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+
+redis:
+  enabled: true
+  auth:
+    existingSecret: redis-secret
+  master:
+    persistence:
+      size: 10Gi
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 200m
+      limits:
+        memory: 512Mi
+        cpu: 500m
+
+rabbitmq:
+  enabled: true
+  auth:
+    existingSecret: rabbitmq-secret
+  persistence:
+    size: 10Gi
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+minio:
+  enabled: true
+  auth:
+    existingSecret: minio-secret
+  persistence:
+    size: 50Gi
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+neo4j:
+  enabled: true
+  neo4j:
+    password: existingSecret: neo4j-secret
+    edition: enterprise
+    acceptLicenseAgreement: "yes"
+  volumes:
+    data:
+      size: 20Gi
+    logs:
+      size: 5Gi
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+
+# Application Services
+apiGateway:
+  image:
+    repository: api-gateway
+    tag: latest
+    pullPolicy: Never
+  replicaCount: 2
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    hosts:
+      - host: api.forensic-platform.local
+        paths:
+          - path: /
+            pathType: Prefix
+
+aiService:
+  image:
+    repository: ai-service
+    tag: latest
+    pullPolicy: Never
+  replicaCount: 2
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+      nvidia.com/gpu: 1
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+      nvidia.com/gpu: 1
+  persistence:
+    modelCache:
+      size: 10Gi
+
+# Common Configuration
+commonLabels:
+  app: forensic-reconciliation
+  environment: production
+
+affinity: {}
+nodeSelector: {}
+tolerations: []
+
+# Security Settings
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# Monitoring and Logging
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+
+loki:
+  enabled: true
+  persistence:
+    size: 10Gi
+
+# Service Mesh
+istio:
+  enabled: false
+  mtls:
+    enabled: true

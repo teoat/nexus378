@@ -1,0 +1,105 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-postgresql
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  POSTGRES_USER: {{ .Values.postgresql.auth.username | quote }}
+  POSTGRES_PASSWORD: {{ .Values.postgresql.auth.password | quote }}
+{{- end }}
+---
+{{- if .Values.redis.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-redis
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  REDIS_PASSWORD: {{ .Values.redis.auth.password | quote }}
+{{- end }}
+---
+{{- if .Values.rabbitmq.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-rabbitmq
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  RABBITMQ_USER: {{ .Values.rabbitmq.auth.username | quote }}
+  RABBITMQ_PASSWORD: {{ .Values.rabbitmq.auth.password | quote }}
+{{- end }}
+---
+{{- if .Values.neo4j.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-neo4j
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  NEO4J_AUTH: neo4j/{{ .Values.neo4j.auth.password }}
+  NEO4J_USERNAME: "neo4j"
+  NEO4J_PASSWORD: {{ .Values.neo4j.auth.password | quote }}
+{{- end }}
+---
+{{- if .Values.minio.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-minio
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  MINIO_ROOT_USER: {{ .Values.minio.auth.rootUser | quote }}
+  MINIO_ROOT_PASSWORD: {{ .Values.minio.auth.rootPassword | quote }}
+{{- end }}
+---
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "forensic-platform.serviceAccountName" . }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+---
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-role
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["", "apps", "batch", "extensions"]
+    resources: ["pods", "services", "configmaps", "secrets", "deployments", "jobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "forensic-platform.fullname" . }}-rolebinding
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "forensic-platform.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "forensic-platform.fullname" . }}-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

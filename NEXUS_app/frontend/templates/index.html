@@ -1,0 +1,77 @@
+<![CDATA[
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fa-solid fa-magnifying-glass"></i> Forensic Platform</a>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="hero-section text-center">
+                    <h1 class="display-4">Nexus Platform</h1>
+                    <p class="lead">Comprehensive AI-powered forensic analysis and reconciliation platform</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon bg-primary"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                        <h5 class="card-title mt-3">Data Reconciliation</h5>
+                        <p class="card-text">AI-powered data matching and reconciliation analysis</p>
+                        <button class="btn btn-primary" onclick="loadDashboard('reconciliation')">Open Dashboard</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon bg-warning"><i class="fa-solid fa-user-secret"></i></div>
+                        <h5 class="card-title mt-3">Fraud Detection</h5>
+                        <p class="card-text">Advanced fraud detection and risk assessment</p>
+                        <button class="btn btn-warning" onclick="loadDashboard('fraud_detection')">Open Dashboard</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon bg-success"><i class="fa-solid fa-chart-line"></i></div>
+                        <h5 class="card-title mt-3">System Monitoring</h5>
+                        <p class="card-text">Real-time system health and performance monitoring</p>
+                        <button class="btn btn-success" onclick="loadDashboard('system_monitoring')">Open Dashboard</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white text-center p-3 mt-5">
+        <p>&copy; 2024 Nexus Platform. All Rights Reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        function loadDashboard(type) {
+            window.location.href = "/dashboard/" + type;
+        }
+    </script>
+</body>
+</html>
+]]>

@@ -1,0 +1,51 @@
+{
+  "todo_id": "todo_1755935125_002",
+  "created_at": "2025-08-23T16:45:29.309138",
+  "microtasks": [
+    {
+      "id": "todo_1755935125_002_comp_1",
+      "title": "Setup Phase",
+      "description": "Complete setup phase for DEPLOY_004: Implement Database Migration and Seeding Scripts** - HIGH Priority - 3-5 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 16:45:29.309103",
+      "type": "component_work"
+    },
+    {
+      "id": "todo_1755935125_002_comp_2",
+      "title": "Configuration Phase",
+      "description": "Complete configuration phase for DEPLOY_004: Implement Database Migration and Seeding Scripts** - HIGH Priority - 3-5 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 16:45:29.309110",
+      "type": "component_work"
+    },
+    {
+      "id": "todo_1755935125_002_comp_3",
+      "title": "Implementation Phase",
+      "description": "Complete implementation phase for DEPLOY_004: Implement Database Migration and Seeding Scripts** - HIGH Priority - 3-5 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 16:45:29.309112",
+      "type": "component_work"
+    },
+    {
+      "id": "todo_1755935125_002_comp_4",
+      "title": "Testing Phase",
+      "description": "Complete testing phase for DEPLOY_004: Implement Database Migration and Seeding Scripts** - HIGH Priority - 3-5 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 16:45:29.309113",
+      "type": "component_work"
+    },
+    {
+      "id": "todo_1755935125_002_comp_5",
+      "title": "Documentation Phase",
+      "description": "Complete documentation phase for DEPLOY_004: Implement Database Migration and Seeding Scripts** - HIGH Priority - 3-5 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 16:45:29.309115",
+      "type": "component_work"
+    }
+  ]
+}

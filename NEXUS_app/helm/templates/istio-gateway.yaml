@@ -1,0 +1,85 @@
+e 2e 2{se 2 a{- if .Values.istio.enabled }}
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ .Release.Name }}-gateway
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    {{- range .Values.istio.gateway.hosts }}
+    - {{ . | quote }}
+    {{- end }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ .Release.Name }}-virtual-service
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+spec:
+  hosts:
+  {{- range .Values.istio.gateway.hosts }}
+  - {{ . | quote }}
+  {{- end }}
+  gateways:
+  - {{ .Release.Name }}-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/v1/encryption
+    route:
+    - destination:
+        host: {{ .Release.Name }}-encryption-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /api/v1/hash
+    route:
+    - destination:
+        host: {{ .Release.Name }}-hash-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /api/v1/chain-of-custody
+    route:
+    - destination:
+        host: {{ .Release.Name }}-chain-of-custody-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /api/v1/data-retention
+    route:
+    - destination:
+        host: {{ .Release.Name }}-data-retention-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /api/v1/gdpr
+    route:
+    - destination:
+        host: {{ .Release.Name }}-gdpr-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: {{ .Release.Name }}-api-gateway
+        port:
+          number: 80
+{{- end }}

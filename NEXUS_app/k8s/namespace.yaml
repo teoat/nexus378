@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: forensic-platform
+  labels:
+    name: forensic-platform
+    app: forensic-reconciliation
+    environment: production
+    version: v1.0.0
+  annotations:
+    description: "Nexus Platform - Kubernetes Namespace"
+    owner: "forensic-team"
+    cost-center: "forensic-operations"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: forensic-platform-quota
+  namespace: forensic-platform
+spec:
+  hard:
+    requests.cpu: "16"
+    requests.memory: 32Gi
+    limits.cpu: "32"
+    limits.memory: 64Gi
+    persistentvolumeclaims: "20"
+    services: "50"
+    services.loadbalancers: "5"
+    services.nodeports: "10"
+    pods: "50"
+    replicationcontrollers: "20"
+    resourcequotas: "1"
+    secrets: "20"
+    configmaps: "20"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: forensic-platform-limits
+  namespace: forensic-platform
+spec:
+  limits:
+  - default:
+      cpu: 1000m
+      memory: 1Gi
+    defaultRequest:
+      cpu: 500m
+      memory: 512Mi
+    type: Container
+  - default:
+      cpu: 2000m
+      memory: 2Gi
+    defaultRequest:
+      cpu: 1000m
+      memory: 1Gi
+    type: Pod
+  - type: PersistentVolumeClaim
+    max:
+      storage: 100Gi
+    min:
+      storage: 1Gi

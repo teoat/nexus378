@@ -1,0 +1,81 @@
+# Filebeat Configuration for Forensic Platform
+# Collects logs from all services and forwards to Logstash
+
+filebeat.inputs:
+  # Collect logs from Docker containers
+  - type: container
+    paths:
+      - '/var/lib/docker/containers/*/*.log'
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+      - decode_json_fields:
+          fields: ["message"]
+          target: "json"
+          overwrite_keys: true
+
+  # Collect application logs
+  - type: log
+    enabled: true
+    paths:
+      - '/var/log/forensic/*.log'
+      - '/var/log/forensic/*/*.log'
+    fields:
+      service: "forensic_platform"
+      environment: "development"
+    fields_under_root: true
+    multiline.pattern: '^\['
+    multiline.negate: true
+    multiline.match: after
+
+  # Collect system logs
+  - type: log
+    enabled: true
+    paths:
+      - '/var/log/syslog'
+      - '/var/log/messages'
+    fields:
+      service: "system"
+      environment: "development"
+    fields_under_root: true
+
+  # Collect audit logs
+  - type: log
+    enabled: true
+    paths:
+      - '/var/log/audit/audit.log'
+    fields:
+      service: "audit"
+      environment: "development"
+    fields_under_root: true
+
+# Processors
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+  - add_kubernetes_metadata:
+      host: ${NODE_NAME}
+      matchers:
+      - logs_path:
+          logs_path: "/var/log/containers/"
+
+# Output to Logstash
+output.logstash:
+  hosts: ["logstash:5044"]
+  loadbalance: true
+  index: "forensic-filebeat"
+
+# Logging
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+
+# Monitoring
+monitoring.enabled: false

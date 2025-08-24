@@ -1,0 +1,53 @@
+{{- if .Values.forensicApp.persistence.logs.size }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-forensic-app-logs
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+    app: forensic-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.global.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.forensicApp.persistence.logs.size }}
+{{- end }}
+---
+{{- if .Values.forensicApp.persistence.uploads.size }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-forensic-app-uploads
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+    app: forensic-app
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: {{ .Values.global.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.forensicApp.persistence.uploads.size }}
+{{- end }}
+---
+{{- if .Values.forensicApp.persistence.reports.size }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-forensic-app-reports
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+    app: forensic-app
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: {{ .Values.global.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.forensicApp.persistence.reports.size }}
+{{- end }}

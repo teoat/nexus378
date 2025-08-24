@@ -1,0 +1,68 @@
+wayapiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-forensic-app
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-api-gateway
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-forensic-platform
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods", "services", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["servicemonitors", "podmonitors"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-forensic-app
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-forensic-app
+  namespace: {{ .Values.namespace.name }}
+roleRef:
+  kind: Role
+  name: {{ .Release.Name }}-forensic-platform
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-api-gateway
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "forensic-platform.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-api-gateway
+  namespace: {{ .Values.namespace.name }}
+roleRef:
+  kind: Role
+  name: {{ .Release.Name }}-forensic-platform
+  apiGroup: rbac.authorization.k8s.io

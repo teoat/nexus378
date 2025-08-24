@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frenly Meta Agent - Nexus</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .frenly-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .frenly-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+        
+        .frenly-header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .frenly-header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .frenly-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .control-group select, .control-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .frenly-chat {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-header h3 {
+            margin: 0;
+            color: #495057;
+        }
+        
+        .chat-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .message.user {
+            justify-content: flex-end;
+        }
+        
+        .message.frenly {
+            justify-content: flex-start;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 15px;
+            border-radius: 15px;
+            position: relative;
+        }
+        
+        .message.user .message-content {
+            background: #007bff;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.frenly .message-content {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .user-avatar {
+            background: #007bff;
+            color: white;
+        }
+        
+        .frenly-avatar {
+            background: #28a745;
+            color: white;
+        }
+        
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ced4da;
+            border-radius: 25px;
+            font-size: 16px;
+        }
+        
+        .chat-input button {
+            padding: 15px 30px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .chat-input button:hover {
+            background: #218838;
+        }
+        
+        .chat-input button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .frenly-response {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .response-section {
+            margin-bottom: 15px;
+        }
+        
+        .response-section h4 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 16px;
+        }
+        
+        .response-section ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .response-section li {
+            margin-bottom: 5px;
+            color: #6c757d;
+        }
+        
+        .confidence-score {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #28a745;
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #28a745;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .example-queries {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .example-queries h4 {
+            margin: 0 0 15px 0;
+            color: #1976d2;
+        }
+        
+        .example-query {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 15px;
+            background: #bbdefb;
+            color: #1976d2;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 14px;
+        }
+        
+        .example-query:hover {
+            background: #90caf9;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Nexus</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="ingestion.html">Data Ingestion</a>
+            <a href="frenly_interface.html" class="active">Frenly Meta Agent</a>
+        </nav>
+    </header>
+    
+    <main>
+        <div class="frenly-container">
+            <div class="frenly-header">
+                <h1>🧠 Frenly Meta Agent</h1>
+                <p>Your intelligent AI conductor for forensic investigations</p>
+            </div>
+            
+            <div class="frenly-controls">
+                <div class="control-group">
+                    <label for="dashboard-mode">Dashboard Mode</label>
+                    <select id="dashboard-mode">
+                        <option value="regular">🔍 Regular Investigation</option>
+                        <option value="construction">🔨 Construction Project</option>
+                        <option value="audit">📊 Audit & Compliance</option>
+                        <option value="litigation">⚖️ Litigation Support</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="ai-mode">AI Processing Mode</label>
+                    <select id="ai-mode">
+                        <option value="eco">🌱 Eco Mode (Heuristic-based)</option>
+                        <option value="default" selected>⚡ Default Mode (Balanced)</option>
+                        <option value="extreme">🚀 Extreme Mode (Full AI)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="user-perspective">User Perspective</label>
+                    <select id="user-perspective">
+                        <option value="general">👤 General User</option>
+                        <option value="auditor">📊 Financial Auditor</option>
+                        <option value="investigator">🕵️ Forensic Investigator</option>
+                        <option value="prosecutor">⚖️ Legal Prosecutor</option>
+                        <option value="judge">👨‍⚖️ Judicial</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="frenly-chat">
+                <div class="chat-header">
+                    <h3>💬 Chat with Frenly</h3>
+                    <span id="chat-status" class="chat-status status-online">🟢 Online</span>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message frenly">
+                        <div class="message-avatar frenly-avatar">F</div>
+                        <div class="message-content">
+                            Hello! I'm Frenly, your intelligent meta-agent for forensic investigations. I can help you with:
+                            <br><br>
+                            🔍 <strong>Data Reconciliation</strong> - Match and compare financial records<br>
+                            🚨 <strong>Fraud Detection</strong> - Identify anomalies and suspicious patterns<br>
+                            📄 <strong>Evidence Processing</strong> - Analyze documents, photos, and metadata<br>
+                            🕸️ <strong>Entity Analysis</strong> - Map relationships and networks<br>
+                            ⚖️ <strong>Legal Analysis</strong> - Map findings to legal codes<br>
+                            💡 <strong>Knowledge Queries</strong> - Get help and explanations<br><br>
+                            
+                            How can I assist you today?
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input">
+                    <input type="text" id="user-input" placeholder="Ask Frenly anything about your investigation..." maxlength="500">
+                    <button id="send-button" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+            
+            <div class="example-queries">
+                <h4>💡 Example Queries</h4>
+                <div class="example-query" onclick="setQuery('Help me reconcile vendor payments with construction milestones')">
+                    Reconcile vendor payments
+                </div>
+                <div class="example-query" onclick="setQuery('Detect fraud patterns in recent transactions')">
+                    Detect fraud patterns
+                </div>
+                <div class="example-query" onclick="setQuery('Analyze the evidence photos for timestamps')">
+                    Analyze evidence photos
+                </div>
+                <div class="example-query" onclick="setQuery('Map relationships between vendors and subcontractors')">
+                    Map vendor relationships
+                </div>
+                <div class="example-query" onclick="setQuery('Check if findings violate any legal codes')">
+                    Check legal compliance
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        let chatHistory = [];
+        let isProcessing = false;
+        
+        // Initialize Frenly interface
+        document.addEventListener('DOMContentLoaded', function() {
+            checkFrenlyStatus();
+            loadChatHistory();
+        });
+        
+        // Check Frenly service status
+        async function checkFrenlyStatus() {
+            try {
+                const response = await fetch('http://localhost:8001/frenly/status');
+                if (response.ok) {
+                    document.getElementById('chat-status').className = 'chat-status status-online';
+                    document.getElementById('chat-status').textContent = '🟢 Online';
+                } else {
+                    document.getElementById('chat-status').className = 'chat-status status-offline';
+                    document.getElementById('chat-status').textContent = '🔴 Offline';
+                }
+            } catch (error) {
+                document.getElementById('chat-status').className = 'chat-status status-offline';
+                document.getElementById('chat-status').textContent = '🔴 Offline';
+                console.error('Error checking Frenly status:', error);
+            }
+        }
+        
+        // Send message to Frenly
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            
+            if (!message || isProcessing) return;
+            
+            // Add user message to chat
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Set processing state
+            isProcessing = true;
+            const sendButton = document.getElementById('send-button');
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<span class="loading"></span> Processing...';
+            
+            try {
+                // Get current context
+                const context = {
+                    dashboard_mode: document.getElementById('dashboard-mode').value,
+                    ai_mode: document.getElementById('ai-mode').value,
+                    user_perspective: document.getElementById('user-perspective').value
+                };
+                
+                // Send to Frenly API
+                const response = await fetch('http://localhost:8001/api/frenly/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: message,
+                        context: context
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    if (result.success && result.response) {
+                        // Display Frenly's response
+                        displayFrenlyResponse(result.response);
+                    } else {
+                        addMessage('I encountered an error processing your request. Please try again.', 'frenly');
+                    }
+                } else {
+                    addMessage('Sorry, I\'m having trouble connecting to my services right now.', 'frenly');
+                }
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                addMessage('I\'m experiencing technical difficulties. Please check your connection and try again.', 'frenly');
+            } finally {
+                // Reset processing state
+                isProcessing = false;
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send';
+            }
+        }
+        
+        // Add message to chat
+        function addMessage(content, sender) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = `message-avatar ${sender === 'user' ? 'user-avatar' : 'frenly-avatar'}`;
+            avatar.textContent = sender === 'user' ? 'U' : 'F';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.textContent = content;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Save to history
+            chatHistory.push({ sender, content, timestamp: new Date() });
+            saveChatHistory();
+        }
+        
+        // Display Frenly's structured response
+        function displayFrenlyResponse(response) {
+            let responseContent = '';
+            
+            // Add narration
+            if (response.narration) {
+                responseContent += `<div class="response-section">
+                    <h4>🎭 Frenly's Analysis</h4>
+                    <p>${response.narration}</p>
+                </div>`;
+            }
+            
+            // Add recommendations
+            if (response.recommendations && response.recommendations.length > 0) {
+                responseContent += `<div class="response-section">
+                    <h4>💡 Recommendations</h4>
+                    <ul>`;
+                response.recommendations.forEach(rec => {
+                    responseContent += `<li>${rec}</li>`;
+                });
+                responseContent += `</ul></div>`;
+            }
+            
+            // Add next steps
+            if (response.next_steps && response.next_steps.length > 0) {
+                responseContent += `<div class="response-section">
+                    <h4>➡️ Next Steps</h4>
+                    <ul>`;
+                response.next_steps.forEach(step => {
+                    responseContent += `<li>${step}</li>`;
+                });
+                responseContent += `</ul></div>`;
+            }
+            
+            // Add confidence score
+            if (response.confidence_score !== undefined) {
+                responseContent += `<div class="response-section">
+                    <h4>📊 Confidence</h4>
+                    <span class="confidence-score">${Math.round(response.confidence_score * 100)}%</span>
+                </div>`;
+            }
+            
+            // Add processing time
+            if (response.processing_time) {
+                responseContent += `<div class="response-section">
+                    <h4>⏱️ Processing Time</h4>
+                    <p>${response.processing_time.toFixed(2)} seconds</p>
+                </div>`;
+            }
+            
+            // Create the response message
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message frenly';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar frenly-avatar';
+            avatar.textContent = 'F';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = responseContent;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Save to history
+            chatHistory.push({ 
+                sender: 'frenly', 
+                content: responseContent, 
+                timestamp: new Date() 
+            });
+            saveChatHistory();
+        }
+        
+        // Set example query
+        function setQuery(query) {
+            document.getElementById('user-input').value = query;
+            document.getElementById('user-input').focus();
+        }
+        
+        // Handle Enter key
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Save chat history to localStorage
+        function saveChatHistory() {
+            localStorage.setItem('frenly_chat_history', JSON.stringify(chatHistory));
+        }
+        
+        // Load chat history from localStorage
+        function loadChatHistory() {
+            const saved = localStorage.getItem('frenly_chat_history');
+            if (saved) {
+                try {
+                    chatHistory = JSON.parse(saved);
+                } catch (e) {
+                    console.error('Error loading chat history:', e);
+                    chatHistory = [];
+                }
+            }
+        }
+        
+        // Context change handlers
+        document.getElementById('dashboard-mode').addEventListener('change', function() {
+            addMessage(`Switched to ${this.options[this.selectedIndex].text} mode`, 'frenly');
+        });
+        
+        document.getElementById('ai-mode').addEventListener('change', function() {
+            addMessage(`Switched to ${this.options[this.selectedIndex].text}`, 'frenly');
+        });
+        
+        document.getElementById('user-perspective').addEventListener('change', function() {
+            addMessage(`Switched to ${this.options[this.selectedIndex].text} perspective`, 'frenly');
+        });
+    </script>
+</body>
+</html>
