@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frenly Dashboard - Real-time Updates</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .status-bar {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+        }
+        
+        .status-indicator.connected {
+            background: #28a745;
+        }
+        
+        .last-update {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .dashboard-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .dashboard-card h3 {
+            margin: 0 0 15px 0;
+            color: #495057;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .mode-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .mode-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .mode-button.active {
+            background: #28a745;
+        }
+        
+        .status-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9em;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .events-log {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .event-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .event-item:last-child {
+            border-bottom: none;
+        }
+        
+        .event-timestamp {
+            color: #6c757d;
+            font-size: 0.8em;
+        }
+        
+        .event-type {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .event-details {
+            color: #495057;
+            font-size: 0.9em;
+        }
+        
+        .health-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .health-healthy { background: #28a745; }
+        .health-degraded { background: #ffc107; }
+        .health-critical { background: #dc3545; }
+        
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .agent-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .agent-status {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .agent-status.active { color: #28a745; }
+        .agent-status.failed { color: #dc3545; }
+        .agent-status.restarting { color: #ffc107; }
+        
+        .controls-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .controls-section h3 {
+            margin: 0 0 15px 0;
+            color: #495057;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .control-group label {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .control-group select {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            background: white;
+        }
+        
+        .control-group button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .control-group button:hover {
+            background: #218838;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Frenly Dashboard</h1>
+            <p>Real-time Forensic Reconciliation App Management</p>
+        </div>
+        
+        <div class="status-bar">
+            <div class="connection-status">
+                <div class="status-indicator" id="connectionIndicator"></div>
+                <span id="connectionText">Disconnected</span>
+            </div>
+            <div class="last-update" id="lastUpdate">Never</div>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls-section">
+                <h3>🎛️ Mode Controls</h3>
+                <div class="control-group">
+                    <label>App Mode:</label>
+                    <select id="appModeSelect">
+                        <option value="construction">Construction</option>
+                        <option value="regular">Regular</option>
+                        <option value="accounting">Accounting</option>
+                        <option value="audit">Audit</option>
+                    </select>
+                    
+                    <label>AI Mode:</label>
+                    <select id="aiModeSelect">
+                        <option value="guided">Guided</option>
+                        <option value="eco">Eco</option>
+                        <option value="extreme">Extreme</option>
+                    </select>
+                    
+                    <label>Thinking:</label>
+                    <select id="thinkingSelect">
+                        <option value="">None</option>
+                        <option value="investigation">Investigation</option>
+                        <option value="litigation">Litigation</option>
+                    </select>
+                    
+                    <button onclick="applyModeChanges()">Apply Changes</button>
+                </div>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>🏥 System Health</h3>
+                    <div id="systemHealth" class="status-display">Loading...</div>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3>🤖 Agent Status</h3>
+                    <div id="agentStatus" class="status-display">Loading...</div>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3>📊 Current Context</h3>
+                    <div id="currentContext" class="status-display">Loading...</div>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3>📝 Recent Events</h3>
+                    <div id="recentEvents" class="events-log">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3>🔧 WebSocket Controls</h3>
+                <div class="control-group">
+                    <button onclick="requestState()">Request State Update</button>
+                    <button onclick="sendPing()">Send Ping</button>
+                    <button onclick="getWebSocketStatus()">Get Connection Status</button>
+                </div>
+                <div id="websocketStatus" class="status-display">Click buttons to test WebSocket functionality</div>
+            </div>
+            
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+        </div>
+    </div>
+
+    <script>
+        let websocket = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        
+        // Initialize WebSocket connection
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/api/frenly/ws/frenly`;
+            
+            try {
+                websocket = new WebSocket(wsUrl);
+                
+                websocket.onopen = function(event) {
+                    console.log('WebSocket connected');
+                    updateConnectionStatus(true);
+                    reconnectAttempts = 0;
+                    showMessage('WebSocket connected successfully!', 'success');
+                };
+                
+                websocket.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        handleWebSocketMessage(data);
+                    } catch (e) {
+                        console.error('Error parsing WebSocket message:', e);
+                    }
+                };
+                
+                websocket.onclose = function(event) {
+                    console.log('WebSocket disconnected');
+                    updateConnectionStatus(false);
+                    
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        console.log(`Attempting to reconnect... (${reconnectAttempts}/${maxReconnectAttempts})`);
+                        setTimeout(connectWebSocket, 2000);
+                    } else {
+                        showMessage('WebSocket connection failed after multiple attempts', 'error');
+                    }
+                };
+                
+                websocket.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                    updateConnectionStatus(false);
+                };
+                
+            } catch (e) {
+                console.error('Error creating WebSocket:', e);
+                showMessage('Failed to create WebSocket connection', 'error');
+            }
+        }
+        
+        function updateConnectionStatus(connected) {
+            const indicator = document.getElementById('connectionIndicator');
+            const text = document.getElementById('connectionText');
+            
+            if (connected) {
+                indicator.className = 'status-indicator connected';
+                text.textContent = 'Connected';
+            } else {
+                indicator.className = 'status-indicator';
+                text.textContent = 'Disconnected';
+            }
+        }
+        
+        function handleWebSocketMessage(data) {
+            console.log('Received WebSocket message:', data);
+            
+            switch (data.type) {
+                case 'frenly_state':
+                    updateDashboard(data);
+                    break;
+                case 'heartbeat':
+                    // Update last update time
+                    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                    break;
+                case 'pong':
+                    console.log('Received pong response');
+                    break;
+                case 'error':
+                    showMessage(data.message, 'error');
+                    break;
+                default:
+                    console.log('Unknown message type:', data.type);
+            }
+        }
+        
+        function updateDashboard(data) {
+            // Update system health
+            if (data.system_health) {
+                const health = data.system_health;
+                const healthClass = `health-${health.overall_status}`;
+                document.getElementById('systemHealth').innerHTML = `
+                    <div><span class="health-indicator ${healthClass}"></span>Status: ${health.overall_status}</div>
+                    <div>Health Score: ${health.health_score}%</div>
+                    <div>Active Agents: ${health.agents.active}/${health.agents.total}</div>
+                    <div>Last Check: ${new Date(health.last_check).toLocaleString()}</div>
+                `;
+            }
+            
+            // Update agent status
+            if (data.agent_status) {
+                const agents = data.agent_status;
+                let agentHtml = '';
+                for (const [name, status] of Object.entries(agents)) {
+                    agentHtml += `
+                        <div class="agent-item">
+                            <div class="agent-status ${status.status}">${name}</div>
+                            <div>Status: ${status.status}</div>
+                            <div>Alive: ${status.is_alive ? 'Yes' : 'No'}</div>
+                        </div>
+                    `;
+                }
+                document.getElementById('agentStatus').innerHTML = agentHtml;
+            }
+            
+            // Update current context
+            if (data.context) {
+                const context = data.context;
+                document.getElementById('currentContext').innerHTML = `
+                    <div><strong>App Mode:</strong> ${context.app_mode}</div>
+                    <div><strong>AI Mode:</strong> ${context.ai_mode}</div>
+                    <div><strong>Thinking:</strong> ${context.thinking_perspective || 'None'}</div>
+                    <div><strong>Dashboard:</strong> ${context.dashboard_view}</div>
+                    <div><strong>User Role:</strong> ${context.user_role}</div>
+                    <div><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}</div>
+                `;
+                
+                // Update select values
+                document.getElementById('appModeSelect').value = context.app_mode;
+                document.getElementById('aiModeSelect').value = context.ai_mode;
+                document.getElementById('thinkingSelect').value = context.thinking_perspective || '';
+            }
+            
+            // Update recent events
+            if (data.recent_events) {
+                const events = data.recent_events;
+                let eventsHtml = '';
+                events.forEach(event => {
+                    eventsHtml += `
+                        <div class="event-item">
+                            <div class="event-timestamp">${new Date(event.timestamp).toLocaleString()}</div>
+                            <div class="event-type">${event.event_type}</div>
+                            <div class="event-details">${JSON.stringify(event.details)}</div>
+                        </div>
+                    `;
+                });
+                document.getElementById('recentEvents').innerHTML = eventsHtml || 'No recent events';
+            }
+            
+            // Update last update time
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+        
+        function applyModeChanges() {
+            const appMode = document.getElementById('appModeSelect').value;
+            const aiMode = document.getElementById('aiModeSelect').value;
+            const thinking = document.getElementById('thinkingSelect').value;
+            
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                // Send mode change request
+                const message = {
+                    type: 'mode_change',
+                    app_mode: appMode,
+                    ai_mode: aiMode,
+                    thinking_perspective: thinking
+                };
+                
+                websocket.send(JSON.stringify(message));
+                showMessage('Mode change request sent!', 'success');
+            } else {
+                showMessage('WebSocket not connected', 'error');
+            }
+        }
+        
+        function requestState() {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.send(JSON.stringify({ type: 'request_state' }));
+                showMessage('State update requested!', 'success');
+            } else {
+                showMessage('WebSocket not connected', 'error');
+            }
+        }
+        
+        function sendPing() {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.send(JSON.stringify({ type: 'ping' }));
+                showMessage('Ping sent!', 'success');
+            } else {
+                showMessage('WebSocket not connected', 'error');
+            }
+        }
+        
+        async function getWebSocketStatus() {
+            try {
+                const response = await fetch('/api/frenly/websocket/status');
+                const data = await response.json();
+                
+                document.getElementById('websocketStatus').innerHTML = `
+                    <div><strong>Active Connections:</strong> ${data.active_connections}</div>
+                    <div><strong>Heartbeat Running:</strong> ${data.heartbeat_running ? 'Yes' : 'No'}</div>
+                `;
+            } catch (e) {
+                showMessage('Failed to get WebSocket status: ' + e.message, 'error');
+            }
+        }
+        
+        function showMessage(message, type) {
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            
+            if (type === 'error') {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            } else {
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+                errorDiv.style.display = 'none';
+                
+                setTimeout(() => {
+                    successDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Frenly Dashboard initialized');
+            connectWebSocket();
+            
+            // Set up periodic status check
+            setInterval(() => {
+                if (websocket && websocket.readyState === WebSocket.OPEN) {
+                    getWebSocketStatus();
+                }
+            }, 30000); // Check every 30 seconds
+        });
+    </script>
+</body>
+</html>

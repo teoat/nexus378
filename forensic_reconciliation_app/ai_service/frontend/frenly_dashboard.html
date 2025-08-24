@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frenly Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+        }
+        .status-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #e9ecef;
+        }
+        .status-item {
+            margin-bottom: 10px;
+        }
+        .status-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .status-value {
+            margin-left: 10px;
+            color: #007bff;
+        }
+        .mode-buttons button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .mode-buttons button:hover {
+            background-color: #0056b3;
+        }
+        .mode-buttons button.active {
+            background-color: #28a745;
+        }
+        .agent-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .agent-card {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .agent-card.active {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .agent-card.failed {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .agent-card.restarting {
+            border-color: #ffc107;
+            background-color: #fff3cd;
+        }
+        .agent-name {
+            font-weight: bold;
+        }
+        .event-log {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .event-item {
+            border-bottom: 1px dashed #eee;
+            padding: 5px 0;
+        }
+        .event-item:last-child {
+            border-bottom: none;
+        }
+        .event-timestamp {
+            font-size: 0.8em;
+            color: #777;
+        }
+        .event-severity-INFO {
+            color: #007bff;
+        }
+        .event-severity-WARNING {
+            color: #ffc107;
+        }
+        .event-severity-ERROR {
+            color: #dc3545;
+        }
+        .event-severity-CRITICAL {
+            color: #6f42c1;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Frenly Dashboard</h1>
+
+        <div class="status-section">
+            <h2>Current App State</h2>
+            <div class="status-item"><span class="status-label">App Mode:</span> <span id="appMode" class="status-value">Loading...</span></div>
+            <div class="status-item"><span class="status-label">Thinking Perspective:</span> <span id="thinkingPerspective" class="status-value">Loading...</span></div>
+            <div class="status-item"><span class="status-label">AI Mode:</span> <span id="aiMode" class="status-value">Loading...</span></div>
+            <div class="status-item"><span class="status-label">Dashboard View:</span> <span id="dashboardView" class="status-value">Loading...</span></div>
+            <div class="status-item"><span class="status-label">User Role:</span> <span id="userRole" class="status-value">Loading...</span></div>
+            <div class="status-item"><span class="status-label">Session ID:</span> <span id="sessionId" class="status-value">Loading...</span></div>
+            <div class="status-item"><span class="status-label">Last Updated:</span> <span id="lastUpdated" class="status-value">Loading...</span></div>
+        </div>
+
+        <div class="status-section">
+            <h2>Change Modes</h2>
+            <h3>App Mode</h3>
+            <div class="mode-buttons" id="appModeButtons">
+                <button data-mode="construction">Construction</button>
+                <button data-mode="regular">Regular</button>
+                <button data-mode="accounting">Accounting</button>
+                <button data-mode="audit">Audit</button>
+            </div>
+
+            <h3>Thinking Perspective</h3>
+            <div class="mode-buttons" id="thinkingPerspectiveButtons">
+                <button data-mode="investigation">Investigation</button>
+                <button data-mode="litigation">Litigation</button>
+                <button data-mode="none">None</button>
+            </div>
+
+            <h3>AI Mode</h3>
+            <div class="mode-buttons" id="aiModeButtons">
+                <button data-mode="guided">Guided</button>
+                <button data-mode="eco">Eco</button>
+                <button data-mode="extreme">Extreme</button>
+            </div>
+        </div>
+
+        <div class="status-section">
+            <h2>Agent Status</h2>
+            <div id="agentStatusGrid" class="agent-status-grid">
+                Loading agent status...
+            </div>
+        </div>
+
+        <div class="status-section">
+            <h2>Workflow Status</h2>
+            <div id="workflowStatusGrid" class="agent-status-grid">
+                Loading workflow status...
+            </div>
+            <button id="startReconciliationWorkflow" style="margin-top: 10px;">Start Reconciliation Workflow</button>
+        </div>
+
+        <div class="status-section">
+            <h2>Recent Events</h2>
+            <div id="eventLog" class="event-log">
+                Loading events...
+            </div>
+        </div>
+
+        <div class="status-section">
+            <h2>System Health</h2>
+            <div class="status-item"><span class="status-label">Overall Status:</span> <span id="overallHealthStatus" class="status-value">Loading...</span></div>
+            <div class="status-item"><span class="status-label">Health Score:</span> <span id="healthScore" class="status-value">Loading...</span></div>
+            <button id="restartAllFailedAgentsButton" style="margin-top: 10px;">Restart All Failed Agents</button>
+        </div>
+
+        <div class="status-section">
+            <h2>Error Log</h2>
+            <div id="errorLog" class="event-log">
+                Loading errors...
+            </div>
+        </div>
+
+        <div class="status-section">
+            <h2>Performance Metrics</h2>
+            <div class="status-item"><span class="status-label">Total Commands:</span> <span id="totalCommands" class="status-value">Loading...</span></div>
+            <div class="status-item"><span class="status-label">Successful Commands:</span> <span id="successfulCommands" class="status-value">Loading...</span></div>
+            <div class="status-item"><span class="status-label">Failed Commands:</span> <span id="failedCommands" class="status-value">Loading...</span></div>
+            <div class="status-item"><span class="status-label">Avg Response Time (ms):</span> <span id="avgResponseTime" class="status-value">Loading...</span></div>
+        </div>
+    </div>
+
+    <script src="frenly_dashboard.js"></script>
+</body>
+</html>

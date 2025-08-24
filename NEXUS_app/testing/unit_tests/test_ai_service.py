@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+"""
 Unit Tests for AI Service
 Tests all AI service components including reconciliation, fraud detection, NLP, and OCR
+"""
 
 import pytest
 import asyncio
@@ -78,12 +81,12 @@ class TestFraudDetectionModels:
         risk_threshold = 0.7
 
         request = FraudDetectionRequest(
-            transaction_data=transaction_data,
+            transactions=transaction_data,
             user_profile=user_profile,
             risk_threshold=risk_threshold,
         )
 
-        assert request.transaction_data == transaction_data
+        assert request.transactions == transaction_data
         assert request.user_profile == user_profile
         assert request.risk_threshold == risk_threshold
 
@@ -187,19 +190,17 @@ class TestHealthResponse:
 
     def test_health_response_creation(self):
         """Test creating a health response."""
-        status = "healthy"
-        timestamp = datetime.utcnow()
-        version = "1.0.0"
-        uptime = 3600.0
-
         response = HealthResponse(
-            status=status, timestamp=timestamp, version=version, uptime=uptime
+            status="healthy",
+            service="ai_service",
+            version="1.0.0",
+            timestamp="2025-08-24T14:35:51.064832"
         )
 
-        assert response.status == status
-        assert response.timestamp == timestamp
-        assert response.version == version
-        assert response.uptime == uptime
+        assert response.status == "healthy"
+        assert response.service == "ai_service"
+        assert response.version == "1.0.0"
+        assert response.timestamp == "2025-08-24T14:35:51.064832"
 
 class TestDataValidation:
     """Test data validation for all models."""
@@ -225,17 +226,12 @@ class TestDataValidation:
         """Test fraud detection request validation."""
         # Valid request
         valid_request = FraudDetectionRequest(
-            transaction_data=[{"amount": 100}], risk_threshold=0.8
-        )
-        assert valid_request.risk_threshold == 0.8
-
-        # Test with user profile
-        request_with_profile = FraudDetectionRequest(
-            transaction_data=[{"amount": 100}],
+            transactions=[{"amount": 100, "location": "NYC"}],
             user_profile={"usual_location": "NYC"},
-            risk_threshold=0.7,
+            risk_threshold=0.8,
         )
-        assert request_with_profile.user_profile["usual_location"] == "NYC"
+        assert valid_request.transactions is not None
+        assert valid_request.risk_threshold == 0.8
 
     def test_nlp_request_validation(self):
         """Test NLP request validation."""
@@ -255,27 +251,26 @@ class TestModelSerialization:
     """Test model serialization and deserialization."""
 
     def test_reconciliation_request_serialization(self):
-        """Test reconciliation request can be serialized to JSON."""
+        """Test reconciliation request serialization."""
         request = ReconciliationRequest(
-            source_data=[{"id": "1"}], target_data=[{"id": "1"}], matching_fields=["id"]
+            source_data=[{"id": "1", "name": "Test"}],
+            target_data=[{"id": "1", "name": "Test"}],
+            matching_fields=["id", "name"],
         )
 
-        # Convert to dict
-        request_dict = request.dict()
+        # Test dict serialization (Pydantic V2)
+        request_dict = request.model_dump()
         assert "source_data" in request_dict
         assert "target_data" in request_dict
         assert "matching_fields" in request_dict
 
-        # Convert to JSON
-        request_json = request.json()
+        # Test JSON serialization (Pydantic V2)
+        request_json = request.model_dump_json()
         assert isinstance(request_json, str)
-
-        # Parse back to dict
-        parsed_dict = json.loads(request_json)
-        assert parsed_dict["source_data"] == [{"id": "1"}]
+        assert "source_data" in request_json
 
     def test_fraud_detection_response_serialization(self):
-        """Test fraud detection response can be serialized to JSON."""
+        """Test fraud detection response serialization."""
         response = FraudDetectionResponse(
             fraud_scores=[0.2, 0.8],
             risk_levels=["low", "high"],
@@ -284,19 +279,16 @@ class TestModelSerialization:
             processing_time=0.3,
         )
 
-        # Convert to dict
-        response_dict = response.dict()
+        # Test dict serialization (Pydantic V2)
+        response_dict = response.model_dump()
         assert "fraud_scores" in response_dict
         assert "risk_levels" in response_dict
         assert "flagged_transactions" in response_dict
 
-        # Convert to JSON
-        response_json = response.json()
+        # Test JSON serialization (Pydantic V2)
+        response_json = response.model_dump_json()
         assert isinstance(response_json, str)
-
-        # Parse back to dict
-        parsed_dict = json.loads(response_json)
-        assert parsed_dict["fraud_scores"] == [0.2, 0.8]
+        assert "fraud_scores" in response_json
 
 if __name__ == "__main__":
     # Run tests

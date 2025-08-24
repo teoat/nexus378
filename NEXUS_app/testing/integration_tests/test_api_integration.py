@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+"""
 Integration Tests for API Service Communication
-Tests service-to-service communication and API endpoints
+Tests the integration between different API services
+"""
 
 import pytest
 import asyncio

@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 
+import os
+import sys
+import time
+from pathlib import Path
 
-    """Launch ONE Terminal window with proper tabs using AppleScript
+def main():
+    """Launch ONE Terminal window with proper tabs using AppleScript"""
+    # Get current directory and project root
+    current_dir = Path.cwd()
+    project_root = current_dir  # Use current directory as project root
     venv_path = project_root / ".venv"
     
     print("🚀 Proper Tab-Based Terminal Launcher")
@@ -144,19 +152,6 @@ end tell
     except Exception as e:
         print(f"❌ Error launching Terminal system: {e}")
         return False
-
-
-def main():
-    """Main entry point
-            print("\n🎉 Proper Tab-Based Terminal System setup complete!")
-            print("   You can now monitor all tabs in ONE Terminal window")
-        else:
-            print("\n❌ Failed to setup Proper Tab-Based Terminal System")
-            
-    except KeyboardInterrupt:
-        print("\n🛑 Terminal system setup interrupted by user")
-    except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
 
 
 if __name__ == "__main__":

@@ -5,11 +5,15 @@ This module provides REST API endpoints for managing the forensic reconciliation
 through Frenly's intelligent orchestration system.
 """
 
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
 from typing import Dict, List, Any, Optional
+from fastapi import WebSocket, WebSocketDisconnect, APIRouter, HTTPException
+import logging # Added for WebSocket logging
+
+logger = logging.getLogger(__name__)
 from agents.frenly_meta_agent import AppContext, AppCommand, AppResponse, FrenlyMetaAgent
 from agents.frenly_mcp_bridge import FrenlyMCPBridge
+import json
+import asyncio
 
 # Create router
 frenly_router = APIRouter(prefix="/api/frenly", tags=["frenly"])
@@ -17,6 +21,117 @@ frenly_router = APIRouter(prefix="/api/frenly", tags=["frenly"])
 # Global instances (will be initialized in main.py)
 frenly_agent: Optional[FrenlyMetaAgent] = None
 frenly_bridge: Optional[FrenlyMCPBridge] = None
+
+# WebSocket connection manager
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+        self.heartbeat_task = None
+        self.heartbeat_running = False
+    
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+        print(f"WebSocket connected. Total connections: {len(self.active_connections)}")
+    
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+        print(f"WebSocket disconnected. Total connections: {len(self.active_connections)}")
+    
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        try:
+            await websocket.send_text(message)
+        except Exception as e:
+            print(f"Error sending personal message: {e}")
+            self.disconnect(websocket)
+    
+    async def broadcast(self, message: str):
+        """Send message to all connected clients."""
+        disconnected = []
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(message)
+            except Exception as e:
+                print(f"Error broadcasting message: {e}")
+                disconnected.append(connection)
+        
+        # Remove disconnected connections
+        for connection in disconnected:
+            self.disconnect(connection)
+    
+    async def send_frenly_state(self):
+        """Send current Frenly state to all connected clients."""
+        if not frenly_agent:
+            return
+        
+        try:
+            # Get current state
+            context = frenly_agent.app_context
+            system_health = frenly_agent.get_overall_system_health()
+            agent_status = frenly_agent.get_all_agent_status()
+            recent_events = frenly_agent.get_recent_events(limit=10)
+            
+            state_data = {
+                "type": "frenly_state",
+                "timestamp": context.timestamp.isoformat(),
+                "context": {
+                    "app_mode": context.app_mode.value,
+                    "thinking_perspective": context.thinking_perspective.value if context.thinking_perspective else None,
+                    "ai_mode": context.ai_mode.value,
+                    "dashboard_view": context.dashboard_view.value,
+                    "user_role": context.user_role.value
+                },
+                "system_health": system_health,
+                "agent_status": agent_status,
+                "recent_events": recent_events
+            }
+            
+            await self.broadcast(json.dumps(state_data))
+            
+        except Exception as e:
+            print(f"Error sending Frenly state: {e}")
+    
+    def start_heartbeat(self):
+        """Start heartbeat to keep connections alive."""
+        if self.heartbeat_running:
+            return
+        
+        self.heartbeat_running = True
+        
+        async def heartbeat_loop():
+            while self.heartbeat_running:
+                try:
+                    if self.active_connections:
+                        # Send heartbeat to all connections
+                        heartbeat_msg = {
+                            "type": "heartbeat",
+                            "timestamp": asyncio.get_event_loop().time(),
+                            "connections": len(self.active_connections)
+                        }
+                        await self.broadcast(json.dumps(heartbeat_msg))
+                        
+                        # Send Frenly state updates
+                        await self.send_frenly_state()
+                    
+                    await asyncio.sleep(30)  # Send updates every 30 seconds
+                    
+                except Exception as e:
+                    print(f"Heartbeat error: {e}")
+                    await asyncio.sleep(30)
+        
+        # Start heartbeat task
+        loop = asyncio.get_event_loop()
+        self.heartbeat_task = loop.create_task(heartbeat_loop())
+    
+    def stop_heartbeat(self):
+        """Stop heartbeat."""
+        self.heartbeat_running = False
+        if self.heartbeat_task:
+            self.heartbeat_task.cancel()
+
+# Create connection manager instance
+connection_manager = ConnectionManager()
 
 
 # Pydantic models for API requests/responses
@@ -89,222 +204,161 @@ class FrenlyModeSwitchResponse(BaseModel):
 
 
 # Dependency to get Frenly instances
+# Flag to ensure callback is registered only once
+_callback_registered = False
+
 def get_frenly_instances():
     """Get the Frenly agent and bridge instances."""
+    global _callback_registered
     if frenly_agent is None or frenly_bridge is None:
         raise HTTPException(status_code=503, detail="Frenly system not initialized")
+    
+    # Register WebSocket notification callback only once
+    if not _callback_registered:
+        frenly_agent.register_state_change_callback(notify_websocket_clients)
+        _callback_registered = True
+        logger.info("WebSocket notification callback registered with FrenlyMetaAgent.")
+
     return frenly_agent, frenly_bridge
+
+async def notify_websocket_clients(state_data: Dict[str, Any]):
+    """Sends state updates to all connected WebSocket clients."""
+    # Create a copy of the list to avoid issues with concurrent modification
+    # if a client disconnects during iteration.
+    disconnected_clients = []
+    for connection in active_websocket_connections:
+        try:
+            await connection.send_json({"type": "state_update", "data": state_data})
+        except WebSocketDisconnect:
+            disconnected_clients.append(connection)
+            logger.info("WebSocket client disconnected during state update.")
+        except Exception as e:
+            logger.error(f"Error sending state update to WebSocket client: {e}")
+            disconnected_clients.append(connection)
+    
+    # Remove disconnected clients
+    for client in disconnected_clients:
+        if client in active_websocket_connections:
+            active_websocket_connections.remove(client)
 
 
 # API Endpoints
 
-@frenly_router.post("/query", response_model=FrenlyQueryResponse)
-async def query_frenly(
-    request: FrenlyQueryRequest,
-    frenly_instances = Depends(get_frenly_instances)
-):
-    """
-    Send a query to Frenly for intelligent processing.
-    
-    This endpoint allows users to ask Frenly questions or request actions,
-    and Frenly will intelligently route the request to appropriate agents.
-    """
+@frenly_router.get("/query")
+async def frenly_query(request: FrenlyQueryRequest):
+    """Send a query to Frenly."""
     try:
-        frenly_agent, frenly_bridge = frenly_instances
+        frenly_agent, frenly_bridge = get_frenly_instances()
         
-        # Create an AppCommand from the query
-        command = AppCommand(
-            command_type="query",
-            parameters={"query": request.query, "context": request.context or {}}
-        )
-        
-        # Execute through Frenly
-        response = frenly_bridge.execute_command(command)
+        # Process the query through Frenly
+        response = frenly_bridge.execute_command(request.query)
         
         return FrenlyQueryResponse(
-            success=response.success,
-            message=response.message,
+            success=True,
+            message="Query processed successfully",
             response=response,
-            context=request.context
+            context=frenly_agent.app_context.__dict__
         )
-        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@frenly_router.get("/status", response_model=FrenlyStatusResponse)
-async def get_frenly_status(
-    frenly_instances = Depends(get_frenly_instances)
-):
-    """
-    Get the current status of Frenly and the app.
-    
-    Returns comprehensive status information including app context,
-    system health, and agent status.
-    """
+@frenly_router.get("/status")
+async def get_frenly_status():
+    """Get Frenly's current status and context."""
     try:
-        frenly_agent, frenly_bridge = frenly_instances
+        frenly_agent, frenly_bridge = get_frenly_instances()
         
-        # Get app status
-        status_response = frenly_agent.manage_app(AppCommand(command_type="get_status"))
+        # Get current context
+        context = frenly_agent.app_context
         
         # Get system health
         system_health = frenly_agent.get_overall_system_health()
         
         # Get agent status
-        agent_status = frenly_bridge.get_agent_status()
+        agent_status = frenly_agent.get_all_agent_status()
         
         return FrenlyStatusResponse(
-            success=status_response.success,
-            message=status_response.message,
-            app_context=status_response.new_context.__dict__ if status_response.new_context else None,
+            success=True,
+            message="Status retrieved successfully",
+            app_context={
+                "app_mode": context.app_mode.value,
+                "thinking_perspective": context.thinking_perspective.value if context.thinking_perspective else None,
+                "ai_mode": context.ai_mode.value,
+                "dashboard_view": context.dashboard_view.value,
+                "user_role": context.user_role.value,
+                "session_id": context.session_id,
+                "timestamp": context.timestamp.isoformat()
+            },
             system_health=system_health,
             agent_status=agent_status
         )
-        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error getting status: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@frenly_router.post("/context", response_model=FrenlyContextResponse)
-async def update_frenly_context(
-    request: FrenlyContextRequest,
-    frenly_instances = Depends(get_frenly_instances)
-):
-    """
-    Update Frenly's app context.
-    
-    Allows updating various aspects of the app context including
-    app mode, thinking perspective, AI mode, dashboard view, and user role.
-    """
+@frenly_router.get("/context")
+async def get_frenly_context():
+    """Get Frenly's current app context."""
     try:
-        frenly_agent, frenly_bridge = frenly_instances
-        
-        # Store old context
-        old_context = frenly_agent.app_context.__dict__.copy()
-        
-        # Update context based on request
-        if request.app_mode:
-            frenly_agent.manage_app(AppCommand(
-                command_type="switch_app_mode",
-                target_mode=request.app_mode
-            ))
-        
-        if request.thinking_perspective:
-            frenly_agent.manage_app(AppCommand(
-                command_type="change_thinking_perspective",
-                target_perspective=request.thinking_perspective
-            ))
-        
-        if request.ai_mode:
-            frenly_agent.manage_app(AppCommand(
-                command_type="change_ai_mode",
-                target_ai_mode=request.ai_mode
-            ))
-        
-        if request.dashboard_view:
-            frenly_agent.manage_app(AppCommand(
-                command_type="change_dashboard_view",
-                target_view=request.dashboard_view
-            ))
-        
-        if request.user_role:
-            frenly_agent.manage_app(AppCommand(
-                command_type="change_user_role",
-                target_role=request.user_role
-            ))
-        
-        # Get new context
-        new_context = frenly_agent.app_context.__dict__.copy()
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        context = frenly_agent.app_context
         
         return FrenlyContextResponse(
             success=True,
-            message="Context updated successfully",
-            old_context=old_context,
-            new_context=new_context
-        )
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error updating context: {str(e)}")
-
-
-@frenly_router.post("/workflow", response_model=FrenlyWorkflowResponse)
-async def execute_frenly_workflow(
-    request: FrenlyWorkflowRequest,
-    frenly_instances = Depends(get_frenly_instances)
-):
-    """
-    Execute a predefined workflow through Frenly.
-    
-    Allows execution of complex workflows that involve multiple agents
-    and coordinated actions.
-    """
-    try:
-        frenly_agent, frenly_bridge = frenly_instances
-        
-        # Create command for workflow execution
-        command = AppCommand(
-            command_type="execute_workflow",
-            parameters={
-                "workflow_name": request.workflow_name,
-                "workflow_params": request.parameters or {}
+            message="Context retrieved successfully",
+            new_context={
+                "app_mode": context.app_mode.value,
+                "thinking_perspective": context.thinking_perspective.value if context.thinking_perspective else None,
+                "ai_mode": context.ai_mode.value,
+                "dashboard_view": context.dashboard_view.value,
+                "user_role": context.user_role.value,
+                "session_id": context.session_id,
+                "timestamp": context.timestamp.isoformat()
             }
         )
-        
-        # Execute through Frenly
-        response = frenly_bridge.execute_command(command)
-        
-        return FrenlyWorkflowResponse(
-            success=response.success,
-            message=response.message,
-            workflow_result=response.__dict__ if response else None
-        )
-        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error executing workflow: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@frenly_router.post("/switch-mode", response_model=FrenlyModeSwitchResponse)
-async def switch_frenly_mode(
-    request: FrenlyModeSwitchRequest,
-    frenly_instances = Depends(get_frenly_instances)
-):
-    """
-    Switch Frenly's operational mode.
-    
-    Allows switching between different app modes, thinking perspectives,
-    and AI modes to adapt the system behavior.
-    """
+@frenly_router.post("/switch-mode")
+async def switch_frenly_mode(request: FrenlyModeSwitchRequest):
+    """Switch Frenly's operating mode."""
     try:
-        frenly_agent, frenly_bridge = frenly_instances
+        frenly_agent, frenly_bridge = get_frenly_instances()
         
-        # Store old configuration
         old_config = {
             "app_mode": frenly_agent.app_context.app_mode.value,
             "thinking_perspective": frenly_agent.app_context.thinking_perspective.value if frenly_agent.app_context.thinking_perspective else None,
             "ai_mode": frenly_agent.app_context.ai_mode.value
         }
         
-        # Execute mode switches
+        # Process mode changes
         if request.app_mode:
-            frenly_agent.manage_app(AppCommand(
+            response = frenly_agent.manage_app(AppCommand(
                 command_type="switch_app_mode",
                 target_mode=request.app_mode
             ))
+            if not response.success:
+                raise HTTPException(status_code=400, detail=response.message)
         
         if request.thinking_perspective:
-            frenly_agent.manage_app(AppCommand(
+            response = frenly_agent.manage_app(AppCommand(
                 command_type="change_thinking_perspective",
                 target_perspective=request.thinking_perspective
             ))
+            if not response.success:
+                raise HTTPException(status_code=400, detail=response.message)
         
         if request.ai_mode:
-            frenly_agent.manage_app(AppCommand(
+            response = frenly_agent.manage_app(AppCommand(
                 command_type="change_ai_mode",
                 target_ai_mode=request.ai_mode
             ))
+            if not response.success:
+                raise HTTPException(status_code=400, detail=response.message)
         
-        # Get new configuration
+        # Get new config
         new_config = {
             "app_mode": frenly_agent.app_context.app_mode.value,
             "thinking_perspective": frenly_agent.app_context.thinking_perspective.value if frenly_agent.app_context.thinking_perspective else None,
@@ -317,106 +371,527 @@ async def switch_frenly_mode(
             old_config=old_config,
             new_config=new_config
         )
-        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error switching mode: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @frenly_router.get("/mode-intersection")
-async def get_frenly_mode_intersection(
-    frenly_instances = Depends(get_frenly_instances)
-):
-    """
-    Get the current mode intersection details.
-    
-    Returns detailed information about the current mode intersection
-    including features, limitations, recommended views, and agent priorities.
-    """
+async def get_current_mode_intersection():
+    """Get the current mode intersection details."""
     try:
-        frenly_agent, frenly_bridge = frenly_instances
-        
-        # Get mode intersection
+        frenly_agent, frenly_bridge = get_frenly_instances()
         response = frenly_agent.manage_app(AppCommand(command_type="get_mode_intersection"))
         
         if response.success:
-            return {
-                "success": True,
-                "message": response.message,
-                "recommendations": response.recommendations,
-                "next_actions": response.next_actions
-            }
+            return {"success": True, "mode_intersection": response.message}
         else:
-            raise HTTPException(status_code=404, detail=response.message)
-        
+            return {"success": False, "message": response.message}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error getting mode intersection: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.post("/workflow")
+async def execute_workflow(request: FrenlyWorkflowRequest):
+    """Execute a workflow through Frenly."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        
+        # Execute workflow through MCP bridge
+        result = frenly_bridge.execute_workflow(request.workflow_name, request.parameters or {})
+        
+        return FrenlyWorkflowResponse(
+            success=True,
+            message="Workflow executed successfully",
+            workflow_result=result
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @frenly_router.get("/agents")
-async def get_frenly_agents(
-    frenly_instances = Depends(get_frenly_instances)
-):
-    """
-    Get information about all registered agents.
-    
-    Returns status and information about all AI agents
-    registered with Frenly.
-    """
+async def list_agents():
+    """List all registered agents."""
     try:
-        frenly_agent, frenly_bridge = frenly_instances
-        
-        # Get agent information
-        agent_status = frenly_bridge.get_agent_status()
-        registered_agents = frenly_agent.list_ai_agents()
-        
-        return {
-            "success": True,
-            "registered_agents": registered_agents,
-            "agent_status": agent_status,
-            "total_agents": len(registered_agents)
-        }
-        
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        agents = frenly_agent.list_ai_agents()
+        return {"success": True, "agents": agents, "count": len(agents)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error getting agent information: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @frenly_router.get("/workflows")
-async def get_frenly_workflows(
-    frenly_instances = Depends(get_frenly_instances)
-):
-    """
-    Get information about all registered workflows.
-    
-    Returns information about all workflows registered
-    with Frenly's MCP bridge.
-    """
+async def list_workflows():
+    """List available workflows."""
     try:
-        frenly_agent, frenly_bridge = frenly_instances
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        workflows = frenly_agent.get_workflow_status() # Get status of running workflows
+        return {"success": True, "workflows": workflows}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.get("/agents/health")
+async def get_agent_health():
+    """Get health status of all agents."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        agent_health = frenly_agent.get_all_agent_status()
+        return {"success": True, "agent_health": agent_health}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.get("/agents/{agent_name}/health")
+async def get_specific_agent_health(agent_name: str):
+    """Get health status of a specific agent."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        agent_health = frenly_agent.get_agent_status(agent_name)
+        return {"success": True, "agent_health": agent_health}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.post("/agents/{agent_name}/restart")
+async def restart_agent(agent_name: str, force: bool = False):
+    """Restart a specific agent."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        success = frenly_agent.restart_agent(agent_name, force=force)
         
-        # Get workflow information
-        workflow_status = frenly_bridge.get_workflow_status()
+        if success:
+            return {"success": True, "message": f"Agent {agent_name} restarted successfully"}
+        else:
+            return {"success": False, "message": f"Failed to restart agent {agent_name}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.post("/agents/restart-all-failed")
+async def restart_all_failed_agents():
+    """Restart all failed agents."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        results = frenly_agent.restart_all_failed_agents()
+        
+        success_count = sum(results.values())
+        total_count = len(results)
         
         return {
-            "success": True,
-            "workflows": workflow_status,
-            "total_workflows": len(workflow_status)
+            "success": True, 
+            "message": f"Restart complete: {success_count}/{total_count} agents restarted successfully",
+            "results": results
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.post("/agents/heartbeat/start")
+async def start_heartbeat_monitoring(interval_seconds: int = 30):
+    """Start heartbeat monitoring of all agents."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        frenly_agent.start_heartbeat_monitoring(interval_seconds)
+        return {"success": True, "message": f"Heartbeat monitoring started with {interval_seconds}s interval"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.post("/agents/heartbeat/stop")
+async def stop_heartbeat_monitoring():
+    """Stop heartbeat monitoring of all agents."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        frenly_agent.stop_heartbeat_monitoring()
+        return {"success": True, "message": "Heartbeat monitoring stopped"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.get("/health/detailed")
+async def get_detailed_health():
+    """Get detailed system health including agent health."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        system_health = frenly_agent.get_overall_system_health()
+        return {"success": True, "system_health": system_health}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.post("/state/save")
+async def save_state():
+    """Save current Frenly state to files."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        frenly_agent.save_context_to_file()
+        frenly_agent.save_modes_to_file()
+        return {"success": True, "message": "State saved successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.post("/state/load")
+async def load_state():
+    """Load Frenly state from files."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        frenly_agent.load_context_from_file()
+        frenly_agent.load_modes_from_file()
+        return {"success": True, "message": "State loaded successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.get("/state/context")
+async def get_saved_context():
+    """Get the currently saved app context."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        context = frenly_agent.app_context
+        
+        # Convert to serializable format
+        context_data = {
+            "app_mode": context.app_mode.value,
+            "thinking_perspective": context.thinking_perspective.value if context.thinking_perspective else None,
+            "ai_mode": context.ai_mode.value,
+            "dashboard_view": context.dashboard_view.value,
+            "user_role": context.user_role.value,
+            "session_id": context.session_id,
+            "timestamp": context.timestamp.isoformat()
         }
         
+        return {"success": True, "context": context_data}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error getting workflow information: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.get("/state/modes")
+async def get_saved_modes():
+    """Get the currently saved mode intersections."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        modes = frenly_agent.mode_intersections
+        
+        # Convert to serializable format
+        serializable_modes = {}
+        for key, mode_intersection in modes.items():
+            serializable_modes[key] = {
+                "app_mode": mode_intersection.app_mode.value,
+                "thinking_perspective": mode_intersection.thinking_perspective.value if mode_intersection.thinking_perspective else None,
+                "ai_mode": mode_intersection.ai_mode.value,
+                "description": mode_intersection.description,
+                "features": mode_intersection.features,
+                "limitations": mode_intersection.limitations,
+                "recommended_views": [view.value for view in mode_intersection.recommended_views],
+                "agent_priorities": mode_intersection.agent_priorities,
+                "calculation_methods": mode_intersection.calculation_methods,
+                "assessment_approaches": mode_intersection.assessment_approaches
+            }
+        
+        return {"success": True, "modes": serializable_modes}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.get("/events")
+async def get_recent_events(limit: int = 50, event_type: str = None, severity: str = None):
+    """Get recent events with optional filtering."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        events = frenly_agent.get_recent_events(limit=limit, event_type=event_type, severity=severity)
+        return {"success": True, "events": events, "count": len(events)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.get("/events/summary")
+async def get_event_summary():
+    """Get a summary of events by type and severity."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        summary = frenly_agent.get_event_summary()
+        return {"success": True, "summary": summary}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.get("/events/types")
+async def get_event_types():
+    """Get all available event types."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        events = frenly_agent.get_recent_events(limit=1000)  # Get all events to find types
+        
+        # Extract unique event types
+        event_types = list(set(event["event_type"] for event in events))
+        event_types.sort()
+        
+        return {"success": True, "event_types": event_types}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.get("/events/severities")
+async def get_event_severities():
+    """Get all available event severity levels."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        events = frenly_agent.get_recent_events(limit=1000)  # Get all events to find severities
+        
+        # Extract unique severity levels
+        severities = list(set(event["severity"] for event in events))
+        severities.sort()
+        
+        return {"success": True, "severities": severities}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@frenly_router.get("/errors")
+async def get_error_log(limit: int = 50):
+    """Get recent error events from the error log."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        errors = frenly_agent.get_error_log(limit=limit)
+        return {"success": True, "errors": errors, "count": len(errors)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@frenly_router.get("/metrics")
+async def get_metrics():
+    """Get current performance metrics."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        metrics = frenly_agent.get_metrics()
+        return {"success": True, "metrics": metrics}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# Workflow API Endpoints (Phase 5, Items 21-25)
+# ============================================================================
+
+@frenly_router.get("/workflows")
+async def list_workflows():
+    """List all available workflows."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        if frenly_agent:
+            workflows = frenly_agent.list_workflows()
+            return {"success": True, "workflows": workflows}
+        else:
+            raise HTTPException(status_code=500, detail="Frenly agent not available")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@frenly_router.post("/workflows/{workflow_name}/execute")
+async def execute_workflow(workflow_name: str):
+    """Execute a workflow by name."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        if frenly_agent:
+            result = frenly_agent.execute_workflow(workflow_name)
+            return result
+        else:
+            raise HTTPException(status_code=500, detail="Frenly agent not available")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@frenly_router.get("/workflows/status")
+async def get_workflow_status(workflow_id: Optional[str] = None):
+    """Get workflow status - all workflows or specific workflow."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        if frenly_agent:
+            status = frenly_agent.get_workflow_status(workflow_id)
+            return {"success": True, "status": status}
+        else:
+            raise HTTPException(status_code=500, detail="Frenly agent not available")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@frenly_router.get("/workflows/{workflow_id}")
+async def get_specific_workflow(workflow_id: str):
+    """Get status of a specific workflow."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        if frenly_agent:
+            status = frenly_agent.get_workflow_status(workflow_id)
+            if "error" in status:
+                raise HTTPException(status_code=404, detail=status["error"])
+            return {"success": True, "workflow": status}
+        else:
+            raise HTTPException(status_code=500, detail="Frenly agent not available")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# Performance Metrics API Endpoints (Phase 7, Items 26-30)
+# ============================================================================
+
+@frenly_router.get("/metrics")
+async def get_performance_metrics():
+    """Get performance metrics for Frenly system."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        if frenly_agent:
+            metrics = frenly_agent.get_performance_metrics()
+            return {"success": True, "metrics": metrics}
+        else:
+            raise HTTPException(status_code=500, detail="Frenly agent not available")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@frenly_router.get("/metrics/overview")
+async def get_metrics_overview():
+    """Get high-level metrics overview."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        if frenly_agent:
+            metrics = frenly_agent.get_performance_metrics()
+            return {"success": True, "overview": metrics["overview"]}
+        else:
+            raise HTTPException(status_code=500, detail="Frenly agent not available")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@frenly_router.get("/metrics/response-times")
+async def get_response_time_metrics():
+    """Get response time statistics."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        if frenly_agent:
+            metrics = frenly_agent.get_performance_metrics()
+            return {"success": True, "response_times": metrics["response_times"]}
+        else:
+            raise HTTPException(status_code=500, detail="Frenly agent not available")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@frenly_router.get("/metrics/recent-activity")
+async def get_recent_activity():
+    """Get recent command activity."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        if frenly_agent:
+            metrics = frenly_agent.get_performance_metrics()
+            return {"success": True, "recent_activity": metrics["recent_activity"]}
+        else:
+            raise HTTPException(status_code=500, detail="Frenly agent not available")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# WebSocket endpoint
+# ============================================================================
+
+@frenly_router.websocket("/ws/frenly")
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket endpoint for real-time Frenly updates."""
+    await connection_manager.connect(websocket)
+    
+    try:
+        # Send initial state
+        await connection_manager.send_frenly_state()
+        
+        # Start heartbeat if not already running
+        if not connection_manager.heartbeat_running:
+            connection_manager.start_heartbeat()
+        
+        # Keep connection alive and handle incoming messages
+        while True:
+            try:
+                # Wait for messages from client
+                data = await websocket.receive_text()
+                message = json.loads(data)
+                
+                # Handle different message types
+                if message.get("type") == "ping":
+                    # Respond to ping with pong
+                    await connection_manager.send_personal_message(
+                        json.dumps({"type": "pong", "timestamp": asyncio.get_event_loop().time()}),
+                        websocket
+                    )
+                
+                elif message.get("type") == "request_state":
+                    # Send current state immediately
+                    await connection_manager.send_frenly_state()
+                
+                elif message.get("type") == "mode_change":
+                    # Handle mode change requests from frontend
+                    if frenly_agent:
+                        try:
+                            if "app_mode" in message:
+                                response = frenly_agent.manage_app(AppCommand(
+                                    command_type="switch_app_mode",
+                                    target_mode=message["app_mode"]
+                                ))
+                            
+                            elif "ai_mode" in message:
+                                response = frenly_agent.manage_app(AppCommand(
+                                    command_type="change_ai_mode",
+                                    target_ai_mode=message["ai_mode"]
+                                ))
+                            
+                            elif "thinking_perspective" in message:
+                                response = frenly_agent.manage_app(AppCommand(
+                                    command_type="change_thinking_perspective",
+                                    target_perspective=message["thinking_perspective"]
+                                ))
+                            
+                            # Send updated state to all clients
+                            await connection_manager.send_frenly_state()
+                            
+                        except Exception as e:
+                            error_msg = {"type": "error", "message": f"Mode change failed: {str(e)}"}
+                            await connection_manager.send_personal_message(json.dumps(error_msg), websocket)
+                
+                else:
+                    # Unknown message type
+                    print(f"Unknown WebSocket message type: {message.get('type')}")
+                    
+            except json.JSONDecodeError:
+                print("Invalid JSON received from WebSocket")
+            except Exception as e:
+                print(f"WebSocket message handling error: {e}")
+                break
+                
+    except WebSocketDisconnect:
+        print("WebSocket client disconnected")
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+    finally:
+        connection_manager.disconnect(websocket)
+        # Stop heartbeat if no more connections
+        if not connection_manager.active_connections:
+            connection_manager.stop_heartbeat()
 
 
 # Health check endpoint
 @frenly_router.get("/health")
-async def frenly_health_check():
-    """
-    Health check endpoint for Frenly.
-    
-    Returns basic health status without requiring
-    Frenly instances to be initialized.
-    """
+async def frenly_health():
+    """Health check for Frenly system."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        return {"status": "healthy", "message": "Frenly system is operational"}
+    except Exception as e:
+        return {"status": "unhealthy", "message": f"Frenly system error: {str(e)}"}
+
+
+@frenly_router.post("/websocket/broadcast")
+async def broadcast_message(message: str):
+    """Broadcast a message to all WebSocket connections."""
+    try:
+        await connection_manager.broadcast(message)
+        return {"success": True, "message": f"Message broadcasted to {len(connection_manager.active_connections)} connections"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@frenly_router.get("/websocket/status")
+async def get_websocket_status():
+    """Get WebSocket connection status."""
     return {
-        "status": "healthy",
-        "service": "frenly-api",
-        "message": "Frenly API is running"
+        "active_connections": len(connection_manager.active_connections),
+        "heartbeat_running": connection_manager.heartbeat_running
     }

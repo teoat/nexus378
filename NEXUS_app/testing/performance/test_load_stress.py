@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+"""
 Performance and Load Testing
 Tests system performance under various load conditions
+"""
 
 import pytest
 import asyncio
@@ -115,13 +118,16 @@ class TestStressTesting:
         """Test error handling when system is stressed."""
         # Simulate system stress
         errors = []
+        request_counter = 0
 
         def simulate_stressed_request():
             """Simulate a request under stress conditions."""
+            nonlocal request_counter
             try:
-                # Simulate potential failure
-                if time.time() % 2 < 1:  # 50% failure rate
-                    raise Exception("Simulated stress failure")
+                # Simulate potential failure with deterministic pattern
+                request_counter += 1
+                if request_counter % 3 != 0:  # Fail on 1st and 2nd request, succeed on 3rd
+                    raise Exception(f"Simulated stress failure on request {request_counter}")
                 return "success"
             except Exception as e:
                 errors.append(str(e))
