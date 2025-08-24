@@ -20,6 +20,9 @@ from ..models.job import Job, JobStatus, JobPriority, JobType
 from ..models.agent import Agent, AgentStatus, AgentType
 from ..models.queue import Queue, QueueType, QueueStatus
 from ..models.workflow import Workflow, WorkflowStatus, WorkflowStep
+import re
+from pathlib import Path
+import time
 
 
 class TaskmasterStatus(Enum):
@@ -88,6 +91,199 @@ class TaskmasterConfig:
     })
 
 
+# Agent classes from todo_automation.py
+
+class TodoAgent(Agent):
+    """Base class for TODO processing agents"""
+
+    def __init__(self, agent_id: str, capabilities: List[str]):
+        super().__init__(agent_id=agent_id, agent_type=AgentType.SPECIALIZED, status=AgentStatus.IDLE, capabilities=capabilities)
+        self.current_todo: Optional[Dict[str, Any]] = None
+
+    async def process_todo(self, todo: Dict[str, Any]) -> Dict[str, Any]:
+        """Process a single TODO item"""
+        start_time = time.time()
+        self.current_todo = todo
+        self.status = AgentStatus.BUSY
+
+        try:
+            logger.info(f"Agent {self.agent_id} processing TODO: {todo['content'][:50]}...")
+
+            # Simulate processing time based on TODO complexity
+            processing_time = self._estimate_processing_time(todo)
+            await asyncio.sleep(processing_time)
+
+            # Process the TODO based on its content and type
+            result = await self._execute_todo(todo)
+
+            processing_time = time.time() - start_time
+            return {
+                "success": True,
+                "output": result,
+                "processing_time": processing_time
+            }
+
+        except Exception as e:
+            processing_time = time.time() - start_time
+            logger.error(f"Agent {self.agent_id} failed to process TODO {todo['id']}: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "processing_time": processing_time
+            }
+        finally:
+            self.current_todo = None
+            self.status = AgentStatus.IDLE
+
+    def _estimate_processing_time(self, todo: Dict[str, Any]) -> float:
+        """Estimate processing time based on TODO complexity"""
+        base_time = 0.1
+        complexity_multiplier = len(todo['content']) / 100
+        priority_multiplier = todo.get('priority', 1) / 3
+        return min(base_time * complexity_multiplier * priority_multiplier, 2.0)
+
+    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
+        """Execute the actual TODO processing logic"""
+        return f"Processed TODO: {todo['content']}"
+
+class CodeReviewAgent(TodoAgent):
+    """Agent specialized in code review and implementation TODOs"""
+
+    def __init__(self):
+        super().__init__("code_review", ["code_review", "implementation", "refactoring"])
+
+    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
+        todo_text = todo['content'].split("TODO:")[-1].strip()
+        if any(keyword in todo_text.lower() for keyword in ["implement", "create", "add"]):
+            return f"Implementation TODO identified: {todo_text}"
+        elif any(keyword in todo_text.lower() for keyword in ["refactor", "optimize", "improve"]):
+            return f"Refactoring TODO identified: {todo_text}"
+        elif any(keyword in todo_text.lower() for keyword in ["fix", "bug", "error"]):
+            return f"Bug fix TODO identified: {todo_text}"
+        else:
+            return f"General TODO identified: {todo_text}"
+
+class DocumentationAgent(TodoAgent):
+    """Agent specialized in documentation and README TODOs"""
+
+    def __init__(self):
+        super().__init__("documentation", ["documentation", "readme", "api_docs"])
+
+    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
+        return f"Documentation TODO identified: {todo['content']}"
+
+class TestingAgent(TodoAgent):
+    """Agent specialized in testing and validation TODOs"""
+
+    def __init__(self):
+        super().__init__("testing", ["testing", "validation", "unit_tests", "integration"])
+
+    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
+        return f"Testing TODO identified: {todo['content']}"
+
+class InfrastructureAgent(TodoAgent):
+    """Agent specialized in infrastructure and deployment TODOs"""
+
+    def __init__(self):
+        super().__init__("infrastructure", ["docker", "deployment", "ci_cd", "infrastructure"])
+
+    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
+        return f"Infrastructure TODO identified: {todo['content']}"
+
+class GeneralAgent(TodoAgent):
+    """General purpose agent for miscellaneous TODOs"""
+
+    def __init__(self):
+        super().__init__("general", ["general", "miscellaneous"])
+
+    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
+        return f"Processed general TODO: {todo['content']}"
+
+
+class TodoScanner:
+    """Scans for and processes TODOs in the codebase."""
+
+    def __init__(self, taskmaster):
+        self.taskmaster = taskmaster
+        self.logger = logging.getLogger(__name__)
+
+    async def scan_and_process_todos(self, root_directory: str = "."):
+        """Scan for TODOs and create jobs for them."""
+        self.logger.info(f"Scanning for TODOs in {root_directory}...")
+        todo_pattern = re.compile(r'#\s*TODO[:\s].*', re.IGNORECASE)
+        files_to_scan = []
+        root_path = Path(root_directory)
+        if root_path.is_file():
+            files_to_scan.append(root_path)
+        elif root_path.is_dir():
+            files_to_scan.extend(p for p in root_path.rglob("*") if p.is_file() and not self._should_skip_file(p))
+
+        for file_path in files_to_scan:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    for line_num, line in enumerate(f, 1):
+                        if todo_pattern.search(line):
+                            await self._process_todo_line(line, file_path, line_num)
+            except Exception as e:
+                self.logger.warning(f"Could not read file {file_path}: {e}")
+
+    def _should_skip_file(self, file_path: Path) -> bool:
+        """Determine if a file should be skipped"""
+        skip_patterns = [
+            r'\.git', r'\.pyc$', r'__pycache__', r'\.DS_Store',
+            r'\.log$', r'\.tmp$', r'\.cache$', r'node_modules'
+        ]
+        return any(re.search(pattern, str(file_path)) for pattern in skip_patterns)
+
+    async def _process_todo_line(self, line: str, file_path: Path, line_num: int):
+        """Create a job for a single TODO line."""
+        content = line.strip()
+        job_type, priority = self._determine_job_type_and_priority(content)
+        job = Job(
+            name=f"TODO: {content[:50]}...",
+            job_type=job_type,
+            priority=priority,
+            data={
+                "file_path": str(file_path),
+                "line_number": line_num,
+                "content": content,
+            },
+            tags=self._extract_tags(content)
+        )
+        await self.taskmaster.submit_job(job)
+
+    def _determine_job_type_and_priority(self, todo_line: str) -> (JobType, JobPriority):
+        """Determine job type and priority from TODO content."""
+        if any(keyword in todo_line.lower() for keyword in ["urgent", "critical", "fix", "bug"]):
+            priority = JobPriority.CRITICAL
+        elif any(keyword in todo_line.lower() for keyword in ["important", "high", "security"]):
+            priority = JobPriority.HIGH
+        else:
+            priority = JobPriority.NORMAL
+
+        if "code" in todo_line.lower() or "refactor" in todo_line.lower():
+            job_type = JobType.CODE_REVIEW
+        elif "doc" in todo_line.lower() or "readme" in todo_line.lower():
+            job_type = JobType.DOCUMENTATION
+        elif "test" in todo_line.lower() or "valid" in todo_line.lower():
+            job_type = JobType.TESTING
+        elif "infra" in todo_line.lower() or "deploy" in todo_line.lower():
+            job_type = JobType.INFRASTRUCTURE
+        else:
+            job_type = JobType.GENERAL_TODO
+
+        return job_type, priority
+
+    def _extract_tags(self, todo_line: str) -> List[str]:
+        """Extract tags from TODO line."""
+        tags = []
+        tag_matches = re.findall(r'@(\w+)', todo_line)
+        tags.extend(tag_matches)
+        bracket_tags = re.findall(r'\[(\w+)\]', todo_line)
+        tags.extend(bracket_tags)
+        return tags
+
+
 class Taskmaster:
     """
     Main Taskmaster class for job assignment and workflow orchestration.
@@ -116,9 +312,11 @@ class Taskmaster:
         self.task_router: Optional[TaskRouter] = None
         self.workflow_orchestrator: Optional[WorkflowOrchestrator] = None
         self.resource_monitor: Optional[ResourceMonitor] = None
+        self.todo_scanner: Optional[TodoScanner] = None
         
         # System state
         self.active_jobs: Dict[str, Job] = {}
+        self.job_queue: List[Job] = []
         self.active_agents: Dict[str, Agent] = {}
         self.active_queues: Dict[str, Queue] = {}
         self.active_workflows: Dict[str, Workflow] = {}
@@ -155,6 +353,10 @@ class Taskmaster:
             self.start_time = datetime.utcnow()
             
             self.logger.info("Taskmaster system started successfully")
+
+            # Start the main job processing loop
+            self.tasks.append(self.loop.create_task(self._job_processor()))
+
             return True
             
         except Exception as e:
@@ -236,15 +438,16 @@ class Taskmaster:
             # Validate job
             self._validate_job(job)
             
-            # Submit to job scheduler
-            job_id = await self.job_scheduler.submit_job(job)
+            # Add job to queue
+            self.job_queue.append(job)
+            job.status = JobStatus.QUEUED
             
             # Update metrics
             self.metrics["jobs_submitted"] += 1
-            self.active_jobs[job_id] = job
+            self.active_jobs[job.id] = job
             
-            self.logger.info(f"Job submitted successfully: {job_id}")
-            return job_id
+            self.logger.info(f"Job submitted successfully: {job.id}")
+            return job.id
             
         except Exception as e:
             self.logger.error(f"Failed to submit job: {e}")
@@ -339,9 +542,15 @@ class Taskmaster:
             # Initialize resource monitor
             self.resource_monitor = ResourceMonitor(self.config)
             await self.resource_monitor.start()
+
+            # Initialize TodoScanner
+            self.todo_scanner = TodoScanner(self)
             
             # Initialize queues
             await self._initialize_queues()
+
+            # Register agents
+            await self._register_agents()
             
         except Exception as e:
             self.logger.error(f"Failed to initialize components: {e}")
@@ -607,6 +816,59 @@ class Taskmaster:
         
         return (datetime.utcnow() - self.start_time).total_seconds()
     
+    async def _register_agents(self):
+        """Register all available agents."""
+        agents_to_register = [
+            CodeReviewAgent(),
+            DocumentationAgent(),
+            TestingAgent(),
+            InfrastructureAgent(),
+            GeneralAgent(),
+        ]
+        for agent in agents_to_register:
+            # In a real system, this would register with the TaskRouter
+            self.active_agents[agent.agent_id] = agent
+        self.logger.info(f"Registered {len(agents_to_register)} agents.")
+
+    async def submit_todo_scanning_job(self, root_directory: str) -> str:
+        """Submit a job to scan for TODOs in the codebase."""
+        job = Job(
+            name="todo_scanning_job",
+            job_type=JobType.TODO_SCANNING,
+            priority=JobPriority.LOW,
+            data={"root_directory": root_directory},
+        )
+        return await self.submit_job(job)
+
+    async def _job_processor(self):
+        """Main loop for processing jobs from the queue."""
+        while self.status == TaskmasterStatus.RUNNING:
+            if self.job_queue:
+                job = self.job_queue.pop(0)
+                job.status = JobStatus.RUNNING
+                await self._execute_job(job)
+            else:
+                await asyncio.sleep(1)
+
+    async def _execute_job(self, job: Job):
+        """Execute a job."""
+        self.logger.info(f"Executing job {job.id} of type {job.job_type.value}")
+        try:
+            if job.job_type == JobType.TODO_SCANNING:
+                await self.todo_scanner.scan_and_process_todos(job.data["root_directory"])
+                job.status = JobStatus.COMPLETED
+                self.metrics["jobs_completed"] += 1
+            else:
+                # Simulate execution for other job types
+                await asyncio.sleep(2)
+                job.status = JobStatus.COMPLETED
+                self.metrics["jobs_completed"] += 1
+            self.logger.info(f"Job {job.id} completed successfully.")
+        except Exception as e:
+            self.logger.error(f"Job {job.id} failed: {e}")
+            job.status = JobStatus.FAILED
+            self.metrics["jobs_failed"] += 1
+
     def __repr__(self) -> str:
         """String representation of the Taskmaster."""
         return f"Taskmaster(status={self.status.value}, active_jobs={len(self.active_jobs)})"

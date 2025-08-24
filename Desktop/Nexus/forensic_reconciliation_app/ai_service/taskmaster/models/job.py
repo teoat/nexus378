@@ -65,6 +65,16 @@ class JobType(Enum):
     AML_SCREENING = "aml_screening"
     GDPR_AUDIT = "gdpr_audit"
 
+    # TODO Automation jobs
+    TODO_SCANNING = "todo_scanning"
+    CODE_REVIEW = "code_review"
+    DOCUMENTATION = "documentation"
+    TESTING = "testing"
+    INFRASTRUCTURE = "infrastructure"
+    REFACTORING = "refactoring"
+    BUG_FIX = "bug_fix"
+    GENERAL_TODO = "general_todo"
+
 
 @dataclass
 class JobResult:
