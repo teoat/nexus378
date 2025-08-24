@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forensic Reconciliation App - Data Ingestion</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <script>
+        // Check for authentication token
+        if (!localStorage.getItem('token')) {
+            window.location.href = 'auth.html';
+        }
+    </script>
+    <header>
+        <h1>Forensic Reconciliation App</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Dashboard</a></li>
+                <li><a href="#">Reports</a></li>
+                <li><a href="#">Settings</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <aside class="sidebar">
+            <h2>Modes</h2>
+            <div class="mode-selection">
+                <label for="modeSelect">Select Mode:</label>
+                <select id="modeSelect">
+                    <option value="Guided">Guided Mode</option>
+                    <option value="Eco">Eco Mode</option>
+                    <option value="Extreme">Extreme Mode</option>
+                </select>
+            </div>
+        </aside>
+
+        <section class="content">
+            <h2>Data Ingestion</h2>
+            <div class="upload-section">
+                <input type="file" id="fileInput" multiple>
+                <button id="uploadButton">Upload Files</button>
+            </div>
+            <div id="messageDiv" class="message"></div>
+            <div id="fileList" class="file-list"></div>
+
+            <section id="visualization-section" class="visualization-section">
+                <h2>Data Visualization</h2>
+                <div class="chart-container">
+                    <canvas id="myChart1"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="myChart2"></canvas>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Forensic Reconciliation App</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
