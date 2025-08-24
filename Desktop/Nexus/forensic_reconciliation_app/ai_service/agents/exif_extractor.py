@@ -6,31 +6,20 @@ comprehensive EXIF metadata extraction capabilities for the Evidence Agent
 in the forensic platform.
 """
 
-import fractions
-import json
 import logging
-import math
 import os
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import asyncio
 import exifread
 
-try:
-    import piexif
 
-    PIXEXIF_AVAILABLE = True
-except ImportError:
-    PIXEXIF_AVAILABLE = False
 from PIL import Image
-from PIL.ExifTags import TAGS
-
-from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class ImageFormat(Enum):
@@ -964,8 +953,6 @@ class EXIFExtractor:
         """Initialize extraction components."""
         try:
             # Test image libraries
-            test_data = b"\xff\xd8\xff\xe0"  # Minimal JPEG header
-
             # Test exifread
             try:
                 # This would test exifread functionality

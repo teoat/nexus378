@@ -6,23 +6,16 @@ comprehensive detection of circular transactions, money laundering patterns,
 and complex financial flow cycles.
 """
 
-import json
 import logging
-from collections import Counter, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Tuple
 
 import asyncio
-import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import pandas as pd
-import seaborn as sns
-from scipy import stats
-
-from ...taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class CircularType(Enum):

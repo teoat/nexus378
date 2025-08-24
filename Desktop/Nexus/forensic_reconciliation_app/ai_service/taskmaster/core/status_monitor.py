@@ -25,12 +25,8 @@ class StatusMonitor:
         self.status_history: List[Dict[str, Any]] = []
         self.overlap_alerts: List[Dict[str, Any]] = []
         self.performance_metrics: Dict[str, Any] = {}
-<<<<<<< Updated upstream
         self.queue_metrics: Dict[str, Any] = {}
-        
-=======
 
->>>>>>> Stashed changes
     async def start_monitoring(self):
         """Start the status monitoring system"""
         if self.monitoring_active:
@@ -61,12 +57,9 @@ class StatusMonitor:
                 # Update performance metrics
                 await self._update_performance_metrics()
 
-<<<<<<< Updated upstream
                 # Collect queue metrics
                 await self._collect_queue_metrics()
-                
-=======
->>>>>>> Stashed changes
+
                 # Generate status report
                 await self._generate_status_report()
 
@@ -105,10 +98,7 @@ class StatusMonitor:
                 "agents": agent_statuses,
                 "overlap_alerts": len(self.overlap_alerts),
                 "performance_metrics": self.performance_metrics,
-<<<<<<< Updated upstream
-                "queue_metrics": self.queue_metrics
-=======
->>>>>>> Stashed changes
+                "queue_metrics": self.queue_metrics,
             }
 
             # Store in history
@@ -425,7 +415,13 @@ class StatusMonitor:
             # or use a client library to get queue stats.
             # For now, we'll simulate some metrics.
             import random
-            queues = ["task_queue_high", "task_queue_medium", "task_queue_low", "dead_letter_queue"]
+
+            queues = [
+                "task_queue_high",
+                "task_queue_medium",
+                "task_queue_low",
+                "dead_letter_queue",
+            ]
 
             queue_data = {}
             for queue_name in queues:
@@ -440,7 +436,7 @@ class StatusMonitor:
             self.queue_metrics = {
                 "provider": "RabbitMQ (simulated)",
                 "queues": queue_data,
-                "last_updated": datetime.now().isoformat()
+                "last_updated": datetime.now().isoformat(),
             }
             logger.debug("Queue metrics collected.")
 

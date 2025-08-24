@@ -5,25 +5,20 @@ This module implements the AIFuzzyMatcher class that provides
 AI-powered fuzzy matching capabilities for forensic reconciliation.
 """
 
-import difflib
-import json
 import logging
 import re
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 import asyncio
 import jaro
 import numpy as np
-from sklearn.cluster import DBSCAN
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-
-from ...taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class FuzzyAlgorithm(Enum):
@@ -162,8 +157,6 @@ class AIFuzzyMatcher:
     ) -> List[FuzzyMatchResult]:
         """Find fuzzy matches using the specified algorithm."""
         try:
-            start_time = datetime.utcnow()
-
             if algorithm == FuzzyAlgorithm.HYBRID:
                 return await self._hybrid_fuzzy_match(source_record, target_records)
             elif algorithm == FuzzyAlgorithm.TFIDF_COSINE:
@@ -598,8 +591,8 @@ class AIFuzzyMatcher:
             return 0.0
 
         # Generate N-grams
-        s1_grams = set(s1[i : i + n] for i in range(len(s1) - n + 1))
-        s2_grams = set(s2[i : i + n] for i in range(len(s2) - n + 1))
+        s1_grams = set(s1[i:i + n] for i in range(len(s1) - n + 1))
+        s2_grams = set(s2[i:i + n] for i in range(len(s2) - n + 1))
 
         if not s1_grams or not s2_grams:
             return 0.0

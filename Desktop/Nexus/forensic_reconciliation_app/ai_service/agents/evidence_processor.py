@@ -7,32 +7,21 @@ in the forensic platform.
 """
 
 import hashlib
-import json
 import logging
 import mimetypes
 import os
-import re
 import uuid
-from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, BinaryIO, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import asyncio
 import exifread
-import magic
 import nltk
-import PyPDF2
 import pytesseract
-import spacy
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import sent_tokenize, word_tokenize
-from pdf2image import convert_from_path
 from PIL import Image
-
-from ...taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class EvidenceType(Enum):

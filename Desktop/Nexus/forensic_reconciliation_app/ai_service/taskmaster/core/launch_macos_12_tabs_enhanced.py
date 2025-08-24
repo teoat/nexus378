@@ -5,14 +5,15 @@ Opens one Terminal.app window with 12 tabs, sets venv, path, and launches enhanc
 """
 
 import os
-import sys
 import subprocess
+import sys
 import time
 from pathlib import Path
 
+
 def launch_macos_12_tabs_enhanced():
     """Launch macOS Terminal with 12 tabs for enhanced collective system"""
-    
+
     print("🚀 Enhanced macOS Terminal Launcher - 12 Tabs")
     print("=" * 60)
     print(" Opening Terminal.app with 12 tabs for enhanced collective system")
@@ -22,31 +23,33 @@ def launch_macos_12_tabs_enhanced():
     print("   - Tab 11: Enhanced Dynamic Worker Coordinator")
     print("   - Tab 12: System Monitor")
     print()
-    
+
     # Get project paths
     current_dir = Path(__file__).parent.absolute()
-    project_root = current_dir.parent.parent.parent.parent  # Go up to Nexus root (4 levels)
+    project_root = (
+        current_dir.parent.parent.parent.parent
+    )  # Go up to Nexus root (4 levels)
     venv_path = project_root / ".venv"
-    
+
     print(f"📍 Project Root: {project_root}")
     print(f"🔧 Core Directory: {current_dir}")
     print(f"🐍 Virtual Environment: {venv_path}")
     print()
-    
+
     # Check if virtual environment exists
     if not venv_path.exists():
         print("❌ Virtual environment not found!")
         print(f"   Expected at: {venv_path}")
         print("   Please run: python3 -m venv .venv")
         return False
-    
+
     # Check if engines exist
     engines = [
         "todo_processing_engine.py",
-        "task_breakdown_engine.py", 
-        "dynamic_worker_coordinator.py"
+        "task_breakdown_engine.py",
+        "dynamic_worker_coordinator.py",
     ]
-    
+
     print("🔍 Checking engines...")
     for engine in engines:
         engine_path = current_dir / engine
@@ -55,16 +58,16 @@ def launch_macos_12_tabs_enhanced():
         else:
             print(f"   ❌ {engine} - MISSING!")
             return False
-    
+
     print("\n�� Launching Enhanced 12-Tab Terminal System...")
     print("⏱️  Starting in 3 seconds...")
-    
+
     for i in range(3, 0, -1):
         print(f"   {i}...")
         time.sleep(1)
-    
+
     # Create AppleScript to launch Terminal with 12 tabs
-    applescript = f'''
+    applescript = f"""
 tell application "Terminal"
     -- Create new window
     set newWindow to do script ""
@@ -115,33 +118,41 @@ tell application "Terminal"
     delay 2
     
 end tell
-'''
-    
+"""
+
     try:
         print("🔧 Executing AppleScript to create Terminal with 12 tabs...")
-        
+
         # Execute AppleScript
         result = subprocess.run(
-            ['osascript', '-e', applescript],
-            capture_output=True,
-            text=True
+            ["osascript", "-e", applescript], capture_output=True, text=True
         )
-        
+
         if result.returncode == 0:
             print("✅ Enhanced 12-Tab Terminal System launched successfully!")
             print()
             print("📱 Terminal.app window opened with 12 tabs:")
             print("   Tab 1-8: Enhanced Collective Workers (Processing TODOs)")
             print("   Tab 9: Enhanced TODO Processing Engine (Collective Intelligence)")
-            print("   Tab 10: Enhanced Task Breakdown Engine (Collaborative Microtasks)")
-            print("   Tab 11: Enhanced Dynamic Worker Coordinator (Capacity Management)")
+            print(
+                "   Tab 10: Enhanced Task Breakdown Engine (Collaborative Microtasks)"
+            )
+            print(
+                "   Tab 11: Enhanced Dynamic Worker Coordinator (Capacity Management)"
+            )
             print("   Tab 12: System Monitor (Real-time Analytics)")
             print()
             print("🎯 Enhanced System Features:")
             print("   - Capacity Limits: Max 5 active tasks, Max 12 total TODOs")
-            print("   - Conflict Prevention: Automatic task marking to prevent conflicts")
-            print("   - Collective Intelligence: Workers coordinate for optimal performance")
-            print("   - Enhanced Processing: 6-12 second intervals for faster processing")
+            print(
+                "   - Conflict Prevention: Automatic task marking to prevent conflicts"
+            )
+            print(
+                "   - Collective Intelligence: Workers coordinate for optimal performance"
+            )
+            print(
+                "   - Enhanced Processing: 6-12 second intervals for faster processing"
+            )
             print("   - Virtual Environment: All tabs use project .venv")
             print("   - Custom Tab Titles: Easy identification of each component")
             print()
@@ -153,17 +164,18 @@ end tell
             print()
             print("🚀 The enhanced collective system is now running!")
             print("   Check each tab to see the engines in action")
-            
+
         else:
             print("❌ Failed to launch Terminal system")
             print(f"Error: {result.stderr}")
             return False
-            
+
     except Exception as e:
         print(f"❌ Error launching Terminal system: {e}")
         return False
-    
+
     return True
+
 
 def main():
     """Main entry point"""
@@ -174,11 +186,12 @@ def main():
             print("   You can now monitor all 12 tabs in the Terminal.app window")
         else:
             print("\n❌ Failed to setup Enhanced macOS Terminal System")
-            
+
     except KeyboardInterrupt:
         print("\n🛑 Terminal system setup interrupted by user")
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
+
 
 if __name__ == "__main__":
     main()

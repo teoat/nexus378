@@ -15,17 +15,27 @@ elif _is_debug:
     # Generate a random secret for development if not set
     JWT_SECRET = secrets.token_urlsafe(32)
 else:
-    raise RuntimeError("JWT_SECRET environment variable must be set in production for security reasons.")
+    raise RuntimeError(
+        "JWT_SECRET environment variable must be set in production for security reasons."
+    )
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 JWT_EXPIRES_IN_HOURS = int(os.environ.get("JWT_EXPIRES_IN_HOURS", 24))
 JWT_REFRESH_EXPIRES_IN_DAYS = int(os.environ.get("JWT_REFRESH_EXPIRES_IN_DAYS", 7))
 
 # Password Policy
 PASSWORD_MIN_LENGTH = int(os.environ.get("PASSWORD_MIN_LENGTH", 12))
-PASSWORD_REQUIRE_UPPERCASE = os.environ.get("PASSWORD_REQUIRE_UPPERCASE", "true").lower() == "true"
-PASSWORD_REQUIRE_LOWERCASE = os.environ.get("PASSWORD_REQUIRE_LOWERCASE", "true").lower() == "true"
-PASSWORD_REQUIRE_NUMBERS = os.environ.get("PASSWORD_REQUIRE_NUMBERS", "true").lower() == "true"
-PASSWORD_REQUIRE_SPECIAL_CHARS = os.environ.get("PASSWORD_REQUIRE_SPECIAL_CHARS", "true").lower() == "true"
+PASSWORD_REQUIRE_UPPERCASE = (
+    os.environ.get("PASSWORD_REQUIRE_UPPERCASE", "true").lower() == "true"
+)
+PASSWORD_REQUIRE_LOWERCASE = (
+    os.environ.get("PASSWORD_REQUIRE_LOWERCASE", "true").lower() == "true"
+)
+PASSWORD_REQUIRE_NUMBERS = (
+    os.environ.get("PASSWORD_REQUIRE_NUMBERS", "true").lower() == "true"
+)
+PASSWORD_REQUIRE_SPECIAL_CHARS = (
+    os.environ.get("PASSWORD_REQUIRE_SPECIAL_CHARS", "true").lower() == "true"
+)
 
 # MFA Configuration
 MFA_ENABLED = os.environ.get("MFA_ENABLED", "true").lower() == "true"
@@ -39,7 +49,9 @@ SESSION_TIMEOUT_HOURS = int(os.environ.get("SESSION_TIMEOUT_HOURS", 24))
 DEFAULT_MAX_REQUESTS = int(os.environ.get("DEFAULT_MAX_REQUESTS", 100))
 DEFAULT_TIME_WINDOW_SECONDS = int(os.environ.get("DEFAULT_TIME_WINDOW_SECONDS", 60))
 DEFAULT_BURST_LIMIT = int(os.environ.get("DEFAULT_BURST_LIMIT", 10))
-ENABLE_ADAPTIVE_LIMITING = os.environ.get("ENABLE_ADAPTIVE_LIMITING", "true").lower() == "true"
+ENABLE_ADAPTIVE_LIMITING = (
+    os.environ.get("ENABLE_ADAPTIVE_LIMITING", "true").lower() == "true"
+)
 
 # API Gateway Configuration
 GATEWAY_HOST = os.environ.get("GATEWAY_HOST", "0.0.0.0")
@@ -68,6 +80,7 @@ def get_jwt_config():
         "lockout_duration_minutes": 15,
     }
 
+
 def get_rate_limiter_config():
     """Returns a dictionary with Rate Limiter configuration."""
     return {
@@ -76,6 +89,7 @@ def get_rate_limiter_config():
         "default_burst_limit": DEFAULT_BURST_LIMIT,
         "enable_adaptive_limiting": ENABLE_ADAPTIVE_LIMITING,
     }
+
 
 def get_api_gateway_config():
     """Returns a dictionary with API Gateway configuration."""

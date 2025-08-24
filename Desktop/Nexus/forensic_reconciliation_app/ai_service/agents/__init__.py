@@ -28,7 +28,6 @@ from .reconciliation_agent import ReconciliationAgent
 from .risk_scorer import RiskScorer
 from .risk_trend_analyzer import RiskTrendAnalyzer
 
-
 __version__ = "1.0.0"
 __author__ = "Forensic Reconciliation Platform Team"
 

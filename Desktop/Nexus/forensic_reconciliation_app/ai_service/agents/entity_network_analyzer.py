@@ -1042,7 +1042,7 @@ class EntityNetworkAnalyzer:
                     metrics.modularity = nx.community.modularity(
                         undirected_graph, communities
                     )
-                except:
+                except Exception:
                     metrics.modularity = 0.0
 
             # Count suspicious patterns

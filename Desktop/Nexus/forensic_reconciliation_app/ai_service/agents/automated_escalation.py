@@ -8,19 +8,14 @@ forensic platform.
 
 import json
 import logging
-import smtplib
 import uuid
-from collections import defaultdict, deque
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 import asyncio
-
-from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class EscalationLevel(Enum):
@@ -406,8 +401,8 @@ class AutomatedEscalationSystem:
         """Send email notification."""
         try:
             # This would integrate with actual email service
-            subject = f"ESCALATION: {event.escalation_level.value.upper()} - {event.escalation_type.value}"
-            body = f"""
+            f"ESCALATION: {event.escalation_level.value.upper()} - {event.escalation_type.value}"
+            f"""
             Escalation Event: {event.event_id}
             Entity: {event.assigned_to}
             Type: {event.escalation_type.value}
@@ -432,7 +427,7 @@ class AutomatedEscalationSystem:
         """Send SMS notification."""
         try:
             # This would integrate with actual SMS service
-            message = f"ESCALATION: {event.escalation_level.value.upper()} - {event.escalation_type.value} - Response required within {rule.response_time} minutes"
+            f"ESCALATION: {event.escalation_level.value.upper()} - {event.escalation_type.value} - Response required within {rule.response_time} minutes"
 
             # In production, this would send actual SMS
             self.logger.info(
@@ -448,7 +443,7 @@ class AutomatedEscalationSystem:
         """Send Slack notification."""
         try:
             # This would integrate with actual Slack service
-            message = {
+            {
                 "text": f"🚨 ESCALATION: {event.escalation_level.value.upper()}",
                 "attachments": [
                     {
@@ -492,7 +487,7 @@ class AutomatedEscalationSystem:
         """Send webhook notification."""
         try:
             # This would integrate with actual webhook service
-            payload = {
+            {
                 "event_id": event.event_id,
                 "escalation_type": event.escalation_type.value,
                 "escalation_level": event.escalation_level.value,
@@ -808,7 +803,9 @@ class AutomatedEscalationSystem:
             "resolution_rate": self.resolution_rate,
             "active_escalations": len(self.active_events),
             "escalation_types_supported": [t.value for t in EscalationType],
-            "escalation_levels_supported": [l.value for l in EscalationLevel],
+            "escalation_levels_supported": [
+                level.value for level in EscalationLevel
+            ],
             "total_rules": len(self.escalation_rules),
         }
 

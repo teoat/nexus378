@@ -9,9 +9,10 @@ import subprocess
 import time
 from pathlib import Path
 
+
 def launch_simple_12_tabs():
     """Launch Terminal with 12 tabs using a simple, reliable method"""
-    
+
     print("🚀 Simple 12-Tab Terminal Launcher")
     print("=" * 50)
     print(" Opening Terminal.app with 12 tabs for collective system")
@@ -21,35 +22,35 @@ def launch_simple_12_tabs():
     print("   - Tab 11: Dynamic Worker Coordinator")
     print("   - Tab 12: System Monitor")
     print()
-    
+
     # Get project paths
     current_dir = Path(__file__).parent.absolute()
     project_root = current_dir.parent.parent.parent.parent  # Go up to Nexus root
     venv_path = project_root / ".venv"
-    
+
     print(f"📍 Project Root: {project_root}")
     print(f"🔧 Core Directory: {current_dir}")
     print(f"🐍 Virtual Environment: {venv_path}")
     print()
-    
+
     # Check if virtual environment exists
     if not venv_path.exists():
         print("❌ Virtual environment not found!")
         print(f"   Expected at: {venv_path}")
         return False
-    
+
     print(f"✅ Virtual environment found at: {venv_path}")
     print()
-    
+
     # Check if engines exist
     engines = [
         "collective_worker_processor.py",
         "todo_processing_engine.py",
-        "task_breakdown_engine.py", 
+        "task_breakdown_engine.py",
         "dynamic_worker_coordinator.py",
-        "monitor_collective_system.py"
+        "monitor_collective_system.py",
     ]
-    
+
     print("🔍 Checking engines...")
     for engine in engines:
         engine_path = current_dir / engine
@@ -58,16 +59,16 @@ def launch_simple_12_tabs():
         else:
             print(f"   ❌ {engine} - MISSING!")
             return False
-    
+
     print("\n🚀 Launching 12-Tab Terminal System...")
     print("⏱️  Starting in 3 seconds...")
-    
+
     for i in range(3, 0, -1):
         print(f"   {i}...")
         time.sleep(1)
-    
+
     # Create a simple AppleScript that creates tabs one by one
-    applescript = f'''
+    applescript = f"""
 tell application "Terminal"
     -- Create new window
     set newWindow to do script ""
@@ -140,18 +141,16 @@ tell application "Terminal"
     delay 3
     
 end tell
-'''
-    
+"""
+
     try:
         print("🔧 Executing AppleScript to create Terminal with 12 tabs...")
-        
+
         # Execute AppleScript
         result = subprocess.run(
-            ['osascript', '-e', applescript],
-            capture_output=True,
-            text=True
+            ["osascript", "-e", applescript], capture_output=True, text=True
         )
-        
+
         if result.returncode == 0:
             print("✅ 12-Tab Terminal System launched successfully!")
             print()
@@ -176,17 +175,18 @@ end tell
             print()
             print("🚀 The collective system is now running!")
             print("   Check Terminal.app to see all 12 tabs in action")
-            
+
         else:
             print("❌ Failed to launch Terminal system")
             print(f"Error: {result.stderr}")
             return False
-            
+
     except Exception as e:
         print(f"❌ Error launching Terminal system: {e}")
         return False
-    
+
     return True
+
 
 def main():
     """Main entry point"""
@@ -197,11 +197,12 @@ def main():
             print("   You can now monitor all 12 tabs in the Terminal.app window")
         else:
             print("\n❌ Failed to setup 12-Tab Terminal System")
-            
+
     except KeyboardInterrupt:
         print("\n🛑 Terminal system setup interrupted by user")
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
+
 
 if __name__ == "__main__":
     main()

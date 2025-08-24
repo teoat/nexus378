@@ -5,22 +5,15 @@ This module implements the ExplainableAIScorer class that provides
 comprehensive explainable AI capabilities for risk scoring.
 """
 
-import json
 import logging
-import time
 import uuid
-from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 import asyncio
 import numpy as np
-import pandas as pd
-
-from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class ExplanationType(Enum):

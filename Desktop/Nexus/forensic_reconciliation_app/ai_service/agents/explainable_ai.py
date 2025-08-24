@@ -5,23 +5,14 @@ This module implements the ExplainableAI class that provides
 transparent explanations for AI-driven forensic decisions.
 """
 
-import json
 import logging
-from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Tuple
 
 import asyncio
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
-import shap
-from sklearn.inspection import permutation_importance
-from sklearn.tree import plot_tree
-
-from ...taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 
 class ExplanationType(Enum):
@@ -723,7 +714,7 @@ class ExplainableAI:
             positive_contributors = [(f, v) for f, v in shap_values.items() if v > 0]
             negative_contributors = [(f, v) for f, v in shap_values.items() if v < 0]
 
-            summary = f"SHAP analysis shows:\n"
+            summary = "SHAP analysis shows:\n"
 
             if positive_contributors:
                 summary += f"Features that increased the prediction: {len(positive_contributors)}\n"

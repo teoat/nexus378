@@ -22,13 +22,17 @@ from aiohttp import ClientSession, web
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from ..ai_service.taskmaster.models.job import Job, JobPriority, JobStatus, JobType
-from ..ai_service.agents.reconciliation_agent_fuzzy_matching import ReconciliationAgentFuzzyMatching
 from ..ai_service.agents.fraud_agent_pattern_detection import FraudAgentPatternDetection
 from ..ai_service.agents.nlp_processor import NLPProcessor
 from ..ai_service.agents.ocr_processor import OCRProcessor
+from ..ai_service.agents.reconciliation_agent_fuzzy_matching import (
+    ReconciliationAgentFuzzyMatching,
+)
+from ..ai_service.taskmaster.models.job import Job, JobPriority, JobStatus, JobType
+
 # from .auth.jwt_auth import JWTAuthManager  # Removed: not present
 # from .rate_limiter import RateLimiter      # Removed: not present
+
 
 # Placeholder RateLimiter implementation
 class RateLimiter:
@@ -44,6 +48,8 @@ class RateLimiter:
             self.requests[user_id].append(now)
             return True
         return False
+
+
 from . import config as gw_config
 
 
@@ -183,7 +189,7 @@ class APIGateway:
 
         # Web application
         self.app = web.Application()
-        self.app['gateway'] = self
+        self.app["gateway"] = self
         self.runner = None
 
         # Event loop
@@ -348,7 +354,7 @@ class APIGateway:
                     "authentication": AuthenticationType.JWT,
                     "rate_limiting": True,
                     "cors_enabled": True,
-                }
+                },
             ]
 
             for route_data in default_routes:
@@ -429,11 +435,19 @@ class APIGateway:
             # Setup default handlers
             self.app.router.add_get("/api/v1/health", self._health_check_handler)
             self.app.router.add_get("/api/v1/status", self._system_status_handler)
-            self.app.router.add_post("/api/v1/ai/reconciliation/process", self._reconciliation_process_handler)
-            self.app.router.add_post("/api/v1/ai/fraud/analyze", self._fraud_analyze_handler)
-            self.app.router.add_post("/api/v1/ai/nlp/process", self._nlp_process_handler)
-            self.app.router.add_post("/api/v1/ai/ocr/process", self._ocr_process_handler)
-
+            self.app.router.add_post(
+                "/api/v1/ai/reconciliation/process",
+                self._reconciliation_process_handler,
+            )
+            self.app.router.add_post(
+                "/api/v1/ai/fraud/analyze", self._fraud_analyze_handler
+            )
+            self.app.router.add_post(
+                "/api/v1/ai/nlp/process", self._nlp_process_handler
+            )
+            self.app.router.add_post(
+                "/api/v1/ai/ocr/process", self._ocr_process_handler
+            )
 
             # Setup dynamic routes
             for route in self.routes.values():
@@ -574,7 +588,9 @@ class APIGateway:
         try:
             data = await request.json()
             records = data.get("records", [])
-            result = await self.reconciliation_agent.process_reconciliation_batch(records)
+            result = await self.reconciliation_agent.process_reconciliation_batch(
+                records
+            )
             return web.json_response(asdict(result))
         except Exception as e:
             self.logger.error(f"Error in reconciliation process handler: {e}")
@@ -740,11 +756,13 @@ class APIGateway:
                     "POST": "write",
                     "PUT": "write",
                     "DELETE": "delete",
-                    "PATCH": "write"
+                    "PATCH": "write",
                 }
                 action = action_map.get(request.method.upper())
 
-                if action and not self.jwt_auth_manager.has_permission(auth_result.user, resource_name, action):
+                if action and not self.jwt_auth_manager.has_permission(
+                    auth_result.user, resource_name, action
+                ):
                     return web.json_response({"error": "Forbidden"}, status=403)
 
             return await handler(request)
@@ -756,7 +774,11 @@ class APIGateway:
 
         async def middleware(request):
             endpoint = self._get_endpoint_for_request(request)
-            if not endpoint or not endpoint.middleware or "rate_limit" not in endpoint.middleware:
+            if (
+                not endpoint
+                or not endpoint.middleware
+                or "rate_limit" not in endpoint.middleware
+            ):
                 return await handler(request)
 
             user_id = request.get("user_id")
@@ -801,7 +823,10 @@ class APIGateway:
             if request.path.startswith(route.base_path):
                 for endpoint in route.endpoints:
                     full_path = f"{route.base_path}{endpoint.path}"
-                    if full_path == request.path and endpoint.method.value == request.method:
+                    if (
+                        full_path == request.path
+                        and endpoint.method.value == request.method
+                    ):
                         return endpoint
         return None
 
