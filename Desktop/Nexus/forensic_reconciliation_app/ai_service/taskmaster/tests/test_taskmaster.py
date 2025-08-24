@@ -3,6 +3,7 @@ import asyncio
 import tempfile
 from pathlib import Path
 from taskmaster.core.taskmaster import Taskmaster, TaskmasterStatus
+from taskmaster.models.job import JobType
 
 @pytest.fixture
 def temp_dir_with_todo():
@@ -33,8 +34,12 @@ async def test_submit_todo_scanning_job(temp_dir_with_todo):
     job_id = await taskmaster.submit_todo_scanning_job(temp_dir_with_todo)
     assert job_id is not None
     await asyncio.sleep(0.2)
-    assert len(taskmaster.job_queue) == 1
-    new_job = taskmaster.job_queue[0]
-    assert new_job.name.startswith("TODO:")
-    assert "Fix this" in new_job.data["content"]
+    assert len(taskmaster.active_jobs) == 2
+    # Find the created job
+    found_todo_job = False
+    for job in taskmaster.active_jobs.values():
+        if job.job_type == JobType.GENERAL_TODO:
+            assert "Fix this" in job.data["content"]
+            found_todo_job = True
+    assert found_todo_job
     await taskmaster.stop()

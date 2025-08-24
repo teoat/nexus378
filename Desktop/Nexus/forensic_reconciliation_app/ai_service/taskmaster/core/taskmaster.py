@@ -12,42 +12,14 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 from enum import Enum
 
-from ..models.job import Job, JobStatus, JobPriority, JobType
-# from ..models.agent import Agent, AgentStatus, AgentType
-# from ..models.queue import Queue, QueueType, QueueStatus
-# from ..models.workflow import Workflow, WorkflowStatus, WorkflowStep
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import List
-
-class AgentStatus(Enum):
-    IDLE = "idle"
-    BUSY = "busy"
-    OFFLINE = "offline"
-
-class AgentType(Enum):
-    GENERAL = "general"
-    SPECIALIZED = "specialized"
-
-@dataclass
-class Agent:
-    agent_id: str
-    agent_type: AgentType
-    status: AgentStatus
-    capabilities: List[str] = field(default_factory=list)
-
-class Queue:
-    pass
-class QueueType:
-    pass
-class QueueStatus:
-    pass
-class Workflow:
-    pass
-class WorkflowStatus:
-    pass
-class WorkflowStep:
-    pass
+from .job_scheduler import JobScheduler
+from .task_router import TaskRouter
+from .workflow_orchestrator import WorkflowOrchestrator
+from .resource_monitor import ResourceMonitor
+from ..models.job import Job, JobStatus, JobPriority, JobType, JobResult
+from ..models.agent import Agent, AgentStatus, AgentType
+from ..models.queue import Queue, QueueType, QueueStatus
+from ..models.workflow import Workflow, WorkflowStatus, WorkflowStep
 import re
 from pathlib import Path
 import time
@@ -120,172 +92,6 @@ class TaskmasterConfig:
             "retry_policy": "manual"
         }
     })
-
-
-# Agent classes from todo_automation.py
-
-class TodoAgent(Agent):
-    """Base class for TODO processing agents"""
-
-    def __init__(self, agent_id: str, capabilities: List[str]):
-        super().__init__(agent_id=agent_id, agent_type=AgentType.SPECIALIZED, status=AgentStatus.IDLE, capabilities=capabilities)
-        self.current_todo: Optional[Dict[str, Any]] = None
-
-    async def process_todo(self, todo: Dict[str, Any]) -> Dict[str, Any]:
-        """Process a single TODO item"""
-        start_time = time.time()
-        self.current_todo = todo
-        self.status = AgentStatus.BUSY
-
-        try:
-            logger.info(f"Agent {self.agent_id} processing TODO: {todo['content'][:50]}...")
-
-            # Simulate processing time based on TODO complexity
-            processing_time = self._estimate_processing_time(todo)
-            await asyncio.sleep(processing_time)
-
-            # Process the TODO based on its content and type
-            result = await self._execute_todo(todo)
-
-            processing_time = time.time() - start_time
-            return {
-                "success": True,
-                "output": result,
-                "processing_time": processing_time
-            }
-
-        except Exception as e:
-            processing_time = time.time() - start_time
-            logger.error(f"Agent {self.agent_id} failed to process TODO {todo['id']}: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e),
-                "processing_time": processing_time
-            }
-        finally:
-            self.current_todo = None
-            self.status = AgentStatus.IDLE
-
-    def _estimate_processing_time(self, todo: Dict[str, Any]) -> float:
-        """Estimate processing time based on TODO complexity"""
-        base_time = 0.1
-        complexity_multiplier = len(todo['content']) / 100
-        priority_multiplier = todo.get('priority', 1) / 3
-        return min(base_time * complexity_multiplier * priority_multiplier, 2.0)
-
-    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
-        """Execute the actual TODO processing logic"""
-        return f"Processed TODO: {todo['content']}"
-
-class FraudAgent(TodoAgent):
-    """Agent specialized in fraud detection tasks."""
-
-    def __init__(self):
-        super().__init__("fraud_agent", ["fraud", "shell_company"])
-        self.driver = GraphDatabase.driver(
-            os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
-            auth=(os.environ.get("NEO4J_USER", "neo4j"), os.environ.get("NEO4J_PASSWORD", "password"))
-        )
-
-    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
-        if "shell_company" in todo.get("tags", []):
-            return await self.identify_shell_companies(todo)
-        return f"Fraud analysis complete for: {todo['content']}"
-
-    async def identify_shell_companies(self, todo: Dict[str, Any]) -> str:
-        """Identifies shell companies using Neo4j procedures."""
-        with self.driver.session() as session:
-            # This is a placeholder for calling the actual procedure
-            result = session.run("CALL db.procedures() YIELD name WHERE name = 'find_shell_companies' RETURN name")
-            if result.single():
-                return "Successfully called find_shell_companies procedure."
-            else:
-                return "Could not find find_shell_companies procedure."
-
-    def close(self):
-        self.driver.close()
-
-class ReconciliationAgent(TodoAgent):
-    """Agent specialized in reconciliation tasks."""
-    def __init__(self, db_path="reconciliation.duckdb"):
-        super().__init__("reconciliation_agent", ["reconciliation"])
-        self.db_path = db_path
-        self.con = duckdb.connect(database=self.db_path, read_only=False)
-
-    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
-        if "reconcile" in todo['content'].lower():
-            return await self.reconcile_transactions(todo)
-        return f"Reconciliation task processed for: {todo['content']}"
-
-    async def reconcile_transactions(self, todo: Dict[str, Any]) -> str:
-        """Reconciles transactions using DuckDB."""
-        try:
-            # Example: run a query from the schema file
-            with open("Desktop/Nexus/forensic_reconciliation_app/datastore/duckdb/init/01-schema.sql", "r") as f:
-                schema_sql = f.read()
-                self.con.execute(schema_sql)
-
-            # Example: count reconciled transactions
-            result = self.con.execute("SELECT COUNT(*) FROM reconciled_transactions").fetchone()
-            return f"Successfully reconciled transactions. Count: {result[0]}"
-        except Exception as e:
-            return f"Error reconciling transactions: {e}"
-
-    def close(self):
-        self.con.close()
-
-class CodeReviewAgent(TodoAgent):
-    """Agent specialized in code review and implementation TODOs"""
-
-    def __init__(self):
-        super().__init__("code_review", ["code_review", "implementation", "refactoring"])
-
-    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
-        todo_text = todo['content'].split("TODO:")[-1].strip()
-        if any(keyword in todo_text.lower() for keyword in ["implement", "create", "add"]):
-            return f"Implementation TODO identified: {todo_text}"
-        elif any(keyword in todo_text.lower() for keyword in ["refactor", "optimize", "improve"]):
-            return f"Refactoring TODO identified: {todo_text}"
-        elif any(keyword in todo_text.lower() for keyword in ["fix", "bug", "error"]):
-            return f"Bug fix TODO identified: {todo_text}"
-        else:
-            return f"General TODO identified: {todo_text}"
-
-class DocumentationAgent(TodoAgent):
-    """Agent specialized in documentation and README TODOs"""
-
-    def __init__(self):
-        super().__init__("documentation", ["documentation", "readme", "api_docs"])
-
-    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
-        return f"Documentation TODO identified: {todo['content']}"
-
-class TestingAgent(TodoAgent):
-    """Agent specialized in testing and validation TODOs"""
-
-    def __init__(self):
-        super().__init__("testing", ["testing", "validation", "unit_tests", "integration"])
-
-    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
-        return f"Testing TODO identified: {todo['content']}"
-
-class InfrastructureAgent(TodoAgent):
-    """Agent specialized in infrastructure and deployment TODOs"""
-
-    def __init__(self):
-        super().__init__("infrastructure", ["docker", "deployment", "ci_cd", "infrastructure"])
-
-    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
-        return f"Infrastructure TODO identified: {todo['content']}"
-
-class GeneralAgent(TodoAgent):
-    """General purpose agent for miscellaneous TODOs"""
-
-    def __init__(self):
-        super().__init__("general", ["general", "miscellaneous"])
-
-    async def _execute_todo(self, todo: Dict[str, Any]) -> str:
-        return f"Processed general TODO: {todo['content']}"
 
 
 class TodoScanner:
@@ -371,6 +177,59 @@ class TodoScanner:
         tags.extend(bracket_tags)
         return tags
 
+class FraudAgent(Agent):
+    """Agent specialized in fraud detection tasks."""
+
+    def __init__(self):
+        super().__init__(agent_id="fraud_agent", agent_type=AgentType.SPECIALIZED, capabilities=["fraud", "shell_company"])
+        self.driver = GraphDatabase.driver(
+            os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
+            auth=(os.environ.get("NEO4J_USER", "neo4j"), os.environ.get("NEO4J_PASSWORD", "password"))
+        )
+
+    async def process(self, job: Job) -> JobResult:
+        if "shell_company" in job.tags:
+            return await self.identify_shell_companies(job)
+        return JobResult(success=True, data={"message": f"Fraud analysis complete for: {job.name}"})
+
+    async def identify_shell_companies(self, job: Job) -> JobResult:
+        """Identifies shell companies using Neo4j procedures."""
+        with self.driver.session() as session:
+            result = session.run("CALL db.procedures() YIELD name WHERE name = 'find_shell_companies' RETURN name")
+            if result.single():
+                return JobResult(success=True, data={"message": "Successfully called find_shell_companies procedure."})
+            else:
+                return JobResult(success=False, error_message="Could not find find_shell_companies procedure.")
+
+    def close(self):
+        self.driver.close()
+
+class ReconciliationAgent(Agent):
+    """Agent specialized in reconciliation tasks."""
+    def __init__(self, db_path="reconciliation.duckdb"):
+        super().__init__(agent_id="reconciliation_agent", agent_type=AgentType.SPECIALIZED, capabilities=["reconciliation"])
+        self.db_path = db_path
+        self.con = duckdb.connect(database=self.db_path, read_only=False)
+
+    async def process(self, job: Job) -> JobResult:
+        if "reconcile" in job.name.lower():
+            return await self.reconcile_transactions(job)
+        return JobResult(success=True, data={"message": f"Reconciliation task processed for: {job.name}"})
+
+    async def reconcile_transactions(self, job: Job) -> JobResult:
+        """Reconciles transactions using DuckDB."""
+        try:
+            with open("Desktop/Nexus/forensic_reconciliation_app/datastore/duckdb/init/01-schema.sql", "r") as f:
+                schema_sql = f.read()
+                self.con.execute(schema_sql)
+            result = self.con.execute("SELECT COUNT(*) FROM reconciled_transactions").fetchone()
+            return JobResult(success=True, data={"reconciled_count": result[0]})
+        except Exception as e:
+            return JobResult(success=False, error_message=str(e))
+
+    def close(self):
+        self.con.close()
+
 
 class Taskmaster:
     """
@@ -396,11 +255,14 @@ class Taskmaster:
         self.last_error: Optional[str] = None
         
         # Core components
+        self.job_scheduler: Optional[JobScheduler] = None
+        self.task_router: Optional[TaskRouter] = None
+        self.workflow_orchestrator: Optional[WorkflowOrchestrator] = None
+        self.resource_monitor: Optional[ResourceMonitor] = None
         self.todo_scanner: Optional[TodoScanner] = None
         
         # System state
         self.active_jobs: Dict[str, Job] = {}
-        self.job_queue: List[Job] = []
         self.active_agents: Dict[str, Agent] = {}
         self.active_queues: Dict[str, Queue] = {}
         self.active_workflows: Dict[str, Workflow] = {}
@@ -437,10 +299,6 @@ class Taskmaster:
             self.start_time = datetime.utcnow()
             
             self.logger.info("Taskmaster system started successfully")
-
-            # Start the main job processing loop
-            self.tasks.append(self.loop.create_task(self._job_processor()))
-
             return True
             
         except Exception as e:
@@ -481,6 +339,9 @@ class Taskmaster:
             self.logger.info("Pausing Taskmaster system...")
             self.status = TaskmasterStatus.PAUSED
             
+            # Pause job scheduling
+            if self.job_scheduler:
+                await self.job_scheduler.pause()
             
             self.logger.info("Taskmaster system paused successfully")
             return True
@@ -497,6 +358,9 @@ class Taskmaster:
             self.logger.info("Resuming Taskmaster system...")
             self.status = TaskmasterStatus.RUNNING
             
+            # Resume job scheduling
+            if self.job_scheduler:
+                await self.job_scheduler.resume()
             
             self.logger.info("Taskmaster system resumed successfully")
             return True
@@ -516,16 +380,15 @@ class Taskmaster:
             # Validate job
             self._validate_job(job)
             
-            # Add job to queue
-            self.job_queue.append(job)
-            job.status = JobStatus.QUEUED
+            # Submit to job scheduler
+            job_id = await self.job_scheduler.submit_job(job)
             
             # Update metrics
             self.metrics["jobs_submitted"] += 1
-            self.active_jobs[job.id] = job
+            self.active_jobs[job_id] = job
             
-            self.logger.info(f"Job submitted successfully: {job.id}")
-            return job.id
+            self.logger.info(f"Job submitted successfully: {job_id}")
+            return job_id
             
         except Exception as e:
             self.logger.error(f"Failed to submit job: {e}")
@@ -538,6 +401,9 @@ class Taskmaster:
             if job_id in self.active_jobs:
                 return self.active_jobs[job_id].status
             
+            # Check with job scheduler
+            if self.job_scheduler:
+                return await self.job_scheduler.get_job_status(job_id)
             
             return None
             
@@ -548,9 +414,13 @@ class Taskmaster:
     async def cancel_job(self, job_id: str) -> bool:
         """Cancel a specific job."""
         try:
-            if job_id in self.active_jobs:
-                self.active_jobs[job_id].status = JobStatus.CANCELLED
-                return True
+            # Cancel in job scheduler
+            if self.job_scheduler:
+                success = await self.job_scheduler.cancel_job(job_id)
+                if success and job_id in self.active_jobs:
+                    del self.active_jobs[job_id]
+                return success
+
             return False
             
         except Exception as e:
@@ -598,9 +468,25 @@ class Taskmaster:
     async def _initialize_components(self):
         """Initialize all core components."""
         try:
+            # Initialize job scheduler
+            self.job_scheduler = JobScheduler(self.config, self)
+            await self.job_scheduler.start()
+
+            # Initialize task router
+            self.task_router = TaskRouter(self.config)
+            await self.task_router.start()
+
+            # Initialize workflow orchestrator
+            self.workflow_orchestrator = WorkflowOrchestrator(self.config)
+            await self.workflow_orchestrator.start()
+
+            # Initialize resource monitor
+            self.resource_monitor = ResourceMonitor(self.config)
+            await self.resource_monitor.start()
+
             # Initialize TodoScanner
             self.todo_scanner = TodoScanner(self)
-            
+
             # Initialize queues
             await self._initialize_queues()
 
@@ -671,6 +557,18 @@ class Taskmaster:
     async def _shutdown_components(self):
         """Shutdown all core components."""
         try:
+            if self.job_scheduler:
+                await self.job_scheduler.stop()
+
+            if self.task_router:
+                await self.task_router.stop()
+
+            if self.workflow_orchestrator:
+                await self.workflow_orchestrator.stop()
+
+            if self.resource_monitor:
+                await self.resource_monitor.stop()
+
             # Stop queues
             for queue in self.active_queues.values():
                 await queue.stop()
@@ -732,7 +630,29 @@ class Taskmaster:
     async def _check_component_health(self):
         """Check the health of all system components."""
         try:
-            pass
+            # Check job scheduler health
+            if self.job_scheduler:
+                scheduler_health = await self.job_scheduler.get_health()
+                if not scheduler_health["healthy"]:
+                    self.logger.warning("Job scheduler health check failed")
+
+            # Check task router health
+            if self.task_router:
+                router_health = await self.task_router.get_health()
+                if not router_health["healthy"]:
+                    self.logger.warning("Task router health check failed")
+
+            # Check workflow orchestrator health
+            if self.workflow_orchestrator:
+                orchestrator_health = await self.workflow_orchestrator.get_health()
+                if not orchestrator_health["healthy"]:
+                    self.logger.warning("Workflow orchestrator health check failed")
+
+            # Check resource monitor health
+            if self.resource_monitor:
+                monitor_health = await self.resource_monitor.get_health()
+                if not monitor_health["healthy"]:
+                    self.logger.warning("Resource monitor health check failed")
                     
         except Exception as e:
             self.logger.error(f"Component health check failed: {e}")
@@ -754,7 +674,20 @@ class Taskmaster:
     async def _collect_performance_metrics(self):
         """Collect performance metrics from components."""
         try:
-            pass
+            # Collect from job scheduler
+            if self.job_scheduler:
+                scheduler_metrics = await self.job_scheduler.get_metrics()
+                self.metrics.update(scheduler_metrics)
+
+            # Collect from task router
+            if self.task_router:
+                router_metrics = await self.task_router.get_metrics()
+                self.metrics.update(router_metrics)
+
+            # Collect from workflow orchestrator
+            if self.workflow_orchestrator:
+                orchestrator_metrics = await self.workflow_orchestrator.get_metrics()
+                self.metrics.update(orchestrator_metrics)
             
         except Exception as e:
             self.logger.error(f"Failed to collect performance metrics: {e}")
@@ -765,7 +698,15 @@ class Taskmaster:
             if not self.config.auto_scaling:
                 return
             
-            pass
+            # Get current resource utilization
+            if self.resource_monitor:
+                utilization = await self.resource_monitor.get_resource_utilization()
+
+                # Check CPU utilization
+                if utilization["cpu_percent"] > self.config.scale_up_threshold * 100:
+                    await self._scale_up_resources()
+                elif utilization["cpu_percent"] < self.config.scale_down_threshold * 100:
+                    await self._scale_down_resources()
                     
         except Exception as e:
             self.logger.error(f"Failed to check scaling needs: {e}")
@@ -816,22 +757,6 @@ class Taskmaster:
         
         return (datetime.utcnow() - self.start_time).total_seconds()
     
-    async def _register_agents(self):
-        """Register all available agents."""
-        agents_to_register = [
-            FraudAgent(),
-            ReconciliationAgent(),
-            CodeReviewAgent(),
-            DocumentationAgent(),
-            TestingAgent(),
-            InfrastructureAgent(),
-            GeneralAgent(),
-        ]
-        for agent in agents_to_register:
-            # In a real system, this would register with the TaskRouter
-            self.active_agents[agent.agent_id] = agent
-        self.logger.info(f"Registered {len(agents_to_register)} agents.")
-
     async def submit_todo_scanning_job(self, root_directory: str) -> str:
         """Submit a job to scan for TODOs in the codebase."""
         job = Job(
@@ -842,34 +767,16 @@ class Taskmaster:
         )
         return await self.submit_job(job)
 
-    async def _job_processor(self):
-        """Main loop for processing jobs from the queue."""
-        while self.status == TaskmasterStatus.RUNNING:
-            if self.job_queue:
-                job = self.job_queue.pop(0)
-                job.status = JobStatus.RUNNING
-                await self._execute_job(job)
-            else:
-                await asyncio.sleep(1)
-
-    async def _execute_job(self, job: Job):
-        """Execute a job."""
-        self.logger.info(f"Executing job {job.id} of type {job.job_type.value}")
-        try:
-            if job.job_type == JobType.TODO_SCANNING:
-                await self.todo_scanner.scan_and_process_todos(job.data["root_directory"])
-                job.status = JobStatus.COMPLETED
-                self.metrics["jobs_completed"] += 1
-            else:
-                # Simulate execution for other job types
-                await asyncio.sleep(2)
-                job.status = JobStatus.COMPLETED
-                self.metrics["jobs_completed"] += 1
-            self.logger.info(f"Job {job.id} completed successfully.")
-        except Exception as e:
-            self.logger.error(f"Job {job.id} failed: {e}")
-            job.status = JobStatus.FAILED
-            self.metrics["jobs_failed"] += 1
+    async def _register_agents(self):
+        """Register all available agents."""
+        agents_to_register = [
+            FraudAgent(),
+            ReconciliationAgent(),
+        ]
+        for agent in agents_to_register:
+            await self.task_router.register_agent(agent)
+            self.active_agents[agent.agent_id] = agent
+        self.logger.info(f"Registered {len(agents_to_register)} agents.")
 
     def __repr__(self) -> str:
         """String representation of the Taskmaster."""
