@@ -2,6 +2,8 @@ import pytest
 import asyncio
 import tempfile
 from pathlib import Path
+import sys
+sys.path.insert(0, 'Desktop/Nexus/forensic_reconciliation_app/ai_service')
 from taskmaster.core.taskmaster import Taskmaster, TaskmasterStatus
 from taskmaster.models.job import JobType
 
