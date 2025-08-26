@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const successfulCommandsElement = document.getElementById('successfulCommands'); // New
     const failedCommandsElement = document.getElementById('failedCommands'); // New
     const avgResponseTimeElement = document.getElementById('avgResponseTime'); // New
+    const totalCommandsElement = document.getElementById('totalCommands'); // New
+    const successfulCommandsElement = document.getElementById('successfulCommands'); // New
+    const failedCommandsElement = document.getElementById('failedCommands'); // New
+    const avgResponseTimeElement = document.getElementById('avgResponseTime'); // New
 
     const appModeButtons = document.getElementById('appModeButtons');
     const thinkingPerspectiveButtons = document.getElementById('thinkingPerspectiveButtons');

@@ -182,6 +182,21 @@ class FrenlyMetaAgent:
         self.context_file = self.state_dir / "frenly_state.json"
         self.modes_file = self.state_dir / "frenly_modes.json"
         
+        # User integration service
+        try:
+            from ..frenly_user_integration import FrenlyUserIntegration
+            self.user_integration = FrenlyUserIntegration(self)
+            logger.info("User integration service initialized")
+        except ImportError as e:
+            try:
+                # Try relative import from current directory
+                from frenly_user_integration import FrenlyUserIntegration
+                self.user_integration = FrenlyUserIntegration(self)
+                logger.info("User integration service initialized")
+            except ImportError:
+                self.user_integration = None
+                logger.warning(f"User integration service not available: {e}")
+        
         # Load saved state on startup
         self._load_context_from_file()
         self._load_modes_from_file()
@@ -968,7 +983,7 @@ class FrenlyMetaAgent:
         else:
             logger.info(f"No existing modes file found at {self.modes_file}. Using default mode intersections.")
     
-    def manage_app(self, command: AppCommand) -> AppResponse:
+    async def manage_app(self, command: AppCommand) -> AppResponse:
         """
         Main method for managing the app based on commands.
         
@@ -1005,7 +1020,7 @@ class FrenlyMetaAgent:
                 message=f"App management error: {str(e)}"
             )
     
-    def _switch_app_mode(self, new_mode: str) -> AppResponse:
+    async def _switch_app_mode(self, new_mode: str) -> AppResponse:
         """Switch the app mode (what the app calculates)."""
         try:
             old_mode = self.app_context.app_mode
@@ -1050,7 +1065,7 @@ class FrenlyMetaAgent:
                 message=f"Invalid app mode: {new_mode}. Valid modes: {[mode.value for mode in AppMode]}"
             )
     
-    def _change_thinking_perspective(self, new_perspective: str) -> AppResponse:
+    async def _change_thinking_perspective(self, new_perspective: str) -> AppResponse:
         """Change the thinking perspective (how to assess data)."""
         try:
             old_perspective = self.app_context.thinking_perspective
@@ -1099,7 +1114,7 @@ class FrenlyMetaAgent:
                 message=f"Invalid thinking perspective: {new_perspective}. Valid perspectives: {[p.value for p in ThinkingPerspective]}"
             )
     
-    def _change_ai_mode(self, new_ai_mode: str) -> AppResponse:
+    async def _change_ai_mode(self, new_ai_mode: str) -> AppResponse:
         """Change the AI mode (how to produce final results)."""
         try:
             old_ai_mode = self.app_context.ai_mode
@@ -1137,7 +1152,7 @@ class FrenlyMetaAgent:
                 message=f"Invalid AI mode: {new_ai_mode}. Valid modes: {[mode.value for mode in AIMode]}"
             )
     
-    def _change_dashboard_view(self, new_view: str) -> AppResponse:
+    async def _change_dashboard_view(self, new_view: str) -> AppResponse:
         """Change the dashboard view."""
         try:
             old_view = self.app_context.dashboard_view
@@ -1172,7 +1187,7 @@ class FrenlyMetaAgent:
                 message=f"Invalid dashboard view: {new_view}. Valid views: {[view.value for view in DashboardView]}"
             )
     
-    def _change_user_role(self, new_role: str) -> AppResponse:
+    async def _change_user_role(self, new_role: str) -> AppResponse:
         """Change the user role."""
         try:
             old_role = self.app_context.user_role
@@ -1549,22 +1564,22 @@ class FrenlyMetaAgent:
                 # In a real system, this would call the actual agent method
                 agent = self.get_ai_agent(step["agent"])
                 if agent:
-                    logger.info(f"Calling agent {step["agent"]} for step {step["name"]}.")
+                    logger.info(f"Calling agent {step['agent']} for step {step['name']}.")
                     # await agent.execute_step(step["name"], workflow_id) # Example call
                     await asyncio.sleep(2) # Simulate work
                     step["status"] = "completed"
-                    logger.info(f"Workflow {workflow_id}: Step '{step["name"]}' completed.")
+                    logger.info(f"Workflow {workflow_id}: Step '{step['name']}' completed.")
                 else:
                     step["status"] = "failed"
                     workflow_instance["status"] = "failed"
-                    workflow_instance["message"] = f"Step '{step["name"]}' failed: Agent '{step["agent"]}' not found or not available."
+                    workflow_instance["message"] = f"Step '{step['name']}' failed: Agent '{step['agent']}' not found or not available."
                     logger.error(workflow_instance["message"])
                     break # Stop workflow on agent failure
 
             except Exception as e:
                 step["status"] = "failed"
                 workflow_instance["status"] = "failed"
-                workflow_instance["message"] = f"Step '{step["name"]}' failed: {str(e)}"
+                workflow_instance["message"] = f"Step '{step['name']}' failed: {str(e)}"
                 logger.error(workflow_instance["message"])
                 break # Stop workflow on step failure
             
@@ -1573,7 +1588,7 @@ class FrenlyMetaAgent:
         if workflow_instance["status"] == "running": # If not already failed
             workflow_instance["status"] = "completed"
             workflow_instance["message"] = "Workflow completed successfully."
-            logger.info(f"Workflow '{workflow_instance["name"]}' (ID: {workflow_id}) completed successfully.")
+            logger.info(f"Workflow '{workflow_instance['name']}' (ID: {workflow_id}) completed successfully.")
         
         workflow_instance["end_time"] = datetime.now()
         await self._notify_state_change() # Final notification
@@ -1584,7 +1599,7 @@ class FrenlyMetaAgent:
             return self.workflow_status.get(workflow_id, {"error": "Workflow not found"})
         return self.workflow_status.copy()
 
-    def get_overall_system_health(self) -> Dict[str, Any>:
+    def get_overall_system_health(self) -> Dict[str, Any]:
         """Get the overall system health status including agent health."""
         # Count agent statuses
         agent_statuses = {}
@@ -1806,7 +1821,7 @@ class FrenlyMetaAgent:
         # Return most recent events up to limit
         return events[-limit:] if limit > 0 else events
     
-    def get_event_summary(self) -> Dict[str, Any>:
+    def get_event_summary(self) -> Dict[str, Any]:
         """Get a summary of events by type and severity."""
         if not hasattr(self, 'event_log'):
             return {"total_events": 0, "by_type": {}, "by_severity": {}}
@@ -2149,35 +2164,41 @@ class FrenlyMetaAgent:
 
 # Example usage
 if __name__ == "__main__":
-    # Initialize Frenly
-    frenly = FrenlyMetaAgent()
+    import asyncio
     
-    # Test mode switching
-    response = frenly.manage_app(AppCommand(
-        command_type="switch_app_mode",
-        target_mode="construction"
-    ))
-    print(f"Mode switch response: {response.message}")
+    async def main():
+        # Initialize Frenly
+        frenly = FrenlyMetaAgent()
+        
+        # Test mode switching
+        response = await frenly.manage_app(AppCommand(
+            command_type="switch_app_mode",
+            target_mode="construction"
+        ))
+        print(f"Mode switch response: {response.message}")
+        
+        # Test AI mode change
+        response = await frenly.manage_app(AppCommand(
+            command_type="change_ai_mode",
+            target_ai_mode="extreme"
+        ))
+        print(f"AI mode change response: {response.message}")
+        
+        # Test thinking perspective change
+        response = await frenly.manage_app(AppCommand(
+            command_type="change_thinking_perspective",
+            target_perspective="investigation"
+        ))
+        print(f"Thinking perspective change response: {response.message}")
+        
+        # Get current status
+        response = await frenly.manage_app(AppCommand(command_type="get_status"))
+        print(f"Status response: {response.message}")
+        
+        # Get mode intersection
+        response = await frenly.manage_app(AppCommand(command_type="get_mode_intersection"))
+        print(f"Mode intersection response: {response.message}")
     
-    # Test AI mode change
-    response = frenly.manage_app(AppCommand(
-        command_type="change_ai_mode",
-        target_ai_mode="extreme"
-    ))
-    print(f"AI mode change response: {response.message}")
-    
-    # Test thinking perspective change
-    response = frenly.manage_app(AppCommand(
-        command_type="change_thinking_perspective",
-        target_perspective="investigation"
-    ))
-    print(f"Thinking perspective change response: {response.message}")
-    
-    # Get current status
-    response = frenly.manage_app(AppCommand(command_type="get_status"))
-    print(f"Status response: {response.message}")
-    
-    # Get mode intersection
-    response = frenly.manage_app(AppCommand(command_type="get_mode_intersection"))
-    print(f"Mode intersection response: {response.message}")
+    # Run the async main function
+    asyncio.run(main())
       

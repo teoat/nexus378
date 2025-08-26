@@ -7,6 +7,7 @@ through Frenly's intelligent orchestration system.
 
 from typing import Dict, List, Any, Optional
 from fastapi import WebSocket, WebSocketDisconnect, APIRouter, HTTPException
+from pydantic import BaseModel
 import logging # Added for WebSocket logging
 
 logger = logging.getLogger(__name__)
@@ -895,3 +896,269 @@ async def get_websocket_status():
         "active_connections": len(connection_manager.active_connections),
         "heartbeat_running": connection_manager.heartbeat_running
     }
+
+
+# User Integration Endpoints
+@frenly_router.get("/users/profile/{user_id}")
+async def get_user_profile(user_id: str):
+    """
+    Get user profile from main platform.
+    
+    Returns user profile information including permissions,
+    preferences, and status.
+    """
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        
+        if not frenly_agent.user_integration:
+            raise HTTPException(status_code=503, detail="User integration service not available")
+        
+        profile = frenly_agent.user_integration.get_user_profile(user_id)
+        if not profile:
+            raise HTTPException(status_code=404, detail="User profile not found")
+        
+        return {
+            "success": True,
+            "message": "User profile retrieved successfully",
+            "profile": {
+                "id": profile.id,
+                "username": profile.username,
+                "email": profile.email,
+                "role": profile.role,
+                "permissions": profile.permissions,
+                "status": profile.status,
+                "created_at": profile.created_at.isoformat(),
+                "last_login": profile.last_login.isoformat() if profile.last_login else None,
+                "preferences": profile.preferences
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting user profile: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@frenly_router.post("/users/sessions")
+async def create_user_session(user_id: str, token: str, expires_in: int = 3600):
+    """
+    Create a new user session.
+    
+    Creates a session for the user with the specified token
+    and expiration time.
+    """
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        
+        if not frenly_agent.user_integration:
+            raise HTTPException(status_code=503, detail="User integration service not available")
+        
+        session = frenly_agent.user_integration.create_user_session(user_id, token, expires_in)
+        if not session:
+            raise HTTPException(status_code=400, detail="Failed to create user session")
+        
+        return {
+            "success": True,
+            "message": "User session created successfully",
+            "session": {
+                "session_id": session.session_id,
+                "user_id": session.user_id,
+                "username": session.username,
+                "role": session.role,
+                "created_at": session.created_at.isoformat(),
+                "expires_at": session.expires_at.isoformat(),
+                "is_active": session.is_active
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating user session: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@frenly_router.get("/users/sessions/{session_id}")
+async def validate_user_session(session_id: str):
+    """
+    Validate a user session.
+    
+    Returns session information if valid, or error if expired/invalid.
+    """
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        
+        if not frenly_agent.user_integration:
+            raise HTTPException(status_code=503, detail="User integration service not available")
+        
+        session = frenly_agent.user_integration.validate_session(session_id)
+        if not session:
+            raise HTTPException(status_code=401, detail="Invalid or expired session")
+        
+        return {
+            "success": True,
+            "message": "Session is valid",
+            "session": {
+                "session_id": session.session_id,
+                "user_id": session.user_id,
+                "username": session.username,
+                "role": session.role,
+                "created_at": session.created_at.isoformat(),
+                "last_activity": session.last_activity.isoformat(),
+                "expires_at": session.expires_at.isoformat(),
+                "is_active": session.is_active
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error validating user session: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@frenly_router.delete("/users/sessions/{session_id}")
+async def invalidate_user_session(session_id: str):
+    """
+    Invalidate a user session.
+    
+    Marks the session as inactive and logs the action.
+    """
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        
+        if not frenly_agent.user_integration:
+            raise HTTPException(status_code=503, detail="User integration service not available")
+        
+        success = frenly_agent.user_integration.invalidate_session(session_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        return {
+            "success": True,
+            "message": "Session invalidated successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error invalidating user session: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@frenly_router.get("/users/{user_id}/analytics")
+async def get_user_analytics(user_id: str):
+    """
+    Get analytics for a specific user.
+    
+    Returns user activity analytics including Frenly usage patterns.
+    """
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        
+        if not frenly_agent.user_integration:
+            raise HTTPException(status_code=503, detail="User integration service not available")
+        
+        analytics = frenly_agent.user_integration.get_user_analytics(user_id)
+        
+        return {
+            "success": True,
+            "message": "User analytics retrieved successfully",
+            "analytics": analytics
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting user analytics: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@frenly_router.get("/users/{user_id}/cross-platform")
+async def get_cross_platform_user_summary(user_id: str):
+    """
+    Get comprehensive user summary across platforms.
+    
+    Returns user information from both main platform and Frenly,
+    including cross-platform analytics.
+    """
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        
+        if not frenly_agent.user_integration:
+            raise HTTPException(status_code=503, detail="User integration service not available")
+        
+        user_summary = frenly_agent.user_integration.get_cross_platform_user_summary(user_id)
+        
+        if "error" in user_summary:
+            raise HTTPException(status_code=404, detail=user_summary["error"])
+        
+        return {
+            "success": True,
+            "message": "Cross-platform user summary retrieved successfully",
+            "user_summary": user_summary
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting cross-platform user summary: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@frenly_router.post("/users/{user_id}/sync-preferences")
+async def sync_user_preferences(user_id: str):
+    """
+    Synchronize user preferences with main platform.
+    
+    Updates Frenly context based on user preferences from main platform.
+    """
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        
+        if not frenly_agent.user_integration:
+            raise HTTPException(status_code=503, detail="User integration service not available")
+        
+        success = frenly_agent.user_integration.sync_user_preferences(user_id)
+        if not success:
+            raise HTTPException(status_code=400, detail="Failed to synchronize user preferences")
+        
+        return {
+            "success": True,
+            "message": "User preferences synchronized successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error synchronizing user preferences: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@frenly_router.get("/users/integration/status")
+async def get_user_integration_status():
+    """
+    Get the status of the user integration service.
+    
+    Returns connection status, cache information, and service metrics.
+    """
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        
+        if not frenly_agent.user_integration:
+            raise HTTPException(status_code=503, detail="User integration service not available")
+        
+        status = frenly_agent.user_integration.get_integration_status()
+        
+        return {
+            "success": True,
+            "message": "User integration status retrieved successfully",
+            "status": status
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting user integration status: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
