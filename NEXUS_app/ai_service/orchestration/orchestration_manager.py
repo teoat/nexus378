@@ -1,14 +1,20 @@
+#!/usr/bin/env python3
+"""
 Orchestration Manager - Main Coordination Hub
 
 This module implements the OrchestrationManager class that provides
 the main coordination hub for all orchestration components in the
 forensic platform.
+"""
 
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
-from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
+# from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 from .agent_communication import AgentCommunication
 from .agent_coordinator import AgentCoordinator
 from .multi_agent_orchestrator import MultiAgentOrchestrator
@@ -63,7 +69,7 @@ class SystemMetrics:
     last_updated: datetime
 
 class OrchestrationManager:
-
+    """
     Main orchestration manager and coordination hub.
 
     The OrchestrationManager is responsible for:
@@ -72,6 +78,7 @@ class OrchestrationManager:
     - Monitoring overall system health and performance
     - Providing unified interface for orchestration operations
     - Managing system configuration and scaling
+    """
 
     def __init__(self, config: OrchestrationConfig):
         """Initialize the OrchestrationManager."""

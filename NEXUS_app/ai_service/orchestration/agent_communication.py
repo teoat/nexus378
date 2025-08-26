@@ -1,16 +1,23 @@
+#!/usr/bin/env python3
+"""
 Agent Communication - Inter-Agent Messaging System
 
 This module implements the AgentCommunication class that provides
 comprehensive communication and messaging capabilities between
 different AI agents in the forensic platform.
+"""
 
 import asyncio
 import json
 import logging
 import uuid
 from datetime import datetime, timedelta
+from collections import deque
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
-from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
+# from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 class MessageType(Enum):
     """Types of inter-agent messages."""
@@ -83,7 +90,7 @@ class CommunicationChannel:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 class AgentCommunication:
-
+    """
     Comprehensive agent communication system.
 
     The AgentCommunication is responsible for:
@@ -92,6 +99,7 @@ class AgentCommunication:
     - Managing communication channels
     - Message queuing and prioritization
     - Data exchange between agents
+    """
 
     def __init__(self, config: Dict[str, Any]):
         """Initialize the AgentCommunication."""

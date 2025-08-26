@@ -1,0 +1,1392 @@
+{
+  "system_info": {
+    "total_runtime_seconds": 285.041902,
+    "total_cycles": 6,
+    "successful_cycles": 6,
+    "failed_cycles": 0
+  },
+  "system_stats": {
+    "total_tasks_processed": 1016,
+    "total_tasks_completed": 840,
+    "total_tasks_failed": 176,
+    "successful_cycles": 6,
+    "total_scale_up_events": 0,
+    "total_scale_down_events": 0,
+    "failed_cycles": 0
+  },
+  "cycle_reports": [
+    {
+      "cycle_id": "cycle-1756126039",
+      "cycle_start": "2025-08-25T21:47:19.644118",
+      "cycle_end": "2025-08-25T21:48:04.646706",
+      "duration_seconds": 45.002588,
+      "final_stats": {
+        "scheduler": {
+          "queue_stats": {
+            "tasks_queued_critical": 9,
+            "total_queued": 48,
+            "tasks_queued_medium": 17,
+            "tasks_queued_high": 13,
+            "tasks_queued_low": 9,
+            "tasks_dequeued": 48,
+            "current_size": 0,
+            "queue_sizes": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0
+            },
+            "avg_wait_time": 0.0005856666666666666,
+            "max_wait_time": 0.000998,
+            "min_wait_time": 1.5e-05
+          },
+          "active_tasks": 0,
+          "completed_tasks": 40,
+          "failed_tasks": 8,
+          "success_rate": 83.33333333333334,
+          "worker_loads": {
+            "worker-001": 0.0,
+            "worker-002": 0.0,
+            "worker-003": 0.0,
+            "worker-004": 0.0,
+            "worker-005": 0.0
+          },
+          "worker_performance": {
+            "worker-005": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 18.476078987121582,
+              "avg_execution_time": 2.052897665235731,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:28.429014"
+            },
+            "worker-004": {
+              "success_rate": 0.8648648648648649,
+              "total_tasks": 37,
+              "successful_tasks": 32,
+              "total_execution_time": 150.68776726722717,
+              "avg_execution_time": 4.072642358573708,
+              "efficiency": 1.7297297297297298,
+              "last_activity": "2025-08-25 21:51:24.902551"
+            },
+            "worker-002": {
+              "success_rate": 0.8,
+              "total_tasks": 10,
+              "successful_tasks": 8,
+              "total_execution_time": 39.317121267318726,
+              "avg_execution_time": 3.9317121267318726,
+              "efficiency": 1.6,
+              "last_activity": "2025-08-25 21:47:32.275469"
+            },
+            "worker-003": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 38,
+              "successful_tasks": 32,
+              "total_execution_time": 208.64560461044312,
+              "avg_execution_time": 5.490673805537977,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:36.582477"
+            },
+            "worker-001": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 46.427565813064575,
+              "avg_execution_time": 5.1586184236738415,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:34.014470"
+            }
+          },
+          "scheduling_stats": {
+            "tasks_added": 40,
+            "tasks_assigned": 48,
+            "tasks_completed": 40,
+            "tasks_failed": 8,
+            "tasks_retried": 8
+          },
+          "performance_summary": {
+            "avg_task_duration": 4.065940265854199,
+            "recent_success_rate": 83.33333333333334,
+            "task_throughput": 3.3627225947215904
+          },
+          "worker_recommendations": {
+            "worker-005": "High performer - consider additional load",
+            "worker-004": "High performer - consider additional load",
+            "worker-002": "High performer - consider additional load",
+            "worker-003": "High performer - consider additional load",
+            "worker-001": "High performer - consider additional load"
+          }
+        },
+        "system_metrics": {
+          "total_workers": 25,
+          "active_workers": 0,
+          "healthy_workers": 25,
+          "avg_worker_load": 0.0,
+          "queue_size": 0,
+          "active_tasks": 0,
+          "total_capacity": 200,
+          "utilization_rate": 0.0,
+          "queue_pressure": 0.0,
+          "health_factor": 1.0,
+          "avg_success_rate": 1.0,
+          "system_efficiency": 0.6
+        },
+        "worker_count": 25
+      },
+      "performance_analysis": {
+        "peak_utilization": 0.2,
+        "avg_utilization": 0.043260869565217394,
+        "min_utilization": 0.0,
+        "peak_queue_size": 0,
+        "avg_queue_size": 0,
+        "worker_count_range": [
+          25,
+          25
+        ],
+        "performance_stability": 0.07395650895892332,
+        "monitoring_data_points": 23
+      },
+      "worker_performance": {
+        "avg_success_rate": 0.2,
+        "success_rate_range": [
+          0,
+          1.0
+        ],
+        "health_distribution": {
+          "healthy": 25
+        },
+        "avg_load": 0.0,
+        "load_balance_stdev": 0.0,
+        "total_workers": 25
+      },
+      "scaling_analysis": {
+        "total_scaling_events": 0,
+        "scale_up_events": 0,
+        "scale_down_events": 0,
+        "scaling_efficiency": "N/A",
+        "final_worker_count": 25,
+        "initial_worker_count": 25
+      },
+      "scaling_events": {}
+    },
+    {
+      "cycle_id": "cycle-1756126087",
+      "cycle_start": "2025-08-25T21:48:07.651086",
+      "cycle_end": "2025-08-25T21:48:52.654138",
+      "duration_seconds": 45.003052,
+      "final_stats": {
+        "scheduler": {
+          "queue_stats": {
+            "tasks_queued_critical": 16,
+            "total_queued": 98,
+            "tasks_queued_medium": 36,
+            "tasks_queued_high": 26,
+            "tasks_queued_low": 20,
+            "tasks_dequeued": 98,
+            "current_size": 0,
+            "queue_sizes": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0
+            },
+            "avg_wait_time": 0.012732255102040816,
+            "max_wait_time": 0.030908,
+            "min_wait_time": 1.5e-05
+          },
+          "active_tasks": 0,
+          "completed_tasks": 80,
+          "failed_tasks": 18,
+          "success_rate": 81.63265306122449,
+          "worker_loads": {
+            "worker-001": 0.0,
+            "worker-002": 0.0,
+            "worker-003": 0.0,
+            "worker-004": 0.0,
+            "worker-005": 0.0,
+            "worker-006": 0.0,
+            "worker-007": 0.0,
+            "worker-008": 0.0,
+            "worker-009": 0.0
+          },
+          "worker_performance": {
+            "worker-005": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 18.476078987121582,
+              "avg_execution_time": 2.052897665235731,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:28.429014"
+            },
+            "worker-004": {
+              "success_rate": 0.8648648648648649,
+              "total_tasks": 37,
+              "successful_tasks": 32,
+              "total_execution_time": 150.68776726722717,
+              "avg_execution_time": 4.072642358573708,
+              "efficiency": 1.7297297297297298,
+              "last_activity": "2025-08-25 21:51:24.902551"
+            },
+            "worker-002": {
+              "success_rate": 0.8,
+              "total_tasks": 10,
+              "successful_tasks": 8,
+              "total_execution_time": 39.317121267318726,
+              "avg_execution_time": 3.9317121267318726,
+              "efficiency": 1.6,
+              "last_activity": "2025-08-25 21:47:32.275469"
+            },
+            "worker-003": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 38,
+              "successful_tasks": 32,
+              "total_execution_time": 208.64560461044312,
+              "avg_execution_time": 5.490673805537977,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:36.582477"
+            },
+            "worker-001": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 46.427565813064575,
+              "avg_execution_time": 5.1586184236738415,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:34.014470"
+            },
+            "worker-008": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 16.38960289955139,
+              "avg_execution_time": 1.8210669888390436,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:48:12.891343"
+            },
+            "worker-007": {
+              "success_rate": 0.6153846153846154,
+              "total_tasks": 13,
+              "successful_tasks": 8,
+              "total_execution_time": 41.1170334815979,
+              "avg_execution_time": 3.1628487293536844,
+              "efficiency": 1.2307692307692308,
+              "last_activity": "2025-08-25 21:48:21.899606"
+            },
+            "worker-009": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 38,
+              "successful_tasks": 32,
+              "total_execution_time": 136.48299884796143,
+              "avg_execution_time": 3.5916578644200374,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:34.266453"
+            },
+            "worker-006": {
+              "success_rate": 0.9142857142857143,
+              "total_tasks": 35,
+              "successful_tasks": 32,
+              "total_execution_time": 180.34335088729858,
+              "avg_execution_time": 5.152667168208531,
+              "efficiency": 1.8285714285714285,
+              "last_activity": "2025-08-25 21:50:47.404223"
+            }
+          },
+          "scheduling_stats": {
+            "tasks_added": 80,
+            "tasks_assigned": 98,
+            "tasks_completed": 80,
+            "tasks_failed": 18,
+            "tasks_retried": 18
+          },
+          "performance_summary": {
+            "avg_task_duration": 3.740283618167955,
+            "recent_success_rate": 81.63265306122449,
+            "task_throughput": 1.4948554777537515
+          },
+          "worker_recommendations": {
+            "worker-005": "High performer - consider additional load",
+            "worker-004": "High performer - consider additional load",
+            "worker-002": "High performer - consider additional load",
+            "worker-003": "High performer - consider additional load",
+            "worker-001": "High performer - consider additional load",
+            "worker-008": "High performer - consider additional load",
+            "worker-007": "Consider worker restart - low success rate",
+            "worker-009": "High performer - consider additional load"
+          }
+        },
+        "system_metrics": {
+          "total_workers": 25,
+          "active_workers": 0,
+          "healthy_workers": 25,
+          "avg_worker_load": 0.0,
+          "queue_size": 0,
+          "active_tasks": 0,
+          "total_capacity": 200,
+          "utilization_rate": 0.0,
+          "queue_pressure": 0.0,
+          "health_factor": 1.0,
+          "avg_success_rate": 1.0,
+          "system_efficiency": 0.6
+        },
+        "worker_count": 25
+      },
+      "performance_analysis": {
+        "peak_utilization": 0.2,
+        "avg_utilization": 0.03967391304347826,
+        "min_utilization": 0.0,
+        "peak_queue_size": 40,
+        "avg_queue_size": 0.8695652173913043,
+        "worker_count_range": [
+          25,
+          25
+        ],
+        "performance_stability": 0.06612616034615652,
+        "monitoring_data_points": 46
+      },
+      "worker_performance": {
+        "avg_success_rate": 0.36,
+        "success_rate_range": [
+          0,
+          1.0
+        ],
+        "health_distribution": {
+          "healthy": 25
+        },
+        "avg_load": 0.0,
+        "load_balance_stdev": 0.0,
+        "total_workers": 25
+      },
+      "scaling_analysis": {
+        "total_scaling_events": 0,
+        "scale_up_events": 0,
+        "scale_down_events": 0,
+        "scaling_efficiency": "N/A",
+        "final_worker_count": 25,
+        "initial_worker_count": 25
+      },
+      "scaling_events": {}
+    },
+    {
+      "cycle_id": "cycle-1756126135",
+      "cycle_start": "2025-08-25T21:48:55.657468",
+      "cycle_end": "2025-08-25T21:49:40.660578",
+      "duration_seconds": 45.00311,
+      "final_stats": {
+        "scheduler": {
+          "queue_stats": {
+            "tasks_queued_critical": 24,
+            "total_queued": 148,
+            "tasks_queued_medium": 48,
+            "tasks_queued_high": 46,
+            "tasks_queued_low": 30,
+            "tasks_dequeued": 148,
+            "current_size": 0,
+            "queue_sizes": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0
+            },
+            "avg_wait_time": 0.04488125,
+            "max_wait_time": 0.095852,
+            "min_wait_time": 1.3e-05
+          },
+          "active_tasks": 0,
+          "completed_tasks": 120,
+          "failed_tasks": 28,
+          "success_rate": 81.08108108108108,
+          "worker_loads": {
+            "worker-001": 0.0,
+            "worker-002": 0.0,
+            "worker-003": 0.0,
+            "worker-004": 0.0,
+            "worker-005": 0.0,
+            "worker-006": 0.0,
+            "worker-007": 0.0,
+            "worker-008": 0.0,
+            "worker-009": 0.0,
+            "worker-010": 0.0,
+            "worker-011": 0.0
+          },
+          "worker_performance": {
+            "worker-005": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 18.476078987121582,
+              "avg_execution_time": 2.052897665235731,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:28.429014"
+            },
+            "worker-004": {
+              "success_rate": 0.8648648648648649,
+              "total_tasks": 37,
+              "successful_tasks": 32,
+              "total_execution_time": 150.68776726722717,
+              "avg_execution_time": 4.072642358573708,
+              "efficiency": 1.7297297297297298,
+              "last_activity": "2025-08-25 21:51:24.902551"
+            },
+            "worker-002": {
+              "success_rate": 0.8,
+              "total_tasks": 10,
+              "successful_tasks": 8,
+              "total_execution_time": 39.317121267318726,
+              "avg_execution_time": 3.9317121267318726,
+              "efficiency": 1.6,
+              "last_activity": "2025-08-25 21:47:32.275469"
+            },
+            "worker-003": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 38,
+              "successful_tasks": 32,
+              "total_execution_time": 208.64560461044312,
+              "avg_execution_time": 5.490673805537977,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:36.582477"
+            },
+            "worker-001": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 46.427565813064575,
+              "avg_execution_time": 5.1586184236738415,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:34.014470"
+            },
+            "worker-008": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 16.38960289955139,
+              "avg_execution_time": 1.8210669888390436,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:48:12.891343"
+            },
+            "worker-007": {
+              "success_rate": 0.6153846153846154,
+              "total_tasks": 13,
+              "successful_tasks": 8,
+              "total_execution_time": 41.1170334815979,
+              "avg_execution_time": 3.1628487293536844,
+              "efficiency": 1.2307692307692308,
+              "last_activity": "2025-08-25 21:48:21.899606"
+            },
+            "worker-009": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 38,
+              "successful_tasks": 32,
+              "total_execution_time": 136.48299884796143,
+              "avg_execution_time": 3.5916578644200374,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:34.266453"
+            },
+            "worker-006": {
+              "success_rate": 0.9142857142857143,
+              "total_tasks": 35,
+              "successful_tasks": 32,
+              "total_execution_time": 180.34335088729858,
+              "avg_execution_time": 5.152667168208531,
+              "efficiency": 1.8285714285714285,
+              "last_activity": "2025-08-25 21:50:47.404223"
+            },
+            "worker-011": {
+              "success_rate": 0.7619047619047619,
+              "total_tasks": 21,
+              "successful_tasks": 16,
+              "total_execution_time": 47.28987169265747,
+              "avg_execution_time": 2.2518986520313082,
+              "efficiency": 1.5238095238095237,
+              "last_activity": "2025-08-25 21:51:27.518498"
+            },
+            "worker-010": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 19,
+              "successful_tasks": 16,
+              "total_execution_time": 59.785675048828125,
+              "avg_execution_time": 3.1466144762541117,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:50:45.427061"
+            }
+          },
+          "scheduling_stats": {
+            "tasks_added": 120,
+            "tasks_assigned": 148,
+            "tasks_completed": 120,
+            "tasks_failed": 28,
+            "tasks_retried": 28
+          },
+          "performance_summary": {
+            "avg_task_duration": 3.7305512475967406,
+            "recent_success_rate": 80.0,
+            "task_throughput": 1.3293130652438552
+          },
+          "worker_recommendations": {
+            "worker-005": "High performer - consider additional load",
+            "worker-004": "High performer - consider additional load",
+            "worker-002": "High performer - consider additional load",
+            "worker-003": "High performer - consider additional load",
+            "worker-001": "High performer - consider additional load",
+            "worker-008": "High performer - consider additional load",
+            "worker-007": "Consider worker restart - low success rate",
+            "worker-009": "High performer - consider additional load",
+            "worker-006": "High performer - consider additional load",
+            "worker-011": "Consider worker restart - low success rate",
+            "worker-010": "High performer - consider additional load"
+          }
+        },
+        "system_metrics": {
+          "total_workers": 25,
+          "active_workers": 0,
+          "healthy_workers": 25,
+          "avg_worker_load": 0.0,
+          "queue_size": 0,
+          "active_tasks": 0,
+          "total_capacity": 200,
+          "utilization_rate": 0.0,
+          "queue_pressure": 0.0,
+          "health_factor": 1.0,
+          "avg_success_rate": 1.0,
+          "system_efficiency": 0.6
+        },
+        "worker_count": 25
+      },
+      "performance_analysis": {
+        "peak_utilization": 0.2,
+        "avg_utilization": 0.03934782608695652,
+        "min_utilization": 0.0,
+        "peak_queue_size": 40,
+        "avg_queue_size": 1.1594202898550725,
+        "worker_count_range": [
+          25,
+          25
+        ],
+        "performance_stability": 0.06565794295548544,
+        "monitoring_data_points": 69
+      },
+      "worker_performance": {
+        "avg_success_rate": 0.44,
+        "success_rate_range": [
+          0,
+          1.0
+        ],
+        "health_distribution": {
+          "healthy": 25
+        },
+        "avg_load": 0.0,
+        "load_balance_stdev": 0.0,
+        "total_workers": 25
+      },
+      "scaling_analysis": {
+        "total_scaling_events": 0,
+        "scale_up_events": 0,
+        "scale_down_events": 0,
+        "scaling_efficiency": "N/A",
+        "final_worker_count": 25,
+        "initial_worker_count": 25
+      },
+      "scaling_events": {}
+    },
+    {
+      "cycle_id": "cycle-1756126183",
+      "cycle_start": "2025-08-25T21:49:43.664487",
+      "cycle_end": "2025-08-25T21:50:28.666868",
+      "duration_seconds": 45.002381,
+      "final_stats": {
+        "scheduler": {
+          "queue_stats": {
+            "tasks_queued_critical": 28,
+            "total_queued": 195,
+            "tasks_queued_medium": 72,
+            "tasks_queued_high": 57,
+            "tasks_queued_low": 38,
+            "tasks_dequeued": 195,
+            "current_size": 0,
+            "queue_sizes": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0
+            },
+            "avg_wait_time": 0.06622533,
+            "max_wait_time": 0.095852,
+            "min_wait_time": 1.3e-05
+          },
+          "active_tasks": 0,
+          "completed_tasks": 160,
+          "failed_tasks": 35,
+          "success_rate": 82.05128205128204,
+          "worker_loads": {
+            "worker-001": 0.0,
+            "worker-002": 0.0,
+            "worker-003": 0.0,
+            "worker-004": 0.0,
+            "worker-005": 0.0,
+            "worker-006": 0.0,
+            "worker-007": 0.0,
+            "worker-008": 0.0,
+            "worker-009": 0.0,
+            "worker-010": 0.0,
+            "worker-011": 0.0,
+            "worker-012": 0.0,
+            "worker-013": 0.0,
+            "worker-014": 0.0,
+            "worker-015": 0.0
+          },
+          "worker_performance": {
+            "worker-005": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 18.476078987121582,
+              "avg_execution_time": 2.052897665235731,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:28.429014"
+            },
+            "worker-004": {
+              "success_rate": 0.8648648648648649,
+              "total_tasks": 37,
+              "successful_tasks": 32,
+              "total_execution_time": 150.68776726722717,
+              "avg_execution_time": 4.072642358573708,
+              "efficiency": 1.7297297297297298,
+              "last_activity": "2025-08-25 21:51:24.902551"
+            },
+            "worker-002": {
+              "success_rate": 0.8,
+              "total_tasks": 10,
+              "successful_tasks": 8,
+              "total_execution_time": 39.317121267318726,
+              "avg_execution_time": 3.9317121267318726,
+              "efficiency": 1.6,
+              "last_activity": "2025-08-25 21:47:32.275469"
+            },
+            "worker-003": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 38,
+              "successful_tasks": 32,
+              "total_execution_time": 208.64560461044312,
+              "avg_execution_time": 5.490673805537977,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:36.582477"
+            },
+            "worker-001": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 46.427565813064575,
+              "avg_execution_time": 5.1586184236738415,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:34.014470"
+            },
+            "worker-008": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 16.38960289955139,
+              "avg_execution_time": 1.8210669888390436,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:48:12.891343"
+            },
+            "worker-007": {
+              "success_rate": 0.6153846153846154,
+              "total_tasks": 13,
+              "successful_tasks": 8,
+              "total_execution_time": 41.1170334815979,
+              "avg_execution_time": 3.1628487293536844,
+              "efficiency": 1.2307692307692308,
+              "last_activity": "2025-08-25 21:48:21.899606"
+            },
+            "worker-009": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 38,
+              "successful_tasks": 32,
+              "total_execution_time": 136.48299884796143,
+              "avg_execution_time": 3.5916578644200374,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:34.266453"
+            },
+            "worker-006": {
+              "success_rate": 0.9142857142857143,
+              "total_tasks": 35,
+              "successful_tasks": 32,
+              "total_execution_time": 180.34335088729858,
+              "avg_execution_time": 5.152667168208531,
+              "efficiency": 1.8285714285714285,
+              "last_activity": "2025-08-25 21:50:47.404223"
+            },
+            "worker-011": {
+              "success_rate": 0.7619047619047619,
+              "total_tasks": 21,
+              "successful_tasks": 16,
+              "total_execution_time": 47.28987169265747,
+              "avg_execution_time": 2.2518986520313082,
+              "efficiency": 1.5238095238095237,
+              "last_activity": "2025-08-25 21:51:27.518498"
+            },
+            "worker-010": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 19,
+              "successful_tasks": 16,
+              "total_execution_time": 59.785675048828125,
+              "avg_execution_time": 3.1466144762541117,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:50:45.427061"
+            },
+            "worker-013": {
+              "success_rate": 0.6666666666666666,
+              "total_tasks": 12,
+              "successful_tasks": 8,
+              "total_execution_time": 46.41698861122131,
+              "avg_execution_time": 3.8680823842684426,
+              "efficiency": 1.3333333333333333,
+              "last_activity": "2025-08-25 21:50:00.527336"
+            },
+            "worker-012": {
+              "success_rate": 1.0,
+              "total_tasks": 8,
+              "successful_tasks": 8,
+              "total_execution_time": 29.589924335479736,
+              "avg_execution_time": 3.698740541934967,
+              "efficiency": 2.0,
+              "last_activity": "2025-08-25 21:49:49.652350"
+            },
+            "worker-014": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 19,
+              "successful_tasks": 16,
+              "total_execution_time": 55.900524854660034,
+              "avg_execution_time": 2.94213288708737,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:28.120393"
+            },
+            "worker-015": {
+              "success_rate": 1.0,
+              "total_tasks": 8,
+              "successful_tasks": 8,
+              "total_execution_time": 19.12915062904358,
+              "avg_execution_time": 2.3911438286304474,
+              "efficiency": 2.0,
+              "last_activity": "2025-08-25 21:49:51.317365"
+            }
+          },
+          "scheduling_stats": {
+            "tasks_added": 160,
+            "tasks_assigned": 195,
+            "tasks_completed": 160,
+            "tasks_failed": 35,
+            "tasks_retried": 35
+          },
+          "performance_summary": {
+            "avg_task_duration": 3.746852867603302,
+            "recent_success_rate": 83.0,
+            "task_throughput": 0.9917047664762375
+          },
+          "worker_recommendations": {
+            "worker-005": "High performer - consider additional load",
+            "worker-004": "High performer - consider additional load",
+            "worker-002": "High performer - consider additional load",
+            "worker-003": "High performer - consider additional load",
+            "worker-001": "High performer - consider additional load",
+            "worker-008": "High performer - consider additional load",
+            "worker-007": "Consider worker restart - low success rate",
+            "worker-009": "High performer - consider additional load",
+            "worker-006": "High performer - consider additional load",
+            "worker-011": "Consider worker restart - low success rate",
+            "worker-010": "High performer - consider additional load",
+            "worker-013": "Consider worker restart - low success rate",
+            "worker-012": "High performer - consider additional load",
+            "worker-015": "High performer - consider additional load"
+          }
+        },
+        "system_metrics": {
+          "total_workers": 25,
+          "active_workers": 0,
+          "healthy_workers": 25,
+          "avg_worker_load": 0.0,
+          "queue_size": 0,
+          "active_tasks": 0,
+          "total_capacity": 200,
+          "utilization_rate": 0.0,
+          "queue_pressure": 0.0,
+          "health_factor": 1.0,
+          "avg_success_rate": 1.0,
+          "system_efficiency": 0.6
+        },
+        "worker_count": 25
+      },
+      "performance_analysis": {
+        "peak_utilization": 0.2,
+        "avg_utilization": 0.035652173913043476,
+        "min_utilization": 0.0,
+        "peak_queue_size": 40,
+        "avg_queue_size": 1.3043478260869565,
+        "worker_count_range": [
+          25,
+          25
+        ],
+        "performance_stability": 0.06393341914159024,
+        "monitoring_data_points": 92
+      },
+      "worker_performance": {
+        "avg_success_rate": 0.6,
+        "success_rate_range": [
+          0,
+          1.0
+        ],
+        "health_distribution": {
+          "healthy": 25
+        },
+        "avg_load": 0.0,
+        "load_balance_stdev": 0.0,
+        "total_workers": 25
+      },
+      "scaling_analysis": {
+        "total_scaling_events": 0,
+        "scale_up_events": 0,
+        "scale_down_events": 0,
+        "scaling_efficiency": "N/A",
+        "final_worker_count": 25,
+        "initial_worker_count": 25
+      },
+      "scaling_events": {}
+    },
+    {
+      "cycle_id": "cycle-1756126231",
+      "cycle_start": "2025-08-25T21:50:31.670578",
+      "cycle_end": "2025-08-25T21:51:16.673710",
+      "duration_seconds": 45.003132,
+      "final_stats": {
+        "scheduler": {
+          "queue_stats": {
+            "tasks_queued_critical": 38,
+            "total_queued": 242,
+            "tasks_queued_medium": 90,
+            "tasks_queued_high": 67,
+            "tasks_queued_low": 47,
+            "tasks_dequeued": 242,
+            "current_size": 0,
+            "queue_sizes": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0
+            },
+            "avg_wait_time": 0.0595824,
+            "max_wait_time": 0.086307,
+            "min_wait_time": 1.3e-05
+          },
+          "active_tasks": 0,
+          "completed_tasks": 200,
+          "failed_tasks": 42,
+          "success_rate": 82.64462809917356,
+          "worker_loads": {
+            "worker-001": 0.0,
+            "worker-002": 0.0,
+            "worker-003": 0.0,
+            "worker-004": 0.0,
+            "worker-005": 0.0,
+            "worker-006": 0.0,
+            "worker-007": 0.0,
+            "worker-008": 0.0,
+            "worker-009": 0.0,
+            "worker-010": 0.0,
+            "worker-011": 0.0,
+            "worker-012": 0.0,
+            "worker-013": 0.0,
+            "worker-014": 0.0,
+            "worker-015": 0.0
+          },
+          "worker_performance": {
+            "worker-005": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 18.476078987121582,
+              "avg_execution_time": 2.052897665235731,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:28.429014"
+            },
+            "worker-004": {
+              "success_rate": 0.8648648648648649,
+              "total_tasks": 37,
+              "successful_tasks": 32,
+              "total_execution_time": 150.68776726722717,
+              "avg_execution_time": 4.072642358573708,
+              "efficiency": 1.7297297297297298,
+              "last_activity": "2025-08-25 21:51:24.902551"
+            },
+            "worker-002": {
+              "success_rate": 0.8,
+              "total_tasks": 10,
+              "successful_tasks": 8,
+              "total_execution_time": 39.317121267318726,
+              "avg_execution_time": 3.9317121267318726,
+              "efficiency": 1.6,
+              "last_activity": "2025-08-25 21:47:32.275469"
+            },
+            "worker-003": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 38,
+              "successful_tasks": 32,
+              "total_execution_time": 208.64560461044312,
+              "avg_execution_time": 5.490673805537977,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:36.582477"
+            },
+            "worker-001": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 46.427565813064575,
+              "avg_execution_time": 5.1586184236738415,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:34.014470"
+            },
+            "worker-008": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 16.38960289955139,
+              "avg_execution_time": 1.8210669888390436,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:48:12.891343"
+            },
+            "worker-007": {
+              "success_rate": 0.6153846153846154,
+              "total_tasks": 13,
+              "successful_tasks": 8,
+              "total_execution_time": 41.1170334815979,
+              "avg_execution_time": 3.1628487293536844,
+              "efficiency": 1.2307692307692308,
+              "last_activity": "2025-08-25 21:48:21.899606"
+            },
+            "worker-009": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 38,
+              "successful_tasks": 32,
+              "total_execution_time": 136.48299884796143,
+              "avg_execution_time": 3.5916578644200374,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:34.266453"
+            },
+            "worker-006": {
+              "success_rate": 0.9142857142857143,
+              "total_tasks": 35,
+              "successful_tasks": 32,
+              "total_execution_time": 180.34335088729858,
+              "avg_execution_time": 5.152667168208531,
+              "efficiency": 1.8285714285714285,
+              "last_activity": "2025-08-25 21:50:47.404223"
+            },
+            "worker-011": {
+              "success_rate": 0.7619047619047619,
+              "total_tasks": 21,
+              "successful_tasks": 16,
+              "total_execution_time": 47.28987169265747,
+              "avg_execution_time": 2.2518986520313082,
+              "efficiency": 1.5238095238095237,
+              "last_activity": "2025-08-25 21:51:27.518498"
+            },
+            "worker-010": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 19,
+              "successful_tasks": 16,
+              "total_execution_time": 59.785675048828125,
+              "avg_execution_time": 3.1466144762541117,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:50:45.427061"
+            },
+            "worker-013": {
+              "success_rate": 0.6666666666666666,
+              "total_tasks": 12,
+              "successful_tasks": 8,
+              "total_execution_time": 46.41698861122131,
+              "avg_execution_time": 3.8680823842684426,
+              "efficiency": 1.3333333333333333,
+              "last_activity": "2025-08-25 21:50:00.527336"
+            },
+            "worker-012": {
+              "success_rate": 1.0,
+              "total_tasks": 8,
+              "successful_tasks": 8,
+              "total_execution_time": 29.589924335479736,
+              "avg_execution_time": 3.698740541934967,
+              "efficiency": 2.0,
+              "last_activity": "2025-08-25 21:49:49.652350"
+            },
+            "worker-014": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 19,
+              "successful_tasks": 16,
+              "total_execution_time": 55.900524854660034,
+              "avg_execution_time": 2.94213288708737,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:28.120393"
+            },
+            "worker-015": {
+              "success_rate": 1.0,
+              "total_tasks": 8,
+              "successful_tasks": 8,
+              "total_execution_time": 19.12915062904358,
+              "avg_execution_time": 2.3911438286304474,
+              "efficiency": 2.0,
+              "last_activity": "2025-08-25 21:49:51.317365"
+            }
+          },
+          "scheduling_stats": {
+            "tasks_added": 200,
+            "tasks_assigned": 242,
+            "tasks_completed": 200,
+            "tasks_failed": 42,
+            "tasks_retried": 42
+          },
+          "performance_summary": {
+            "avg_task_duration": 4.205874207019806,
+            "recent_success_rate": 83.0,
+            "task_throughput": 0.9973116566713931
+          },
+          "worker_recommendations": {
+            "worker-005": "High performer - consider additional load",
+            "worker-004": "High performer - consider additional load",
+            "worker-002": "High performer - consider additional load",
+            "worker-003": "High performer - consider additional load",
+            "worker-001": "High performer - consider additional load",
+            "worker-008": "High performer - consider additional load",
+            "worker-007": "Consider worker restart - low success rate",
+            "worker-009": "High performer - consider additional load",
+            "worker-006": "High performer - consider additional load",
+            "worker-011": "Consider worker restart - low success rate",
+            "worker-010": "High performer - consider additional load",
+            "worker-013": "Consider worker restart - low success rate",
+            "worker-012": "High performer - consider additional load",
+            "worker-015": "High performer - consider additional load"
+          }
+        },
+        "system_metrics": {
+          "total_workers": 25,
+          "active_workers": 0,
+          "healthy_workers": 25,
+          "avg_worker_load": 0.0,
+          "queue_size": 0,
+          "active_tasks": 0,
+          "total_capacity": 200,
+          "utilization_rate": 0.0,
+          "queue_pressure": 0.0,
+          "health_factor": 1.0,
+          "avg_success_rate": 1.0,
+          "system_efficiency": 0.6
+        },
+        "worker_count": 25
+      },
+      "performance_analysis": {
+        "peak_utilization": 0.2,
+        "avg_utilization": 0.036869565217391306,
+        "min_utilization": 0.0,
+        "peak_queue_size": 40,
+        "avg_queue_size": 1.391304347826087,
+        "worker_count_range": [
+          25,
+          25
+        ],
+        "performance_stability": 0.06540850335554863,
+        "monitoring_data_points": 115
+      },
+      "worker_performance": {
+        "avg_success_rate": 0.6,
+        "success_rate_range": [
+          0,
+          1.0
+        ],
+        "health_distribution": {
+          "healthy": 25
+        },
+        "avg_load": 0.0,
+        "load_balance_stdev": 0.0,
+        "total_workers": 25
+      },
+      "scaling_analysis": {
+        "total_scaling_events": 0,
+        "scale_up_events": 0,
+        "scale_down_events": 0,
+        "scaling_efficiency": "N/A",
+        "final_worker_count": 25,
+        "initial_worker_count": 25
+      },
+      "scaling_events": {}
+    },
+    {
+      "cycle_id": "cycle-1756126279",
+      "cycle_start": "2025-08-25T21:51:19.677973",
+      "cycle_end": "2025-08-25T21:52:04.680214",
+      "duration_seconds": 45.002241,
+      "final_stats": {
+        "scheduler": {
+          "queue_stats": {
+            "tasks_queued_critical": 44,
+            "total_queued": 285,
+            "tasks_queued_medium": 106,
+            "tasks_queued_high": 77,
+            "tasks_queued_low": 58,
+            "tasks_dequeued": 285,
+            "current_size": 0,
+            "queue_sizes": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0
+            },
+            "avg_wait_time": 0.04494877,
+            "max_wait_time": 0.08627,
+            "min_wait_time": 1.5e-05
+          },
+          "active_tasks": 0,
+          "completed_tasks": 240,
+          "failed_tasks": 45,
+          "success_rate": 84.21052631578947,
+          "worker_loads": {
+            "worker-001": 0.0,
+            "worker-002": 0.0,
+            "worker-003": 0.0,
+            "worker-004": 0.0,
+            "worker-005": 0.0,
+            "worker-006": 0.0,
+            "worker-007": 0.0,
+            "worker-008": 0.0,
+            "worker-009": 0.0,
+            "worker-010": 0.0,
+            "worker-011": 0.0,
+            "worker-012": 0.0,
+            "worker-013": 0.0,
+            "worker-014": 0.0,
+            "worker-015": 0.0
+          },
+          "worker_performance": {
+            "worker-005": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 18.476078987121582,
+              "avg_execution_time": 2.052897665235731,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:28.429014"
+            },
+            "worker-004": {
+              "success_rate": 0.8648648648648649,
+              "total_tasks": 37,
+              "successful_tasks": 32,
+              "total_execution_time": 150.68776726722717,
+              "avg_execution_time": 4.072642358573708,
+              "efficiency": 1.7297297297297298,
+              "last_activity": "2025-08-25 21:51:24.902551"
+            },
+            "worker-002": {
+              "success_rate": 0.8,
+              "total_tasks": 10,
+              "successful_tasks": 8,
+              "total_execution_time": 39.317121267318726,
+              "avg_execution_time": 3.9317121267318726,
+              "efficiency": 1.6,
+              "last_activity": "2025-08-25 21:47:32.275469"
+            },
+            "worker-003": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 38,
+              "successful_tasks": 32,
+              "total_execution_time": 208.64560461044312,
+              "avg_execution_time": 5.490673805537977,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:36.582477"
+            },
+            "worker-001": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 46.427565813064575,
+              "avg_execution_time": 5.1586184236738415,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:47:34.014470"
+            },
+            "worker-008": {
+              "success_rate": 0.8888888888888888,
+              "total_tasks": 9,
+              "successful_tasks": 8,
+              "total_execution_time": 16.38960289955139,
+              "avg_execution_time": 1.8210669888390436,
+              "efficiency": 1.7777777777777777,
+              "last_activity": "2025-08-25 21:48:12.891343"
+            },
+            "worker-007": {
+              "success_rate": 0.6153846153846154,
+              "total_tasks": 13,
+              "successful_tasks": 8,
+              "total_execution_time": 41.1170334815979,
+              "avg_execution_time": 3.1628487293536844,
+              "efficiency": 1.2307692307692308,
+              "last_activity": "2025-08-25 21:48:21.899606"
+            },
+            "worker-009": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 38,
+              "successful_tasks": 32,
+              "total_execution_time": 136.48299884796143,
+              "avg_execution_time": 3.5916578644200374,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:34.266453"
+            },
+            "worker-006": {
+              "success_rate": 0.9142857142857143,
+              "total_tasks": 35,
+              "successful_tasks": 32,
+              "total_execution_time": 180.34335088729858,
+              "avg_execution_time": 5.152667168208531,
+              "efficiency": 1.8285714285714285,
+              "last_activity": "2025-08-25 21:50:47.404223"
+            },
+            "worker-011": {
+              "success_rate": 0.7619047619047619,
+              "total_tasks": 21,
+              "successful_tasks": 16,
+              "total_execution_time": 47.28987169265747,
+              "avg_execution_time": 2.2518986520313082,
+              "efficiency": 1.5238095238095237,
+              "last_activity": "2025-08-25 21:51:27.518498"
+            },
+            "worker-010": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 19,
+              "successful_tasks": 16,
+              "total_execution_time": 59.785675048828125,
+              "avg_execution_time": 3.1466144762541117,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:50:45.427061"
+            },
+            "worker-013": {
+              "success_rate": 0.6666666666666666,
+              "total_tasks": 12,
+              "successful_tasks": 8,
+              "total_execution_time": 46.41698861122131,
+              "avg_execution_time": 3.8680823842684426,
+              "efficiency": 1.3333333333333333,
+              "last_activity": "2025-08-25 21:50:00.527336"
+            },
+            "worker-012": {
+              "success_rate": 1.0,
+              "total_tasks": 8,
+              "successful_tasks": 8,
+              "total_execution_time": 29.589924335479736,
+              "avg_execution_time": 3.698740541934967,
+              "efficiency": 2.0,
+              "last_activity": "2025-08-25 21:49:49.652350"
+            },
+            "worker-014": {
+              "success_rate": 0.8421052631578947,
+              "total_tasks": 19,
+              "successful_tasks": 16,
+              "total_execution_time": 55.900524854660034,
+              "avg_execution_time": 2.94213288708737,
+              "efficiency": 1.6842105263157894,
+              "last_activity": "2025-08-25 21:51:28.120393"
+            },
+            "worker-015": {
+              "success_rate": 1.0,
+              "total_tasks": 8,
+              "successful_tasks": 8,
+              "total_execution_time": 19.12915062904358,
+              "avg_execution_time": 2.3911438286304474,
+              "efficiency": 2.0,
+              "last_activity": "2025-08-25 21:49:51.317365"
+            }
+          },
+          "scheduling_stats": {
+            "tasks_added": 240,
+            "tasks_assigned": 285,
+            "tasks_completed": 240,
+            "tasks_failed": 45,
+            "tasks_retried": 45
+          },
+          "performance_summary": {
+            "avg_task_duration": 4.022465629577637,
+            "recent_success_rate": 86.0,
+            "task_throughput": 0.9499822291574302
+          },
+          "worker_recommendations": {
+            "worker-005": "High performer - consider additional load",
+            "worker-004": "High performer - consider additional load",
+            "worker-002": "High performer - consider additional load",
+            "worker-003": "High performer - consider additional load",
+            "worker-001": "High performer - consider additional load",
+            "worker-008": "High performer - consider additional load",
+            "worker-007": "Consider worker restart - low success rate",
+            "worker-009": "High performer - consider additional load",
+            "worker-006": "High performer - consider additional load",
+            "worker-011": "High performer - consider additional load",
+            "worker-010": "High performer - consider additional load",
+            "worker-013": "Consider worker restart - low success rate",
+            "worker-012": "High performer - consider additional load",
+            "worker-014": "High performer - consider additional load",
+            "worker-015": "High performer - consider additional load"
+          }
+        },
+        "system_metrics": {
+          "total_workers": 25,
+          "active_workers": 0,
+          "healthy_workers": 25,
+          "avg_worker_load": 0.0,
+          "queue_size": 0,
+          "active_tasks": 0,
+          "total_capacity": 200,
+          "utilization_rate": 0.0,
+          "queue_pressure": 0.0,
+          "health_factor": 1.0,
+          "avg_success_rate": 1.0,
+          "system_efficiency": 0.6
+        },
+        "worker_count": 25
+      },
+      "performance_analysis": {
+        "peak_utilization": 0.2,
+        "avg_utilization": 0.035905797101449276,
+        "min_utilization": 0.0,
+        "peak_queue_size": 40,
+        "avg_queue_size": 1.4492753623188406,
+        "worker_count_range": [
+          25,
+          25
+        ],
+        "performance_stability": 0.0654273863596609,
+        "monitoring_data_points": 138
+      },
+      "worker_performance": {
+        "avg_success_rate": 0.6,
+        "success_rate_range": [
+          0,
+          1.0
+        ],
+        "health_distribution": {
+          "healthy": 25
+        },
+        "avg_load": 0.0,
+        "load_balance_stdev": 0.0,
+        "total_workers": 25
+      },
+      "scaling_analysis": {
+        "total_scaling_events": 0,
+        "scale_up_events": 0,
+        "scale_down_events": 0,
+        "scaling_efficiency": "N/A",
+        "final_worker_count": 25,
+        "initial_worker_count": 25
+      },
+      "scaling_events": {}
+    }
+  ],
+  "final_configuration": {
+    "workers": 25,
+    "max_workers": 75,
+    "min_workers": 15
+  },
+  "generated_at": "2025-08-25T21:52:04.685263"
+}

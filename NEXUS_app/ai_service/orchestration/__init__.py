@@ -1,3 +1,4 @@
+"""
 Multi-Agent Orchestration System
 
 This package provides comprehensive orchestration capabilities for
@@ -9,7 +10,9 @@ Components:
 - WorkflowOrchestrator: Complex workflow management
 - AgentCommunication: Inter-agent messaging
 - OrchestrationManager: Main coordination hub
+"""
 
+__all__ = [
     "MultiAgentOrchestrator",
     "AgentCoordinator",
     "WorkflowOrchestrator",

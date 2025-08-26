@@ -1,15 +1,21 @@
+#!/usr/bin/env python3
+"""
 Workflow Orchestrator - Complex Workflow Management System
 
 This module implements the WorkflowOrchestrator class that provides
 comprehensive workflow orchestration and management for complex
 multi-agent forensic workflows.
+"""
 
 import asyncio
 import logging
 import uuid
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+from enum import Enum
+from dataclasses import dataclass, field
 
-from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
+# from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 class WorkflowStatus(Enum):
     """Workflow execution status."""
@@ -94,7 +100,7 @@ class StepExecution:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 class WorkflowOrchestrator:
-
+    """
     Comprehensive workflow orchestration system.
 
     The WorkflowOrchestrator is responsible for:
@@ -103,6 +109,7 @@ class WorkflowOrchestrator:
     - Managing workflow state and progress
     - Handling workflow failures and retries
     - Optimizing workflow execution
+    """
 
     def __init__(self, config: Dict[str, Any]):
         """Initialize the WorkflowOrchestrator."""

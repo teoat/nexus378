@@ -1,0 +1,331 @@
+{
+  "system_info": {
+    "total_runtime_seconds": 960.136003,
+    "total_cycles": 3,
+    "worker_count": 30
+  },
+  "cycle_reports": [
+    {
+      "cycle_id": "production-cycle-1756127522",
+      "cycle_start": "2025-08-25T22:12:02.051566",
+      "cycle_end": "2025-08-25T22:17:02.064496",
+      "duration_seconds": 300.01293,
+      "scheduler_stats": {
+        "queue_stats": {
+          "current_size": 0,
+          "queue_sizes": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0
+          },
+          "stats": {
+            "tasks_queued_medium": 121,
+            "tasks_queued_critical": 9,
+            "tasks_dequeued": 130
+          }
+        },
+        "active_tasks": 0,
+        "completed_tasks": 120,
+        "failed_tasks": 10,
+        "success_rate": 92.3076923076923,
+        "worker_loads": {
+          "full_stack-01": 0,
+          "full_stack-02": 0,
+          "full_stack-03": 0,
+          "full_stack-04": 0,
+          "full_stack-05": 0,
+          "full_stack-06": 0,
+          "full_stack-07": 0,
+          "full_stack-08": 0,
+          "backend_specialist-01": 0,
+          "backend_specialist-02": 0,
+          "backend_specialist-03": 0,
+          "backend_specialist-04": 0,
+          "backend_specialist-05": 0,
+          "backend_specialist-06": 0,
+          "devops_specialist-01": 0,
+          "devops_specialist-02": 0,
+          "devops_specialist-03": 0,
+          "devops_specialist-04": 0,
+          "frontend_specialist-01": 0,
+          "frontend_specialist-02": 0,
+          "frontend_specialist-03": 0,
+          "frontend_specialist-04": 0,
+          "data_specialist-01": 0,
+          "data_specialist-02": 0,
+          "data_specialist-03": 0,
+          "security_specialist-01": 0,
+          "security_specialist-02": 0,
+          "general_worker-01": 0,
+          "general_worker-02": 0,
+          "general_worker-03": 0
+        },
+        "scheduling_stats": {
+          "tasks_added": 120,
+          "tasks_assigned": 130,
+          "tasks_completed": 120,
+          "tasks_failed": 10,
+          "tasks_retried": 10
+        }
+      },
+      "worker_pool_stats": {
+        "total_workers": 30,
+        "specialization_distribution": {
+          "full_stack": {
+            "count": 8,
+            "active": 0,
+            "success_rate": 88.54166666666667
+          },
+          "backend_specialist": {
+            "count": 6,
+            "active": 0,
+            "success_rate": 91.66666666666667
+          },
+          "devops_specialist": {
+            "count": 4,
+            "active": 0,
+            "success_rate": 100.0
+          },
+          "frontend_specialist": {
+            "count": 4,
+            "active": 0,
+            "success_rate": 100.0
+          },
+          "data_specialist": {
+            "count": 3,
+            "active": 0,
+            "success_rate": 83.33333333333333
+          },
+          "security_specialist": {
+            "count": 2,
+            "active": 0,
+            "success_rate": 100.0
+          },
+          "general_worker": {
+            "count": 3,
+            "active": 0,
+            "success_rate": 83.33333333333333
+          }
+        },
+        "avg_success_rate": 91.94444444444444,
+        "total_active_tasks": 0
+      }
+    },
+    {
+      "cycle_id": "production-cycle-1756127852",
+      "cycle_start": "2025-08-25T22:17:32.150665",
+      "cycle_end": "2025-08-25T22:22:32.164596",
+      "duration_seconds": 300.013931,
+      "scheduler_stats": {
+        "queue_stats": {
+          "current_size": 0,
+          "queue_sizes": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0
+          },
+          "stats": {
+            "tasks_queued_medium": 247,
+            "tasks_queued_critical": 19,
+            "tasks_dequeued": 266
+          }
+        },
+        "active_tasks": 0,
+        "completed_tasks": 239,
+        "failed_tasks": 27,
+        "success_rate": 89.84962406015038,
+        "worker_loads": {
+          "full_stack-01": 0,
+          "full_stack-02": 0,
+          "full_stack-03": 0,
+          "full_stack-04": 0,
+          "full_stack-05": 0,
+          "full_stack-06": 0,
+          "full_stack-07": 0,
+          "full_stack-08": 0,
+          "backend_specialist-01": 0,
+          "backend_specialist-02": 0,
+          "backend_specialist-03": 0,
+          "backend_specialist-04": 0,
+          "backend_specialist-05": 0,
+          "backend_specialist-06": 0,
+          "devops_specialist-01": 0,
+          "devops_specialist-02": 0,
+          "devops_specialist-03": 0,
+          "devops_specialist-04": 0,
+          "frontend_specialist-01": 0,
+          "frontend_specialist-02": 0,
+          "frontend_specialist-03": 0,
+          "frontend_specialist-04": 0,
+          "data_specialist-01": 0,
+          "data_specialist-02": 0,
+          "data_specialist-03": 0,
+          "security_specialist-01": 0,
+          "security_specialist-02": 0,
+          "general_worker-01": 0,
+          "general_worker-02": 0,
+          "general_worker-03": 0
+        },
+        "scheduling_stats": {
+          "tasks_added": 240,
+          "tasks_assigned": 266,
+          "tasks_completed": 239,
+          "tasks_failed": 27,
+          "tasks_retried": 26
+        }
+      },
+      "worker_pool_stats": {
+        "total_workers": 30,
+        "specialization_distribution": {
+          "full_stack": {
+            "count": 8,
+            "active": 0,
+            "success_rate": 90.0
+          },
+          "backend_specialist": {
+            "count": 6,
+            "active": 0,
+            "success_rate": 90.0
+          },
+          "devops_specialist": {
+            "count": 4,
+            "active": 0,
+            "success_rate": 87.5
+          },
+          "frontend_specialist": {
+            "count": 4,
+            "active": 0,
+            "success_rate": 93.75
+          },
+          "data_specialist": {
+            "count": 3,
+            "active": 0,
+            "success_rate": 91.66666666666667
+          },
+          "security_specialist": {
+            "count": 2,
+            "active": 0,
+            "success_rate": 81.25
+          },
+          "general_worker": {
+            "count": 3,
+            "active": 0,
+            "success_rate": 91.66666666666667
+          }
+        },
+        "avg_success_rate": 89.91666666666667,
+        "total_active_tasks": 0
+      }
+    },
+    {
+      "cycle_id": "production-cycle-1756128182",
+      "cycle_start": "2025-08-25T22:23:02.169584",
+      "cycle_end": "2025-08-25T22:28:02.184646",
+      "duration_seconds": 300.015062,
+      "scheduler_stats": {
+        "queue_stats": {
+          "current_size": 0,
+          "queue_sizes": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0
+          },
+          "stats": {
+            "tasks_queued_medium": 367,
+            "tasks_queued_critical": 28,
+            "tasks_dequeued": 395
+          }
+        },
+        "active_tasks": 0,
+        "completed_tasks": 359,
+        "failed_tasks": 36,
+        "success_rate": 90.88607594936708,
+        "worker_loads": {
+          "full_stack-01": 0,
+          "full_stack-02": 0,
+          "full_stack-03": 0,
+          "full_stack-04": 0,
+          "full_stack-05": 0,
+          "full_stack-06": 0,
+          "full_stack-07": 0,
+          "full_stack-08": 0,
+          "backend_specialist-01": 0,
+          "backend_specialist-02": 0,
+          "backend_specialist-03": 0,
+          "backend_specialist-04": 0,
+          "backend_specialist-05": 0,
+          "backend_specialist-06": 0,
+          "devops_specialist-01": 0,
+          "devops_specialist-02": 0,
+          "devops_specialist-03": 0,
+          "devops_specialist-04": 0,
+          "frontend_specialist-01": 0,
+          "frontend_specialist-02": 0,
+          "frontend_specialist-03": 0,
+          "frontend_specialist-04": 0,
+          "data_specialist-01": 0,
+          "data_specialist-02": 0,
+          "data_specialist-03": 0,
+          "security_specialist-01": 0,
+          "security_specialist-02": 0,
+          "general_worker-01": 0,
+          "general_worker-02": 0,
+          "general_worker-03": 0
+        },
+        "scheduling_stats": {
+          "tasks_added": 360,
+          "tasks_assigned": 395,
+          "tasks_completed": 359,
+          "tasks_failed": 36,
+          "tasks_retried": 35
+        }
+      },
+      "worker_pool_stats": {
+        "total_workers": 30,
+        "specialization_distribution": {
+          "full_stack": {
+            "count": 8,
+            "active": 0,
+            "success_rate": 92.91666666666667
+          },
+          "backend_specialist": {
+            "count": 6,
+            "active": 0,
+            "success_rate": 86.90476190476191
+          },
+          "devops_specialist": {
+            "count": 4,
+            "active": 0,
+            "success_rate": 89.28571428571428
+          },
+          "frontend_specialist": {
+            "count": 4,
+            "active": 0,
+            "success_rate": 95.83333333333331
+          },
+          "data_specialist": {
+            "count": 3,
+            "active": 0,
+            "success_rate": 91.66666666666667
+          },
+          "security_specialist": {
+            "count": 2,
+            "active": 0,
+            "success_rate": 87.5
+          },
+          "general_worker": {
+            "count": 3,
+            "active": 0,
+            "success_rate": 91.66666666666667
+          }
+        },
+        "avg_success_rate": 91.0079365079365,
+        "total_active_tasks": 0
+      }
+    }
+  ],
+  "generated_at": "2025-08-25T22:28:02.186851"
+}

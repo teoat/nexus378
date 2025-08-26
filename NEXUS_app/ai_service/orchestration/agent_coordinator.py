@@ -1,15 +1,21 @@
+#!/usr/bin/env python3
+"""
 Agent Coordinator - Agent Interaction Management System
 
 This module implements the AgentCoordinator class that provides
 comprehensive coordination and interaction management between
 different AI agents in the forensic platform.
+"""
 
 import asyncio
 import logging
 import uuid
 from datetime import datetime, timedelta
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union, Tuple
 
-from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
+# from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 class CoordinationType(Enum):
     """Types of agent coordination."""
@@ -78,7 +84,7 @@ class AgentCapability:
     last_updated: datetime
 
 class AgentCoordinator:
-
+    """
     Comprehensive agent coordination system.
 
     The AgentCoordinator is responsible for:
@@ -87,6 +93,7 @@ class AgentCoordinator:
     - Handling data sharing between agents
     - Managing agent capabilities and specializations
     - Optimizing agent collaboration
+    """
 
     def __init__(self, config: Dict[str, Any]):
         """Initialize the AgentCoordinator."""

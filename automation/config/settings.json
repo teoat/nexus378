@@ -1,0 +1,61 @@
+{
+  "system": {
+    "environment": "development",
+    "log_level": "INFO",
+    "log_file": "automation.log",
+    "enable_debug": false,
+    "max_memory_usage": 1024,
+    "enable_graceful_shutdown": true,
+    "shutdown_timeout": 30
+  },
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "username": "postgres",
+    "password": "",
+    "database": "nexus_automation",
+    "pool_size": 10,
+    "max_overflow": 20,
+    "timeout": 30,
+    "ssl_mode": "prefer"
+  },
+  "worker": {
+    "max_workers": 100,
+    "min_workers": 5,
+    "worker_timeout": 1800,
+    "health_check_interval": 60,
+    "auto_scaling": true,
+    "scaling_threshold": 0.8,
+    "scaling_cooldown": 300
+  },
+  "task": {
+    "max_concurrent_tasks": 50,
+    "task_timeout": 1800,
+    "retry_attempts": 3,
+    "retry_delay": 60,
+    "priority_levels": 5,
+    "enable_dependencies": true,
+    "max_dependency_depth": 10
+  },
+  "monitoring": {
+    "enable_health_monitoring": true,
+    "health_check_interval": 60,
+    "enable_performance_monitoring": true,
+    "performance_check_interval": 300,
+    "enable_metrics_collection": true,
+    "metrics_collection_interval": 30,
+    "enable_alerting": true,
+    "alert_channels": [
+      "log"
+    ]
+  },
+  "security": {
+    "enable_authentication": true,
+    "enable_authorization": true,
+    "jwt_secret": "",
+    "jwt_expiry": 3600,
+    "enable_encryption": true,
+    "encryption_key": "",
+    "enable_audit_logging": true
+  }
+}

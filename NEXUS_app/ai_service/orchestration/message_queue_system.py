@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+"""
 Message Queue System - Priority-Based Messaging and Routing
 
 This module implements the MessageQueueSystem class that provides
 comprehensive message queuing capabilities for the forensic platform.
+"""
 
 import asyncio
 import heapq
@@ -26,54 +29,43 @@ except ImportError:
     RABBITMQ_AVAILABLE = False
     REDIS_AVAILABLE = False
 
-from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
+# from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 class MessagePriority(Enum):
-    """Message priority levels.Message priority levels."""
-    CRITICAL = (
+    """Message priority levels."""
     CRITICAL = "critical"                                   # Highest priority - immediate processing
-    HIGH = (
     HIGH = "high"                                           # High priority - process soon
-    NORMAL = (
     NORMAL = "normal"                                       # Normal priority - standard processing
-    LOW = (
     LOW = "low"                                             # Low priority - process when available
-    BULK = (
     BULK = "bulk"                                           # Bulk processing - lowest priority
 
 class MessageType(Enum):
-    """Types of messages in the queue.Types of messages in the queue."""
+    """Types of messages in the queue."""
     TASK_ASSIGNMENT = "task_assignment"                      # Task assignment messages
     WORKFLOW_UPDATE = "workflow_update"                      # Workflow status updates
     AGENT_COMMUNICATION = "agent_communication"              # Inter-agent communication
     SYSTEM_NOTIFICATION = "system_notification"              # System notifications
     ERROR_REPORT = "error_report"                            # Error reporting messages
     STATUS_UPDATE = "status_update"                          # Status update messages
-    DATA_SYNC = (
     DATA_SYNC = "data_sync"                                  # Data synchronization messages
     HEARTBEAT = "heartbeat"                                  # Agent heartbeat messages
 
 class QueueType(Enum):
-    """Types of message queues.Types of message queues."""
+    """Types of message queues."""
     PRIORITY_QUEUE = "priority_queue"                        # Priority-based queue
     WORK_QUEUE = "work_queue"                                # Work distribution queue
     PUBLISH_SUBSCRIBE = "publish_subscribe"                  # Publish-subscribe queue
     REQUEST_RESPONSE = "request_response"                     # Request-response queue
     DEAD_LETTER = "dead_letter"                              # Dead letter queue
-    RETRY_QUEUE = (
     RETRY_QUEUE = "retry_queue"                              # Retry queue for failed messages
 
 class MessageStatus(Enum):
-    """Status of messages in the queue.Status of messages in the queue."""
-    PENDING = (
+    """Status of messages in the queue."""
     PENDING = "pending"                                      # Message is pending processing
-    PROCESSING = (
     PROCESSING = "processing"                                # Message is being processed
-    COMPLETED = (
     COMPLETED = "completed"                                  # Message processing completed
     FAILED = "failed"                                        # Message processing failed
     RETRYING = "retrying"                                    # Message is being retried
-    DEAD_LETTER = (
     DEAD_LETTER = "dead_letter"                              # Message moved to dead letter queue
     EXPIRED = "expired"                                      # Message expired
 
@@ -132,7 +124,7 @@ class QueueMetrics:
     last_updated: datetime
 
 class MessageQueueSystem:
-    """"""
+    """
     Comprehensive message queue system.
     
     The MessageQueueSystem is responsible for:
@@ -142,10 +134,10 @@ class MessageQueueSystem:
     - Retry mechanisms and error handling
     - Queue monitoring and metrics
     - Load balancing and scaling
-    """"""
+    """
     
     def __init__(self, config: Dict[str, Any]):
-        """Initialize the MessageQueueSystem.Initialize the MessageQueueSystem."""
+        """Initialize the MessageQueueSystem."""
         self.config = config
         self.logger = logging.getLogger(__name__)
         
@@ -190,7 +182,7 @@ class MessageQueueSystem:
         self.logger.info("MessageQueueSystem initialized successfully")
     
     def _check_library_availability(self):
-        """Check if required libraries are available.Check if required libraries are available."""
+        """Check if required libraries are available."""
         if not RABBITMQ_AVAILABLE:
             self.logger.warning(
     "RabbitMQ library not available - queue functionality will be limited",
@@ -202,7 +194,7 @@ class MessageQueueSystem:
 )
     
     async def start(self):
-        """Start the MessageQueueSystem.Start the MessageQueueSystem."""
+        """Start the MessageQueueSystem."""
         self.logger.info("Starting MessageQueueSystem...")
         
         # Initialize connections
@@ -219,7 +211,7 @@ class MessageQueueSystem:
         self.logger.info("MessageQueueSystem started successfully")
     
     async def stop(self):
-        """Stop the MessageQueueSystem.Stop the MessageQueueSystem."""
+        """Stop the MessageQueueSystem."""
         self.logger.info("Stopping MessageQueueSystem...")
         
         # Close connections
@@ -228,7 +220,7 @@ class MessageQueueSystem:
         self.logger.info("MessageQueueSystem stopped")
     
     async def _initialize_connections(self):
-        """Initialize RabbitMQ and Redis connections.Initialize RabbitMQ and Redis connections."""
+        """Initialize RabbitMQ and Redis connections."""
         try:
             # Initialize RabbitMQ connection
             if RABBITMQ_AVAILABLE:

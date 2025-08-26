@@ -1,0 +1,554 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-08-25T18:05:00.769715",
+  "mode_intersections": {
+    "construction_guided": {
+      "app_mode": "construction",
+      "thinking_perspective": null,
+      "ai_mode": "guided",
+      "description": "Construction projects with guided AI assistance",
+      "features": [
+        "Step-by-step project cost analysis",
+        "Guided milestone tracking",
+        "Construction-specific calculations",
+        "Vendor payment reconciliation",
+        "Project timeline management"
+      ],
+      "limitations": [
+        "Limited predictive analysis",
+        "Basic fraud detection",
+        "Standard risk assessment"
+      ],
+      "recommended_views": [
+        "construction_projects",
+        "reconciliation",
+        "fraud_analysis"
+      ],
+      "agent_priorities": [
+        "reconciliation_agent",
+        "fraud_agent",
+        "risk_agent"
+      ],
+      "calculation_methods": [
+        "Percentage of completion method",
+        "Completed contract method",
+        "Cost-plus pricing calculations",
+        "Change order impact analysis"
+      ],
+      "assessment_approaches": [
+        "Milestone-based progress tracking",
+        "Cost variance analysis",
+        "Schedule performance index"
+      ]
+    },
+    "construction_eco": {
+      "app_mode": "construction",
+      "thinking_perspective": null,
+      "ai_mode": "eco",
+      "description": "Construction projects with minimal AI usage",
+      "features": [
+        "Basic project cost calculations",
+        "Simple milestone tracking",
+        "Heuristic-based analysis",
+        "Standard reporting"
+      ],
+      "limitations": [
+        "No predictive analysis",
+        "Basic fraud detection",
+        "Limited risk assessment"
+      ],
+      "recommended_views": [
+        "construction_projects",
+        "reconciliation"
+      ],
+      "agent_priorities": [
+        "reconciliation_agent",
+        "fraud_agent"
+      ],
+      "calculation_methods": [
+        "Basic percentage of completion",
+        "Simple cost tracking",
+        "Standard variance calculations"
+      ],
+      "assessment_approaches": [
+        "Basic progress tracking",
+        "Simple cost analysis"
+      ]
+    },
+    "construction_extreme": {
+      "app_mode": "construction",
+      "thinking_perspective": null,
+      "ai_mode": "extreme",
+      "description": "Construction projects with full AI orchestration",
+      "features": [
+        "Predictive project analysis",
+        "Advanced fraud detection",
+        "Automated risk assessment",
+        "Intelligent cost optimization",
+        "Predictive timeline analysis",
+        "Advanced vendor relationship mapping"
+      ],
+      "limitations": [
+        "Higher computational cost",
+        "More complex analysis",
+        "Requires more data"
+      ],
+      "recommended_views": [
+        "construction_projects",
+        "fraud_analysis",
+        "entity_network",
+        "legal_analysis"
+      ],
+      "agent_priorities": [
+        "reconciliation_agent",
+        "fraud_agent",
+        "risk_agent",
+        "evidence_agent",
+        "litigation_agent"
+      ],
+      "calculation_methods": [
+        "Advanced percentage of completion",
+        "Predictive cost modeling",
+        "Machine learning-based variance analysis",
+        "AI-powered change order impact"
+      ],
+      "assessment_approaches": [
+        "Predictive progress tracking",
+        "Advanced risk modeling",
+        "AI-powered fraud detection"
+      ]
+    },
+    "regular_guided": {
+      "app_mode": "regular",
+      "thinking_perspective": null,
+      "ai_mode": "guided",
+      "description": "Regular business accounting with guided AI assistance",
+      "features": [
+        "Step-by-step financial analysis",
+        "Guided reconciliation processes",
+        "Standard accounting calculations",
+        "Business performance tracking",
+        "Financial statement preparation"
+      ],
+      "limitations": [
+        "Limited predictive analysis",
+        "Basic anomaly detection",
+        "Standard risk assessment"
+      ],
+      "recommended_views": [
+        "financial_statements",
+        "reconciliation",
+        "fraud_analysis"
+      ],
+      "agent_priorities": [
+        "reconciliation_agent",
+        "fraud_agent",
+        "risk_agent"
+      ],
+      "calculation_methods": [
+        "Accrual accounting",
+        "Cash basis accounting",
+        "Standard financial ratios",
+        "Variance analysis"
+      ],
+      "assessment_approaches": [
+        "Financial statement analysis",
+        "Ratio analysis",
+        "Trend analysis"
+      ]
+    },
+    "regular_eco": {
+      "app_mode": "regular",
+      "thinking_perspective": null,
+      "ai_mode": "eco",
+      "description": "Regular business accounting with minimal AI usage",
+      "features": [
+        "Basic financial calculations",
+        "Simple reconciliation",
+        "Heuristic-based analysis",
+        "Standard reporting"
+      ],
+      "limitations": [
+        "No predictive analysis",
+        "Basic fraud detection",
+        "Limited risk assessment"
+      ],
+      "recommended_views": [
+        "financial_statements",
+        "reconciliation"
+      ],
+      "agent_priorities": [
+        "reconciliation_agent",
+        "fraud_agent"
+      ],
+      "calculation_methods": [
+        "Basic accrual accounting",
+        "Simple financial ratios",
+        "Standard variance calculations"
+      ],
+      "assessment_approaches": [
+        "Basic financial analysis",
+        "Simple trend analysis"
+      ]
+    },
+    "regular_extreme": {
+      "app_mode": "regular",
+      "thinking_perspective": null,
+      "ai_mode": "extreme",
+      "description": "Regular business accounting with full AI orchestration",
+      "features": [
+        "Predictive financial analysis",
+        "Advanced fraud detection",
+        "Automated risk assessment",
+        "Intelligent financial optimization",
+        "Predictive cash flow analysis",
+        "Advanced business intelligence"
+      ],
+      "limitations": [
+        "Higher computational cost",
+        "More complex analysis",
+        "Requires more data"
+      ],
+      "recommended_views": [
+        "financial_statements",
+        "fraud_analysis",
+        "entity_network",
+        "legal_analysis"
+      ],
+      "agent_priorities": [
+        "reconciliation_agent",
+        "fraud_agent",
+        "risk_agent",
+        "evidence_agent",
+        "litigation_agent"
+      ],
+      "calculation_methods": [
+        "Advanced financial modeling",
+        "Predictive analytics",
+        "Machine learning-based analysis",
+        "AI-powered risk assessment"
+      ],
+      "assessment_approaches": [
+        "Predictive financial analysis",
+        "Advanced risk modeling",
+        "AI-powered fraud detection"
+      ]
+    },
+    "construction_investigation_guided": {
+      "app_mode": "construction",
+      "thinking_perspective": "investigation",
+      "ai_mode": "guided",
+      "description": "Construction projects with investigation thinking and guided AI",
+      "features": [
+        "Forensic project analysis",
+        "Evidence collection guidance",
+        "Suspicious pattern detection",
+        "Guided investigation workflow",
+        "Construction fraud detection"
+      ],
+      "limitations": [
+        "Limited predictive analysis",
+        "Basic evidence analysis",
+        "Standard investigation tools"
+      ],
+      "recommended_views": [
+        "construction_projects",
+        "evidence_viewer",
+        "fraud_analysis"
+      ],
+      "agent_priorities": [
+        "evidence_agent",
+        "fraud_agent",
+        "reconciliation_agent"
+      ],
+      "calculation_methods": [
+        "Forensic cost analysis",
+        "Evidence-based calculations",
+        "Suspicious pattern identification"
+      ],
+      "assessment_approaches": [
+        "Forensic investigation methodology",
+        "Evidence chain analysis",
+        "Pattern recognition"
+      ]
+    },
+    "regular_investigation_guided": {
+      "app_mode": "regular",
+      "thinking_perspective": "investigation",
+      "ai_mode": "guided",
+      "description": "Regular business with investigation thinking and guided AI",
+      "features": [
+        "Forensic financial analysis",
+        "Evidence collection guidance",
+        "Suspicious pattern detection",
+        "Guided investigation workflow",
+        "Business fraud detection"
+      ],
+      "limitations": [
+        "Limited predictive analysis",
+        "Basic evidence analysis",
+        "Standard investigation tools"
+      ],
+      "recommended_views": [
+        "financial_statements",
+        "evidence_viewer",
+        "fraud_analysis"
+      ],
+      "agent_priorities": [
+        "evidence_agent",
+        "fraud_agent",
+        "reconciliation_agent"
+      ],
+      "calculation_methods": [
+        "Forensic financial analysis",
+        "Evidence-based calculations",
+        "Suspicious pattern identification"
+      ],
+      "assessment_approaches": [
+        "Forensic investigation methodology",
+        "Evidence chain analysis",
+        "Pattern recognition"
+      ]
+    },
+    "construction_litigation_guided": {
+      "app_mode": "construction",
+      "thinking_perspective": "litigation",
+      "ai_mode": "guided",
+      "description": "Construction projects with litigation thinking and guided AI",
+      "features": [
+        "Legal compliance analysis",
+        "Contract violation detection",
+        "Guided legal assessment",
+        "Construction law compliance",
+        "Litigation preparation support"
+      ],
+      "limitations": [
+        "Limited predictive analysis",
+        "Basic legal analysis",
+        "Standard compliance tools"
+      ],
+      "recommended_views": [
+        "construction_projects",
+        "legal_analysis",
+        "compliance_reports"
+      ],
+      "agent_priorities": [
+        "litigation_agent",
+        "reconciliation_agent",
+        "fraud_agent"
+      ],
+      "calculation_methods": [
+        "Legal compliance calculations",
+        "Contract violation analysis",
+        "Regulatory requirement checking"
+      ],
+      "assessment_approaches": [
+        "Legal compliance methodology",
+        "Contract analysis",
+        "Regulatory assessment"
+      ]
+    },
+    "regular_litigation_guided": {
+      "app_mode": "regular",
+      "thinking_perspective": "litigation",
+      "ai_mode": "guided",
+      "description": "Regular business with litigation thinking and guided AI",
+      "features": [
+        "Legal compliance analysis",
+        "Contract violation detection",
+        "Guided legal assessment",
+        "Business law compliance",
+        "Litigation preparation support"
+      ],
+      "limitations": [
+        "Limited predictive analysis",
+        "Basic legal analysis",
+        "Standard compliance tools"
+      ],
+      "recommended_views": [
+        "financial_statements",
+        "legal_analysis",
+        "compliance_reports"
+      ],
+      "agent_priorities": [
+        "litigation_agent",
+        "reconciliation_agent",
+        "fraud_agent"
+      ],
+      "calculation_methods": [
+        "Legal compliance calculations",
+        "Contract violation analysis",
+        "Regulatory requirement checking"
+      ],
+      "assessment_approaches": [
+        "Legal compliance methodology",
+        "Contract analysis",
+        "Regulatory assessment"
+      ]
+    },
+    "construction_investigation_extreme": {
+      "app_mode": "construction",
+      "thinking_perspective": "investigation",
+      "ai_mode": "extreme",
+      "description": "Construction projects with investigation thinking and extreme AI",
+      "features": [
+        "Advanced forensic project analysis",
+        "AI-powered evidence collection",
+        "Predictive pattern detection",
+        "Automated investigation workflow",
+        "Advanced construction fraud detection"
+      ],
+      "limitations": [
+        "Higher computational cost",
+        "More complex analysis",
+        "Requires more data"
+      ],
+      "recommended_views": [
+        "construction_projects",
+        "evidence_viewer",
+        "fraud_analysis",
+        "entity_network"
+      ],
+      "agent_priorities": [
+        "evidence_agent",
+        "fraud_agent",
+        "reconciliation_agent",
+        "risk_agent",
+        "litigation_agent"
+      ],
+      "calculation_methods": [
+        "AI-powered forensic cost analysis",
+        "Machine learning evidence analysis",
+        "Predictive pattern identification"
+      ],
+      "assessment_approaches": [
+        "AI-enhanced investigation methodology",
+        "Predictive evidence chain analysis",
+        "Advanced pattern recognition"
+      ]
+    },
+    "regular_investigation_extreme": {
+      "app_mode": "regular",
+      "thinking_perspective": "investigation",
+      "ai_mode": "extreme",
+      "description": "Regular business with investigation thinking and extreme AI",
+      "features": [
+        "Advanced forensic financial analysis",
+        "AI-powered evidence collection",
+        "Predictive pattern detection",
+        "Automated investigation workflow",
+        "Advanced business fraud detection"
+      ],
+      "limitations": [
+        "Higher computational cost",
+        "More complex analysis",
+        "Requires more data"
+      ],
+      "recommended_views": [
+        "financial_statements",
+        "evidence_viewer",
+        "fraud_analysis",
+        "entity_network"
+      ],
+      "agent_priorities": [
+        "evidence_agent",
+        "fraud_agent",
+        "reconciliation_agent",
+        "risk_agent",
+        "litigation_agent"
+      ],
+      "calculation_methods": [
+        "AI-powered forensic financial analysis",
+        "Machine learning evidence analysis",
+        "Predictive pattern identification"
+      ],
+      "assessment_approaches": [
+        "AI-enhanced investigation methodology",
+        "Predictive evidence chain analysis",
+        "Advanced pattern recognition"
+      ]
+    },
+    "construction_litigation_extreme": {
+      "app_mode": "construction",
+      "thinking_perspective": "litigation",
+      "ai_mode": "extreme",
+      "description": "Construction projects with litigation thinking and extreme AI",
+      "features": [
+        "Advanced legal compliance analysis",
+        "AI-powered contract violation detection",
+        "Predictive legal assessment",
+        "Advanced construction law compliance",
+        "AI-enhanced litigation preparation"
+      ],
+      "limitations": [
+        "Higher computational cost",
+        "More complex analysis",
+        "Requires more data"
+      ],
+      "recommended_views": [
+        "construction_projects",
+        "legal_analysis",
+        "compliance_reports",
+        "entity_network"
+      ],
+      "agent_priorities": [
+        "litigation_agent",
+        "reconciliation_agent",
+        "fraud_agent",
+        "risk_agent",
+        "evidence_agent"
+      ],
+      "calculation_methods": [
+        "AI-powered legal compliance calculations",
+        "Machine learning contract analysis",
+        "Predictive regulatory assessment"
+      ],
+      "assessment_approaches": [
+        "AI-enhanced legal methodology",
+        "Predictive contract analysis",
+        "Advanced regulatory assessment"
+      ]
+    },
+    "regular_litigation_extreme": {
+      "app_mode": "regular",
+      "thinking_perspective": "litigation",
+      "ai_mode": "extreme",
+      "description": "Regular business with litigation thinking and extreme AI",
+      "features": [
+        "Advanced legal compliance analysis",
+        "AI-powered contract violation detection",
+        "Predictive legal assessment",
+        "Advanced business law compliance",
+        "AI-enhanced litigation preparation"
+      ],
+      "limitations": [
+        "Higher computational cost",
+        "More complex analysis",
+        "Requires more data"
+      ],
+      "recommended_views": [
+        "financial_statements",
+        "legal_analysis",
+        "compliance_reports",
+        "entity_network"
+      ],
+      "agent_priorities": [
+        "litigation_agent",
+        "reconciliation_agent",
+        "fraud_agent",
+        "risk_agent",
+        "evidence_agent"
+      ],
+      "calculation_methods": [
+        "AI-powered legal compliance calculations",
+        "Machine learning contract analysis",
+        "Predictive regulatory assessment"
+      ],
+      "assessment_approaches": [
+        "AI-enhanced legal methodology",
+        "Predictive contract analysis",
+        "Advanced regulatory assessment"
+      ]
+    }
+  }
+}

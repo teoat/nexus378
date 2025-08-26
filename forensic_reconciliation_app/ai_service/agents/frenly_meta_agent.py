@@ -161,12 +161,8 @@ class FrenlyMetaAgent:
         self.workflows: Dict[str, Dict[str, Any]] = {} # New: Store workflow definitions
         self.workflow_status: Dict[str, Dict[str, Any]] = {} # New: Track running workflow instances
         self.error_log: List[Dict[str, Any]] = [] # New: Store error events
-        self.metrics: Dict[str, Any] = { # New: Store basic metrics
-            "total_commands": 0,
-            "successful_commands": 0,
-            "failed_commands": 0,
-            "command_response_times": [] # Store response times for average
-        }
+        # Initialize metrics properly
+        self._initialize_metrics()
         
         # Initialize mode intersections
         self._initialize_mode_intersections()
@@ -995,15 +991,15 @@ class FrenlyMetaAgent:
         """
         try:
             if command.command_type == "switch_app_mode":
-                return self._switch_app_mode(command.target_mode)
+                return await self._switch_app_mode(command.target_mode)
             elif command.command_type == "change_thinking_perspective":
-                return self._change_thinking_perspective(command.target_perspective)
+                return await self._change_thinking_perspective(command.target_perspective)
             elif command.command_type == "change_ai_mode":
-                return self._change_ai_mode(command.target_ai_mode)
+                return await self._change_ai_mode(command.target_ai_mode)
             elif command.command_type == "change_dashboard_view":
-                return self._change_dashboard_view(command.target_view)
+                return await self._change_dashboard_view(command.target_view)
             elif command.command_type == "change_user_role":
-                return self._change_user_role(command.user_role)
+                return await self._change_user_role(command.user_role)
             elif command.command_type == "get_status":
                 return self._get_app_status()
             elif command.command_type == "get_mode_intersection":
@@ -1593,6 +1589,10 @@ class FrenlyMetaAgent:
         workflow_instance["end_time"] = datetime.now()
         await self._notify_state_change() # Final notification
 
+    def get_available_workflows(self) -> List[str]:
+        """Get list of available workflow names."""
+        return list(self.workflows.keys())
+    
     def get_workflow_status(self, workflow_id: Optional[str] = None) -> Dict[str, Any]:
         """Get the status of a specific workflow or all running workflows."""
         if workflow_id:
@@ -1850,6 +1850,22 @@ class FrenlyMetaAgent:
         if not hasattr(self, 'error_log'):
             return []
         return self.error_log[-limit:] if limit > 0 else self.error_log
+    
+    def get_error_summary(self) -> Dict[str, Any]:
+        """Get summary of error statistics."""
+        if not hasattr(self, 'error_log'):
+            self.error_log = []
+        
+        total_errors = len(self.error_log)
+        critical_errors = len([e for e in self.error_log if e.get('severity') == 'critical'])
+        recent_errors = self.error_log[-5:] if self.error_log else []
+        
+        return {
+            "total_errors": total_errors,
+            "critical_errors": critical_errors,
+            "recent_errors": recent_errors,
+            "error_rate": total_errors / max(1, self.metrics.get("commands_executed", 1)) * 100
+        }
 
     # ============================================================================
     # Phase 5: Workflow Integration (Items 21-25)

@@ -1,15 +1,21 @@
+#!/usr/bin/env python3
+"""
 Multi-Agent Orchestrator - Central Coordination System
 
 This module implements the MultiAgentOrchestrator class that provides
 comprehensive coordination and orchestration of all AI agents in the
 forensic platform.
+"""
 
 import asyncio
 import logging
 import uuid
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+from enum import Enum
+from dataclasses import dataclass, field
 
-from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
+# from ..taskmaster.models.job import Job, JobPriority, JobStatus, JobType
 
 class OrchestrationMode(Enum):
     """Orchestration modes for multi-agent coordination."""
@@ -83,7 +89,7 @@ class WorkflowExecution:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 class MultiAgentOrchestrator:
-
+    """
     Comprehensive multi-agent orchestration system.
 
     The MultiAgentOrchestrator is responsible for:
@@ -92,6 +98,7 @@ class MultiAgentOrchestrator:
     - Load balancing and resource allocation
     - Agent health monitoring and failover
     - Performance optimization and scaling
+    """
 
     def __init__(self, config: Dict[str, Any]):
         """Initialize the MultiAgentOrchestrator."""

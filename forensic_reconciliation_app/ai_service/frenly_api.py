@@ -9,6 +9,7 @@ from typing import Dict, List, Any, Optional
 from fastapi import WebSocket, WebSocketDisconnect, APIRouter, HTTPException
 from pydantic import BaseModel
 import logging # Added for WebSocket logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 from agents.frenly_meta_agent import AppContext, AppCommand, AppResponse, FrenlyMetaAgent
@@ -663,8 +664,11 @@ async def get_metrics():
     """Get current performance metrics."""
     try:
         frenly_agent, frenly_bridge = get_frenly_instances()
-        metrics = frenly_agent.get_metrics()
-        return {"success": True, "metrics": metrics}
+        if frenly_agent:
+            metrics = frenly_agent.get_performance_metrics()
+            return {"success": True, "metrics": metrics}
+        else:
+            raise HTTPException(status_code=500, detail="Frenly agent not available")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -729,19 +733,6 @@ async def get_specific_workflow(workflow_id: str):
 # ============================================================================
 # Performance Metrics API Endpoints (Phase 7, Items 26-30)
 # ============================================================================
-
-@frenly_router.get("/metrics")
-async def get_performance_metrics():
-    """Get performance metrics for Frenly system."""
-    try:
-        frenly_agent, frenly_bridge = get_frenly_instances()
-        if frenly_agent:
-            metrics = frenly_agent.get_performance_metrics()
-            return {"success": True, "metrics": metrics}
-        else:
-            raise HTTPException(status_code=500, detail="Frenly agent not available")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @frenly_router.get("/metrics/overview")
 async def get_metrics_overview():
@@ -896,6 +887,73 @@ async def get_websocket_status():
         "active_connections": len(connection_manager.active_connections),
         "heartbeat_running": connection_manager.heartbeat_running
     }
+
+
+# ============================================================================
+# Dashboard API Endpoint
+# ============================================================================
+
+@frenly_router.get("/dashboard")
+async def get_dashboard():
+    """Get comprehensive dashboard data for Frenly system."""
+    try:
+        frenly_agent, frenly_bridge = get_frenly_instances()
+        if not frenly_agent:
+            raise HTTPException(status_code=500, detail="Frenly agent not available")
+        
+        # Get system health
+        system_health = frenly_agent.get_overall_system_health()
+        
+        # Get current context
+        context = frenly_agent.app_context
+        
+        # Get available workflows
+        available_workflows = frenly_agent.get_available_workflows()
+        
+        # Get performance metrics
+        try:
+            metrics = frenly_agent.get_performance_metrics()
+        except Exception:
+            metrics = {"overview": {"total_commands": 0, "successful_commands": 0, "failed_commands": 0}}
+        
+        # Get recent events
+        try:
+            recent_events = frenly_agent.get_recent_events(limit=10)
+        except Exception:
+            recent_events = []
+        
+        # Get error summary
+        try:
+            error_summary = frenly_agent.get_error_summary()
+        except Exception:
+            error_summary = {"total_errors": 0, "critical_errors": 0, "recent_errors": []}
+        
+        dashboard_data = {
+            "system_health": system_health,
+            "current_context": {
+                "app_mode": context.app_mode.value if context.app_mode else "unknown",
+                "ai_mode": context.ai_mode.value if context.ai_mode else "unknown",
+                "thinking_perspective": context.thinking_perspective.value if context.thinking_perspective else "none",
+                "dashboard_view": context.dashboard_view.value if context.dashboard_view else "unknown",
+                "user_role": context.user_role.value if context.user_role else "unknown"
+            },
+            "workflows": {
+                "available": available_workflows,
+                "running": len(frenly_agent.workflow_status)
+            },
+            "performance": metrics,
+            "recent_activity": recent_events,
+            "error_summary": error_summary,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        return {"success": True, "dashboard": dashboard_data}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting dashboard data: {e}")
+        raise HTTPException(status_code=500, detail=f"Dashboard error: {str(e)}")
 
 
 # User Integration Endpoints
