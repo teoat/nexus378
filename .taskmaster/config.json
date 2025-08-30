@@ -1,9 +1,15 @@
 {
   "models": {
     "main": {
+<<<<<<< Updated upstream:.taskmaster/config.json
       "provider": "anthropic",
       "modelId": "claude-3-5-sonnet-20241022",
       "maxTokens": 8192,
+=======
+      "provider": "gemini-cli",
+      "modelId": "gemini-2.5-flash",
+      "maxTokens": 64000,
+>>>>>>> Stashed changes:Desktop/Nexus/.taskmaster/config.json
       "temperature": 0.2
     },
     "research": {
