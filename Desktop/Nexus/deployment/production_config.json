@@ -1,0 +1,7 @@
+{
+  "environment": "production",
+  "version": "1.0.0",
+  "deployment_time": "2025-08-26T23:37:03.138229",
+  "max_workers": 100,
+  "max_concurrent_tasks": 50
+}
