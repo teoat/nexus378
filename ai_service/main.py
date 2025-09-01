@@ -134,8 +134,7 @@ app.add_middleware(
 )
 
 # Include Frenly API routes
-from frenly_api import get_frenly_router
-frenly_router = get_frenly_router()
+from frenly_api import frenly_router
 app.include_router(frenly_router)
 
 @app.get("/", response_model=Dict[str, str])

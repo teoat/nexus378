@@ -1,0 +1,51 @@
+{
+  "todo_id": "todo_1755969003_006",
+  "created_at": "2025-08-24T02:10:04.200030",
+  "microtasks": [
+    {
+      "id": "todo_1755969003_006_generic_1",
+      "title": "Research Phase",
+      "description": "Complete research phase for - [ ] **Implement docker-compose.yml Optimizations:** Apply refinements to all docker-compose.yml files.",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-24 02:10:04.200008",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755969003_006_generic_2",
+      "title": "Planning Phase",
+      "description": "Complete planning phase for - [ ] **Implement docker-compose.yml Optimizations:** Apply refinements to all docker-compose.yml files.",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-24 02:10:04.200012",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755969003_006_generic_3",
+      "title": "Implementation Phase",
+      "description": "Complete implementation phase for - [ ] **Implement docker-compose.yml Optimizations:** Apply refinements to all docker-compose.yml files.",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-24 02:10:04.200014",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755969003_006_generic_4",
+      "title": "Testing Phase",
+      "description": "Complete testing phase for - [ ] **Implement docker-compose.yml Optimizations:** Apply refinements to all docker-compose.yml files.",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-24 02:10:04.200015",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755969003_006_generic_5",
+      "title": "Documentation Phase",
+      "description": "Complete documentation phase for - [ ] **Implement docker-compose.yml Optimizations:** Apply refinements to all docker-compose.yml files.",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-24 02:10:04.200017",
+      "type": "generic"
+    }
+  ]
+}

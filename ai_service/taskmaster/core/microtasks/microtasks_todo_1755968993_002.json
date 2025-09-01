@@ -1,0 +1,51 @@
+{
+  "todo_id": "todo_1755968993_002",
+  "created_at": "2025-08-24T02:09:54.201542",
+  "microtasks": [
+    {
+      "id": "todo_1755968993_002_generic_1",
+      "title": "Research Phase",
+      "description": "Complete research phase for - [ ] **Optimize docker-compose.yml Files:** Review and refine all docker-compose.yml files.",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-24 02:09:54.201501",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755968993_002_generic_2",
+      "title": "Planning Phase",
+      "description": "Complete planning phase for - [ ] **Optimize docker-compose.yml Files:** Review and refine all docker-compose.yml files.",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-24 02:09:54.201508",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755968993_002_generic_3",
+      "title": "Implementation Phase",
+      "description": "Complete implementation phase for - [ ] **Optimize docker-compose.yml Files:** Review and refine all docker-compose.yml files.",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-24 02:09:54.201511",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755968993_002_generic_4",
+      "title": "Testing Phase",
+      "description": "Complete testing phase for - [ ] **Optimize docker-compose.yml Files:** Review and refine all docker-compose.yml files.",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-24 02:09:54.201514",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755968993_002_generic_5",
+      "title": "Documentation Phase",
+      "description": "Complete documentation phase for - [ ] **Optimize docker-compose.yml Files:** Review and refine all docker-compose.yml files.",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-24 02:09:54.201517",
+      "type": "generic"
+    }
+  ]
+}

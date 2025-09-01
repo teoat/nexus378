@@ -1,0 +1,51 @@
+{
+  "todo_id": "todo_1755931041_000",
+  "created_at": "2025-08-23T15:37:21.613751",
+  "microtasks": [
+    {
+      "id": "todo_1755931041_000_generic_1",
+      "title": "Research Phase",
+      "description": "Complete research phase for DEPLOY_001: Implement Docker Compose Production Configuration** - HIGH Priority - 4-6 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 15:37:21.613733",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755931041_000_generic_2",
+      "title": "Planning Phase",
+      "description": "Complete planning phase for DEPLOY_001: Implement Docker Compose Production Configuration** - HIGH Priority - 4-6 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 15:37:21.613736",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755931041_000_generic_3",
+      "title": "Implementation Phase",
+      "description": "Complete implementation phase for DEPLOY_001: Implement Docker Compose Production Configuration** - HIGH Priority - 4-6 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 15:37:21.613737",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755931041_000_generic_4",
+      "title": "Testing Phase",
+      "description": "Complete testing phase for DEPLOY_001: Implement Docker Compose Production Configuration** - HIGH Priority - 4-6 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 15:37:21.613739",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755931041_000_generic_5",
+      "title": "Documentation Phase",
+      "description": "Complete documentation phase for DEPLOY_001: Implement Docker Compose Production Configuration** - HIGH Priority - 4-6 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 15:37:21.613740",
+      "type": "generic"
+    }
+  ]
+}
