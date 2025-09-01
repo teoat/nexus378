@@ -1,0 +1,51 @@
+{
+  "todo_id": "todo_1755917769_157",
+  "created_at": "2025-08-23T11:56:11.983705",
+  "microtasks": [
+    {
+      "id": "todo_1755917769_157_generic_1",
+      "title": "Research Phase",
+      "description": "Complete research phase for - [ ] Implement parallel processing",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 11:56:11.983680",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755917769_157_generic_2",
+      "title": "Planning Phase",
+      "description": "Complete planning phase for - [ ] Implement parallel processing",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 11:56:11.983685",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755917769_157_generic_3",
+      "title": "Implementation Phase",
+      "description": "Complete implementation phase for - [ ] Implement parallel processing",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 11:56:11.983687",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755917769_157_generic_4",
+      "title": "Testing Phase",
+      "description": "Complete testing phase for - [ ] Implement parallel processing",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 11:56:11.983689",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755917769_157_generic_5",
+      "title": "Documentation Phase",
+      "description": "Complete documentation phase for - [ ] Implement parallel processing",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 11:56:11.983690",
+      "type": "generic"
+    }
+  ]
+}

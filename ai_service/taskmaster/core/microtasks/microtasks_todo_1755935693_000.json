@@ -1,0 +1,51 @@
+{
+  "todo_id": "todo_1755935693_000",
+  "created_at": "2025-08-23T16:54:53.346376",
+  "microtasks": [
+    {
+      "id": "todo_1755935693_000_generic_1",
+      "title": "Research Phase",
+      "description": "Complete research phase for DEPLOY_002: Implement Kubernetes Deployment Manifests** - HIGH Priority - 6-8 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 16:54:53.346351",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755935693_000_generic_2",
+      "title": "Planning Phase",
+      "description": "Complete planning phase for DEPLOY_002: Implement Kubernetes Deployment Manifests** - HIGH Priority - 6-8 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 16:54:53.346357",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755935693_000_generic_3",
+      "title": "Implementation Phase",
+      "description": "Complete implementation phase for DEPLOY_002: Implement Kubernetes Deployment Manifests** - HIGH Priority - 6-8 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 16:54:53.346359",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755935693_000_generic_4",
+      "title": "Testing Phase",
+      "description": "Complete testing phase for DEPLOY_002: Implement Kubernetes Deployment Manifests** - HIGH Priority - 6-8 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 16:54:53.346360",
+      "type": "generic"
+    },
+    {
+      "id": "todo_1755935693_000_generic_5",
+      "title": "Documentation Phase",
+      "description": "Complete documentation phase for DEPLOY_002: Implement Kubernetes Deployment Manifests** - HIGH Priority - 6-8 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 16:54:53.346362",
+      "type": "generic"
+    }
+  ]
+}

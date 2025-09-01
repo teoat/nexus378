@@ -1,0 +1,51 @@
+{
+  "todo_id": "todo_1755937268_001",
+  "created_at": "2025-08-23T17:21:10.767438",
+  "microtasks": [
+    {
+      "id": "todo_1755937268_001_comp_1",
+      "title": "Setup Phase",
+      "description": "Complete setup phase for DEPLOY_003: Implement API Gateway Production Configuration** - HIGH Priority - 4-6 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 17:21:10.767414",
+      "type": "component_work"
+    },
+    {
+      "id": "todo_1755937268_001_comp_2",
+      "title": "Configuration Phase",
+      "description": "Complete configuration phase for DEPLOY_003: Implement API Gateway Production Configuration** - HIGH Priority - 4-6 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 17:21:10.767419",
+      "type": "component_work"
+    },
+    {
+      "id": "todo_1755937268_001_comp_3",
+      "title": "Implementation Phase",
+      "description": "Complete implementation phase for DEPLOY_003: Implement API Gateway Production Configuration** - HIGH Priority - 4-6 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 17:21:10.767421",
+      "type": "component_work"
+    },
+    {
+      "id": "todo_1755937268_001_comp_4",
+      "title": "Testing Phase",
+      "description": "Complete testing phase for DEPLOY_003: Implement API Gateway Production Configuration** - HIGH Priority - 4-6 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 17:21:10.767423",
+      "type": "component_work"
+    },
+    {
+      "id": "todo_1755937268_001_comp_5",
+      "title": "Documentation Phase",
+      "description": "Complete documentation phase for DEPLOY_003: Implement API Gateway Production Configuration** - HIGH Priority - 4-6 hours - Phase 3 - Deployment",
+      "estimated_duration": "30min",
+      "status": "pending",
+      "created_at": "2025-08-23 17:21:10.767424",
+      "type": "component_work"
+    }
+  ]
+}
